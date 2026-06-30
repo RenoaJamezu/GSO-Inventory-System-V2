@@ -2,6 +2,11 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import PageLoader from "@/pages/PageLoader";
+import AccountColumnsPage from "@/features/account-columns/pages/AccountColumnsPage";
+
+const InventoryAccountsPage = lazy(
+  () => import("@/features/inventory-accounts/pages/InventoryAccountsPage"),
+);
 
 const PublicQrPage = lazy(() => import("@/pages/PublicQrPage"));
 
@@ -14,6 +19,13 @@ export default function AppRoutes() {
         <Route
           path="/"
           element={<Navigate to="/inventory-accounts" replace />}
+        />
+
+        <Route path="/inventory-accounts" element={<InventoryAccountsPage />} />
+
+        <Route
+          path="/inventory-accounts/:accountId/columns"
+          element={<AccountColumnsPage />}
         />
 
         <Route path="/public/:qrUuid" element={<PublicQrPage />} />

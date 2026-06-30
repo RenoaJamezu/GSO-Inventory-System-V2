@@ -1,0 +1,19 @@
+import type { InputHTMLAttributes } from "react";
+
+type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & {
+  label: string;
+};
+
+export default function FormCheckbox({ label, ...props }: Props) {
+  return (
+    <label className="flex items-center gap-2">
+      <input
+        type="checkbox"
+        {...props}
+        className="h-4 w-4 rounded border-gray-300"
+      />
+
+      <span className="text-sm text-gray-700">{label}</span>
+    </label>
+  );
+}
