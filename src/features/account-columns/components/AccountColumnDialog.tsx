@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
 import {
   Dialog,
@@ -14,6 +17,11 @@ import {
   FormSelect,
   FormTextarea,
 } from "@/components/form";
+
+import {
+  accountColumnSchema,
+  type AccountColumnForm,
+} from "../schemas/accountColumn.schema";
 
 import {
   useCreateAccountColumn,
@@ -35,16 +43,6 @@ type Props = {
 
 const DATA_TYPES: ColumnDataType[] = ["text", "number", "date", "boolean"];
 
-const createInitialForm = (accountId: number): AccountColumnInput => ({
-  account_id: accountId,
-  label: "",
-  data_type: "text",
-  placeholder: "",
-  description: "",
-  is_required: false,
-  is_amount_column: false,
-});
-
 export default function AccountColumnDialog({
   open,
   accountId,
@@ -54,19 +52,30 @@ export default function AccountColumnDialog({
   const createMutation = useCreateAccountColumn();
   const updateMutation = useUpdateAccountColumn();
 
-  const [form, setForm] = useState<AccountColumnInput>(
-    createInitialForm(accountId),
-  );
-
   const isEdit = Boolean(column);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<AccountColumnForm>({
+    resolver: zodResolver(accountColumnSchema),
+    defaultValues: {
+      label: "",
+      data_type: "text",
+      placeholder: "",
+      description: "",
+      is_required: false,
+      is_amount_column: false,
+    },
+  });
 
   useEffect(() => {
     if (!open) return;
 
     if (column) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setForm({
-        account_id: accountId,
+      reset({
         label: column.label,
         data_type: column.data_type,
         placeholder: column.placeholder ?? "",
@@ -78,23 +87,30 @@ export default function AccountColumnDialog({
       return;
     }
 
-    setForm(createInitialForm(accountId));
-  }, [open, column, accountId]);
+    reset({
+      label: "",
+      data_type: "text",
+      placeholder: "",
+      description: "",
+      is_required: false,
+      is_amount_column: false,
+    });
+  }, [open, column, reset]);
 
-  const handleSubmit = async () => {
-    if (!form.label.trim()) {
-      alert("Label is required.");
-      return;
-    }
+  async function onSubmit(values: AccountColumnForm) {
+    const payload: AccountColumnInput = {
+      account_id: accountId,
+      ...values,
+    };
 
     try {
       if (isEdit && column) {
         await updateMutation.mutateAsync({
           id: column.id,
-          values: form,
+          values: payload,
         });
       } else {
-        await createMutation.mutateAsync(form);
+        await createMutation.mutateAsync(payload);
       }
 
       onClose();
@@ -108,106 +124,74 @@ export default function AccountColumnDialog({
 
       alert("Failed to save column.");
     }
-  };
+  }
 
   return (
     <Dialog open={open} maxWidth="md">
       <DialogHeader title={isEdit ? "Edit Column" : "Add Column"} />
 
-      <DialogBody>
-        <FormField label="Label" required>
-          <FormInput
-            value={form.label}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                label: e.target.value,
-              })
-            }
-          />
-        </FormField>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <DialogBody>
+          <FormField label="Label" required>
+            <FormInput {...register("label")} />
 
-        <FormField label="Data Type">
-          <FormSelect
-            value={form.data_type}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                data_type: e.target.value as ColumnDataType,
-              })
-            }
+            {errors.label && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.label.message}
+              </p>
+            )}
+          </FormField>
+
+          <FormField label="Data Type">
+            <FormSelect {...register("data_type")}>
+              {DATA_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </FormSelect>
+          </FormField>
+
+          <FormField label="Placeholder">
+            <FormInput {...register("placeholder")} />
+          </FormField>
+
+          <FormField label="Description">
+            <FormTextarea rows={3} {...register("description")} />
+          </FormField>
+
+          <div className="space-y-3">
+            <FormCheckbox label="Required" {...register("is_required")} />
+
+            <FormCheckbox
+              label="Amount Column"
+              {...register("is_amount_column")}
+            />
+          </div>
+        </DialogBody>
+
+        <DialogFooter>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded border px-4 py-2"
           >
-            {DATA_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </FormSelect>
-        </FormField>
+            Cancel
+          </button>
 
-        <FormField label="Placeholder">
-          <FormInput
-            value={form.placeholder ?? ""}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                placeholder: e.target.value,
-              })
+          <button
+            type="submit"
+            disabled={
+              isSubmitting ||
+              createMutation.isPending ||
+              updateMutation.isPending
             }
-          />
-        </FormField>
-
-        <FormField label="Description">
-          <FormTextarea
-            rows={3}
-            value={form.description ?? ""}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                description: e.target.value,
-              })
-            }
-          />
-        </FormField>
-
-        <div className="space-y-3">
-          <FormCheckbox
-            label="Required"
-            checked={form.is_required}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                is_required: e.target.checked,
-              })
-            }
-          />
-
-          <FormCheckbox
-            label="Amount Column"
-            checked={form.is_amount_column}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                is_amount_column: e.target.checked,
-              })
-            }
-          />
-        </div>
-      </DialogBody>
-
-      <DialogFooter>
-        <button onClick={onClose} className="rounded border px-4 py-2">
-          Cancel
-        </button>
-
-        <button
-          onClick={handleSubmit}
-          disabled={createMutation.isPending || updateMutation.isPending}
-          className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
-        >
-          {isEdit ? "Save Changes" : "Create"}
-        </button>
-      </DialogFooter>
+            className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+          >
+            {isEdit ? "Save Changes" : "Create"}
+          </button>
+        </DialogFooter>
+      </form>
     </Dialog>
   );
 }

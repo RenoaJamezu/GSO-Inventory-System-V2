@@ -1,9 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
   useCreateInventoryAccount,
   useUpdateInventoryAccount,
 } from "../hooks/useInventoryAccounts";
+
+import {
+  inventoryAccountSchema,
+  type InventoryAccountForm,
+} from "../schemas/inventoryAccount.schema";
 
 import type { InventoryAccount } from "../types";
 
@@ -25,42 +33,57 @@ export function InventoryAccountDialog({ open, onClose, account }: Props) {
   const createMutation = useCreateInventoryAccount();
   const updateMutation = useUpdateInventoryAccount();
 
-  const isEditing = !!account;
+  const isEditing = Boolean(account);
 
-  const [title, setTitle] = useState("");
-  const [bookValue, setBookValue] = useState(0);
-  const [variance, setVariance] = useState(0);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<InventoryAccountForm>({
+    resolver: zodResolver(inventoryAccountSchema),
+    defaultValues: {
+      account_title: "",
+      book_value: 0,
+      variance: 0,
+    },
+  });
 
   useEffect(() => {
+    if (!open) return;
+
     if (account) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTitle(account.account_title);
-      setBookValue(account.book_value);
-      setVariance(account.variance);
-    } else {
-      setTitle("");
-      setBookValue(0);
-      setVariance(0);
+      reset({
+        account_title: account.account_title,
+        book_value: account.book_value,
+        variance: account.variance,
+      });
+
+      return;
     }
-  }, [account]);
+
+    reset({
+      account_title: "",
+      book_value: 0,
+      variance: 0,
+    });
+  }, [account, open, reset]);
 
   if (!open) return null;
 
-  async function handleSubmit() {
-    const values = {
-      account_title: title,
-      slug: slugify(title),
-      book_value: bookValue,
-      variance,
+  async function onSubmit(values: InventoryAccountForm) {
+    const payload = {
+      ...values,
+      slug: slugify(values.account_title),
     };
 
-    if (isEditing) {
+    if (isEditing && account) {
       await updateMutation.mutateAsync({
         id: account.id,
-        values,
+        values: payload,
       });
     } else {
-      await createMutation.mutateAsync(values);
+      await createMutation.mutateAsync(payload);
     }
 
     onClose();
@@ -73,43 +96,76 @@ export function InventoryAccountDialog({ open, onClose, account }: Props) {
           {isEditing ? "Edit Account" : "Add Account"}
         </h2>
 
-        <div className="space-y-4">
-          <label>Account Title</label>
-          <input
-            className="w-full rounded border p-2"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <label className="mb-1 block">Account Title</label>
 
-          <label>Book Value</label>
-          <input
-            type="number"
-            className="w-full rounded border p-2"
-            value={bookValue}
-            onChange={(e) => setBookValue(Number(e.target.value))}
-          />
+            <input
+              {...register("account_title")}
+              className="w-full rounded border p-2"
+            />
 
-          <label>Variance</label>
-          <input
-            type="number"
-            className="w-full rounded border p-2"
-            value={variance}
-            onChange={(e) => setVariance(Number(e.target.value))}
-          />
-        </div>
+            {errors.account_title && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.account_title.message}
+              </p>
+            )}
+          </div>
 
-        <div className="mt-6 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded border px-4 py-2">
-            Cancel
-          </button>
+          <div>
+            <label className="mb-1 block">Book Value</label>
 
-          <button
-            onClick={handleSubmit}
-            className="rounded bg-blue-600 px-4 py-2 text-white"
-          >
-            Save
-          </button>
-        </div>
+            <input
+              type="number"
+              {...register("book_value")}
+              className="w-full rounded border p-2"
+            />
+
+            {errors.book_value && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.book_value.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="mb-1 block">Variance</label>
+
+            <input
+              type="number"
+              {...register("variance")}
+              className="w-full rounded border p-2"
+            />
+
+            {errors.variance && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.variance.message}
+              </p>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded border px-4 py-2"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              disabled={
+                isSubmitting ||
+                createMutation.isPending ||
+                updateMutation.isPending
+              }
+              className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+            >
+              {isEditing ? "Update" : "Save"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
