@@ -1,4 +1,9 @@
-export type ColumnDataType = "text" | "number" | "date" | "boolean";
+export type ColumnDataType =
+  | "text"
+  | "textarea"
+  | "number"
+  | "date"
+  | "boolean";
 
 export interface AccountColumn {
   id: number;

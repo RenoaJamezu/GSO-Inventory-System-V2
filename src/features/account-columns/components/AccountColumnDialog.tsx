@@ -41,7 +41,13 @@ type Props = {
   onClose: () => void;
 };
 
-const DATA_TYPES: ColumnDataType[] = ["text", "number", "date", "boolean"];
+const DATA_TYPES: ColumnDataType[] = [
+  "text",
+  "textarea",
+  "number",
+  "date",
+  "boolean",
+];
 
 export default function AccountColumnDialog({
   open,

@@ -29,7 +29,7 @@ function slugify(text: string) {
     .replace(/[^\w-]/g, "");
 }
 
-export function InventoryAccountDialog({ open, onClose, account }: Props) {
+export default function InventoryAccountDialog({ open, onClose, account }: Props) {
   const createMutation = useCreateInventoryAccount();
   const updateMutation = useUpdateInventoryAccount();
 
@@ -117,7 +117,9 @@ export function InventoryAccountDialog({ open, onClose, account }: Props) {
 
             <input
               type="number"
-              {...register("book_value")}
+              {...register("book_value", {
+                valueAsNumber: true,
+              })}
               className="w-full rounded border p-2"
             />
 
@@ -133,7 +135,9 @@ export function InventoryAccountDialog({ open, onClose, account }: Props) {
 
             <input
               type="number"
-              {...register("variance")}
+              {...register("variance", {
+                valueAsNumber: true,
+              })}
               className="w-full rounded border p-2"
             />
 

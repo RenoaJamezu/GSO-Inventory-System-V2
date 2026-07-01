@@ -7,7 +7,10 @@ type InventoryAccountsTableProps = {
   onEdit: (account: InventoryAccount) => void;
 };
 
-export function InventoryAccountsTable({ accounts, onEdit }: InventoryAccountsTableProps) {
+export default function InventoryAccountsTable({
+  accounts,
+  onEdit,
+}: InventoryAccountsTableProps) {
   const navigate = useNavigate();
   const deleteMutation = useDeleteInventoryAccount();
 
@@ -76,11 +79,19 @@ export function InventoryAccountsTable({ accounts, onEdit }: InventoryAccountsTa
                 <div className="flex justify-center gap-2">
                   <button
                     onClick={() =>
+                      navigate(`/inventory-accounts/${account.id}/records`)
+                    }
+                    className="rounded bg-green-600 px-3 py-1 text-sm text-white hover:bg-green-700"
+                  >
+                    Records
+                  </button>
+                  <button
+                    onClick={() =>
                       navigate(`/inventory-accounts/${account.id}/columns`)
                     }
                     className="rounded bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700"
                   >
-                    View
+                    Columns
                   </button>
 
                   <button
