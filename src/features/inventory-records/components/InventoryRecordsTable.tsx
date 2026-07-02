@@ -6,6 +6,7 @@ import type { Group } from "@/features/groups";
 import { useDeleteInventoryRecord } from "../hooks/useInventoryRecords";
 
 import type { InventoryRecord } from "../types";
+import { Link } from "react-router-dom";
 
 type Props = {
   columns: AccountColumn[];
@@ -103,6 +104,23 @@ export default function InventoryRecordsTable({
 
                     <td className="border px-4 py-2">
                       <div className="flex justify-center gap-2">
+                        <div className="flex justify-center gap-2">
+                          <Link
+                            to={`/record/${record.qr_uuid}`}
+                            target="_blank"
+                            className="rounded bg-green-600 px-3 py-1 text-sm text-white"
+                          >
+                            QR
+                          </Link>
+
+                          <Link
+                            to={`/print/${record.qr_uuid}`}
+                            target="_blank"
+                            className="rounded bg-blue-600 px-3 py-1 text-sm text-white"
+                          >
+                            Print
+                          </Link>
+                        </div>
                         <button
                           onClick={() => onEdit(record)}
                           className="rounded bg-yellow-500 px-3 py-1 text-sm text-white"

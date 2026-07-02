@@ -29,6 +29,18 @@ export async function getInventoryRecord(id: number) {
   return data as InventoryRecord;
 }
 
+export async function getInventoryRecordByUuid(uuid: string) {
+  const { data, error } = await supabase
+    .from("inventory_records")
+    .select("*")
+    .eq("qr_uuid", uuid)
+    .single();
+
+  if (error) throw error;
+
+  return data;
+}
+
 export async function createInventoryRecord(values: InventoryRecordInput) {
   const { data, error } = await supabase
     .from(TABLE)

@@ -4,6 +4,7 @@ import {
   createInventoryRecord,
   deleteInventoryRecord,
   getInventoryRecord,
+  getInventoryRecordByUuid,
   getInventoryRecords,
   updateInventoryRecord,
 } from "../api/inventoryRecords.api";
@@ -79,5 +80,13 @@ export function useDeleteInventoryRecord() {
         queryKey: ["inventory-record", record.id],
       });
     },
+  });
+}
+
+export function useInventoryRecordByUuid(uuid: string) {
+  return useQuery({
+    queryKey: ["inventory-record-uuid", uuid],
+    queryFn: () => getInventoryRecordByUuid(uuid),
+    enabled: !!uuid,
   });
 }

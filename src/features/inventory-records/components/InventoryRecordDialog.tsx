@@ -51,7 +51,12 @@ export default function InventoryRecordDialog({
 
   const [groupId, setGroupId] = useState<number | null>(null);
 
-  const { control, handleSubmit, reset } = useForm<InventoryRecordFormValues>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<InventoryRecordFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {},
   });
@@ -98,6 +103,7 @@ export default function InventoryRecordDialog({
   }, [open, record, columns, reset]);
 
   const onSubmit = async (values: InventoryRecordFormValues) => {
+    console.log("Submitting...", values);
     try {
       if (isEdit && record) {
         await updateMutation.mutateAsync({
@@ -122,8 +128,6 @@ export default function InventoryRecordDialog({
     }
   };
 
-  console.log("InventoryRecordDialog record:", record);
-
   if (!open) return null;
 
   if (isLoading) {
@@ -135,6 +139,8 @@ export default function InventoryRecordDialog({
       </Dialog>
     );
   }
+
+  console.log(errors);
 
   return (
     <Dialog open={open} maxWidth="lg">

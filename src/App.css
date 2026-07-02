@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+@media print {
+  body {
+    margin: 0;
+    background: white;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  @page {
+    margin: 0;
+    size: A4 portrait;
+  }
+}

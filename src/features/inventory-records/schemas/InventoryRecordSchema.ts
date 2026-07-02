@@ -12,7 +12,7 @@ export function createInventoryRecordSchema(columns: AccountColumn[]) {
       case "number":
         field = z.preprocess((value) => {
           if (value === "" || value === null || value === undefined) {
-            return undefined;
+            return 0;
           }
 
           const number = Number(value);

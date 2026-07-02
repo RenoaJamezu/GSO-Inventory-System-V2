@@ -1,16 +1,33 @@
-import { lazy, Suspense } from "react";
+import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import PageLoader from "@/pages/PageLoader";
-import AccountColumnsPage from "@/features/account-columns/pages/AccountColumnsPage";
-import InventoryRecordsPage from "@/features/inventory-records/pages/InventoryRecordsPage";
-import { GroupsPage } from "@/features/groups";
 
 const InventoryAccountsPage = lazy(
   () => import("@/features/inventory-accounts/pages/InventoryAccountsPage"),
 );
 
-const PublicQrPage = lazy(() => import("@/pages/PublicQrPage"));
+const AccountColumnsPage = lazy(
+  () => import("@/features/account-columns/pages/AccountColumnsPage"),
+);
+
+const InventoryRecordsPage = lazy(
+  () => import("@/features/inventory-records/pages/InventoryRecordsPage"),
+);
+
+const InventoryRecordQrCodePage = lazy(
+  () => import("@/features/inventory-records/pages/InventoryRecordQrCodePage"),
+);
+
+const GroupsPage = lazy(() => import("@/features/groups/pages/GroupsPage"));
+
+const PublicInventoryRecordPage = lazy(
+  () => import("@/features/public/pages/PublicInventoryRecordPage"),
+);
+
+const PrintQrPage = lazy(
+  () => import("@/features/inventory-records/pages/PrintQrPage"),
+);
 
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 
@@ -40,7 +57,11 @@ export default function AppRoutes() {
           element={<GroupsPage />}
         />
 
-        <Route path="/public/:qrUuid" element={<PublicQrPage />} />
+        <Route path="/record/:uuid" element={<InventoryRecordQrCodePage />} />
+
+        <Route path="/public/:uuid" element={<PublicInventoryRecordPage />} />
+
+        <Route path="/print/:uuid" element={<PrintQrPage />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
