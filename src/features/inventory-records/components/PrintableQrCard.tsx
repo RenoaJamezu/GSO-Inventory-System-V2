@@ -54,7 +54,7 @@ export default function PrintableQrCard({ record }: Props) {
       <div className="flex items-center flex-col">
         <div className="flex items-center pt-6 px-4">
           <img
-            src="/public/sibagat-logo.png"
+            src="/images/sibagat-logo.png"
             alt="Municipality Logo"
             className="h-50 w-50 object-contain"
           />
@@ -83,7 +83,7 @@ export default function PrintableQrCard({ record }: Props) {
         <div className="flex flex-col justify-end space-y-6">
           <div className="text-center">
             <img
-              src="/public/mayor-signature.png"
+              src="/images/mayor-signature.png"
               alt=""
               className="mx-auto h-16"
             />
@@ -95,7 +95,7 @@ export default function PrintableQrCard({ record }: Props) {
 
           <div className="text-center">
             <img
-              src="/public/supply-signature.png"
+              src="/images/supply-signature.png"
               alt=""
               className="mx-auto h-16 scale-150"
             />
