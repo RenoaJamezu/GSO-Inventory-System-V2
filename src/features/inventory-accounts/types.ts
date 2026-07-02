@@ -7,7 +7,6 @@ export interface InventoryAccount {
   variance: number;
 
   is_active: boolean;
-  is_deleted: boolean;
   deleted_at: string | null;
 
   created_at: string;

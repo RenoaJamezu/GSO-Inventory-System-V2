@@ -3,9 +3,8 @@ import type { InventoryAccount, InventoryAccountInput } from "../types";
 
 export async function getInventoryAccounts() {
   const { data, error } = await supabase
-    .from("inventory_accounts")
+    .from("inventory_accounts_summary")
     .select("*")
-    .eq("is_deleted", false)
     .order("created_at", { ascending: true });
 
   if (error) throw error;
@@ -57,7 +56,6 @@ export async function deleteInventoryAccount(id: number) {
   const { error } = await supabase
     .from("inventory_accounts")
     .update({
-      is_deleted: true,
       deleted_at: new Date().toISOString(),
     })
     .eq("id", id);

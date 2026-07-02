@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
 
-
 import { useInventoryAccounts } from "../hooks/useInventoryAccounts";
 
 import type { InventoryAccount } from "../types";
-import { InventoryAccountsTable } from "../components/InventoryAccountsTable";
-import { InventoryAccountDialog } from "../components/InventoryAccountDialog";
+import InventoryAccountsTable from "../components/InventoryAccountsTable";
+import InventoryAccountDialog from "../components/InventoryAccountDialog";
 
 export default function InventoryAccountPage() {
   const { data = [], isLoading, error } = useInventoryAccounts();

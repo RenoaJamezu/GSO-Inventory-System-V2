@@ -15,7 +15,7 @@ export async function getAccountColumns(accountId: number) {
     .from("account_columns")
     .select("*")
     .eq("account_id", accountId)
-    .eq("is_deleted", false)
+    .is("deleted_at", null)
     .order("display_order", {
       ascending: true,
     });
