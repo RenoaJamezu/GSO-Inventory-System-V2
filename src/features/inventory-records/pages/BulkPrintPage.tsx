@@ -34,7 +34,7 @@ export default function BulkPrintPage() {
         </button>
       </div>
 
-      <div className="mx-auto flex flex-wrap flex-col-2 justify-center gap-2 p-0 print:gap-0 print:p-0">
+      <div className="mx-auto flex flex-wrap flex-col-2 justify-center gap-2 p-8 print:gap-2 print:p-0">
         {records.map((record) => (
           <PrintableQrCard key={record.id} record={record} />
         ))}

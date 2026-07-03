@@ -69,8 +69,8 @@ export default function PrintableQrCard({ record }: Props) {
 
           </div>
           <img
-            src="/images/sibagat-logo.png"
-            alt="Municipality Logo"
+            src="/images/gso-logo.png"
+            alt="GSO Logo"
             className="h-12 w-12 object-contain"
           />
         </div>
@@ -79,7 +79,7 @@ export default function PrintableQrCard({ record }: Props) {
 
       {/* Divider */}
       <div
-        className="h-2 print:[-webkit-print-color-adjust:exact] print:[print-color-adjust:exact]"
+        className="h-3 print:[-webkit-print-color-adjust:exact] print:[print-color-adjust:exact]"
         style={{
           backgroundColor: theme.color,
         }}
@@ -88,29 +88,29 @@ export default function PrintableQrCard({ record }: Props) {
       {/* Body */}
       <div className="grid grid-cols-2 gap-2 p-2">
         {/* Signatures */}
-        <div className="flex flex-col justify-end gap-3">
+        <div className="flex flex-col justify-center gap-4 mb-3">
           <div className="text-center">
             <img
               src="/images/mayor-signature.png"
               alt=""
-              className="mx-auto h-5 scale-125"
+              className="mx-auto h-5 scale-150"
             />
 
-            <h2 className="text-[7px] font-bold">THELMA G. LAMANILAO, MD.</h2>
+            <h2 className="text-[9px] font-bold">THELMA G. LAMANILAO, MD.</h2>
 
-            <p className="text-[6px]">Municipal Mayor</p>
+            <p className="text-[7px] leading-0.5">Municipal Mayor</p>
           </div>
 
           <div className="text-center">
             <img
               src="/images/supply-signature.png"
               alt=""
-              className="mx-auto h-5 scale-150"
+              className="mx-auto h-5 scale-175"
             />
 
-            <h2 className="text-[7px] font-bold">MARCEDITO E. POLESTICO</h2>
+            <h2 className="text-[9px] font-bold">MARCEDITO E. POLESTICO</h2>
 
-            <p className="text-[6px]">Supply Officer III</p>
+            <p className="text-[7px] leading-0.5">Supply Officer III</p>
           </div>
         </div>
 
