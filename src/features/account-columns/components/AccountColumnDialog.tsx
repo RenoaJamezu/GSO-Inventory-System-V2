@@ -1,37 +1,31 @@
-import { useEffect } from "react";
-
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-
 import {
   Dialog,
+  DialogHeader,
   DialogBody,
   DialogFooter,
-  DialogHeader,
 } from "@/components/dialog";
-
 import {
-  FormCheckbox,
   FormField,
   FormInput,
   FormSelect,
   FormTextarea,
+  FormCheckbox,
 } from "@/components/form";
-
-import {
-  accountColumnSchema,
-  type AccountColumnForm,
-} from "../schemas/accountColumn.schema";
-
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import {
   useCreateAccountColumn,
   useUpdateAccountColumn,
 } from "../hooks/useAccountColumns";
-
+import {
+  type AccountColumnForm,
+  accountColumnSchema,
+} from "../schemas/accountColumn.schema";
 import type {
   AccountColumn,
-  AccountColumnInput,
   ColumnDataType,
+  AccountColumnInput,
 } from "../types";
 
 type Props = {

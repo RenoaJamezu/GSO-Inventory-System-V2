@@ -79,3 +79,13 @@ export async function deleteInventoryRecord(id: number) {
 
   if (error) throw error;
 }
+
+export async function bulkCreateInventoryRecords(
+  records: InventoryRecordInput[],
+) {
+  const { data, error } = await supabase.from(TABLE).insert(records).select();
+
+  if (error) throw error;
+
+  return data;
+}

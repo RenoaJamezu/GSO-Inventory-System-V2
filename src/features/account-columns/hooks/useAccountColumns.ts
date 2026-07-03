@@ -1,12 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import {
-  createAccountColumn,
-  deleteAccountColumn,
   getAccountColumns,
+  createAccountColumn,
   updateAccountColumn,
+  deleteAccountColumn,
 } from "../api/accountColumns.api";
-
 import type { AccountColumnInput } from "../types";
 
 export function useAccountColumns(accountId: number) {

@@ -1,13 +1,11 @@
-import { Controller, type Control } from "react-hook-form";
-
 import {
-  FormCheckbox,
   FormField,
   FormInput,
+  FormCheckbox,
   FormTextarea,
 } from "@/components/form";
-
 import type { AccountColumn } from "@/features/account-columns";
+import { type Control, Controller } from "react-hook-form";
 
 type Props = {
   column: AccountColumn;
@@ -28,7 +26,7 @@ export default function DynamicField({ column, control }: Props) {
                 <FormInput
                   type="number"
                   placeholder={column.placeholder ?? ""}
-                  value={field.value as number | string ?? ""}
+                  value={(field.value as number | string) ?? ""}
                   onChange={(e) => {
                     const value = e.target.value;
 

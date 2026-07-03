@@ -1,4 +1,4 @@
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "@/lib/supabase";
 import type { InventoryAccount, InventoryAccountInput } from "../types";
 
 export async function getInventoryAccounts() {

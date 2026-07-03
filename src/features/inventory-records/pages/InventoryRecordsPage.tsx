@@ -1,17 +1,15 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-
-import { useInventoryAccount } from "@/features/inventory-accounts";
-import { useAccountColumns } from "@/features/account-columns";
-
-import InventoryRecordDialog from "../components/InventoryRecordDialog";
-import InventoryRecordsTable from "../components/InventoryRecordsTable";
-
-import { useInventoryRecords } from "../hooks/useInventoryRecords";
-
 import type { InventoryRecord } from "../types";
-import { useGroups } from "@/features/groups";
-import GroupManagementDialog from "@/features/groups/components/GroupManagementDialog";
+import { useInventoryAccount } from "@/features/inventory-accounts";
+import { useInventoryRecords } from "../hooks/useInventoryRecords";
+import { GroupManagementDialog, useGroups } from "@/features/groups";
+import { useAccountColumns } from "@/features/account-columns";
+import { generateTemplate } from "../utils/generateTemplate";
+import InventoryRecordsTable from "../components/InventoryRecordsTable";
+import InventoryRecordDialog from "../components/InventoryRecordDialog";
+import { ExcelImportDialog } from "@/features/excel-import";
+
 
 export default function InventoryRecordsPage() {
   const { accountId } = useParams();
@@ -26,6 +24,8 @@ export default function InventoryRecordsPage() {
   );
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data: account, isLoading: accountLoading } = useInventoryAccount(id);
 
@@ -60,6 +60,18 @@ export default function InventoryRecordsPage() {
     setGroupDialogOpen(false);
   };
 
+  const handleDownloadTemplate = () => {
+    generateTemplate(columns);
+  };
+
+  const handleOpenImport = () => {
+    setImportOpen(true);
+  };
+
+  const handleCloseImport = () => {
+    setImportOpen(false);
+  };
+
   if (accountLoading || recordsLoading || columnsLoading || groupsLoading) {
     return <div className="p-6">Loading...</div>;
   }
@@ -84,6 +96,19 @@ export default function InventoryRecordsPage() {
           </div>
 
           <div className="flex gap-2">
+            <button
+              onClick={handleDownloadTemplate}
+              className="rounded bg-green-600 px-4 py-2 text-white"
+            >
+              Download Template
+            </button>
+
+            <button
+              onClick={handleOpenImport}
+              className="rounded bg-purple-600 px-4 py-2 text-white"
+            >
+              Import Excel
+            </button>
             <button
               onClick={handleOpenGroups}
               className="rounded border px-4 py-2"
@@ -130,6 +155,14 @@ export default function InventoryRecordsPage() {
         accountId={id}
         record={selectedRecord}
         onClose={handleClose}
+      />
+
+      <ExcelImportDialog
+        open={importOpen}
+        accountId={id}
+        groups={groups}
+        columns={columns}
+        onClose={handleCloseImport}
       />
 
       <GroupManagementDialog

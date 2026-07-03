@@ -1,13 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
 import {
-  createGroup,
-  deleteGroup,
-  getGroup,
   getGroups,
+  getGroup,
+  createGroup,
   updateGroup,
+  deleteGroup,
 } from "../api/groups.api";
-
 import type { GroupInput } from "../types";
 
 const QUERY_KEY = "groups";

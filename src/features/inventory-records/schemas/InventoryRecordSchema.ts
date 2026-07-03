@@ -1,5 +1,4 @@
 import { z, type ZodTypeAny } from "zod";
-
 import type { AccountColumn } from "@/features/account-columns";
 
 export function createInventoryRecordSchema(columns: AccountColumn[]) {

@@ -26,7 +26,7 @@ export default function InventoryAccountsTable({
 
   return (
     <div className="overflow-x-auto rounded border">
-      <table className="min-w-full border-collapse">
+      <table className="table-fixed min-w-full border-collapse">
         <thead className="bg-gray-100">
           <tr>
             <th className="border px-4 py-2 text-center">No.</th>

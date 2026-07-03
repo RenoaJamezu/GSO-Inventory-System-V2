@@ -1,17 +1,13 @@
-import { useState } from "react";
-
 import {
   Dialog,
+  DialogHeader,
   DialogBody,
   DialogFooter,
-  DialogHeader,
 } from "@/components/dialog";
-
-import GroupDialog from "./GroupDialog";
-
+import { useState } from "react";
 import { useGroups, useDeleteGroup } from "../hooks/useGroups";
-
 import type { Group } from "../types";
+import GroupDialog from "./GroupDialog";
 
 type Props = {
   open: boolean;
@@ -86,7 +82,7 @@ export default function GroupManagementDialog({
           {isLoading ? (
             <div className="py-8 text-center">Loading...</div>
           ) : (
-            <table className="min-w-full border-collapse">
+            <table className="table-fixed min-w-full border-collapse">
               <thead>
                 <tr className="bg-gray-100">
                   <th className="border px-4 py-2 text-left">Group Name</th>

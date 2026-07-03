@@ -1,7 +1,6 @@
 import { useParams } from "react-router-dom";
-
+import { usePublicInventoryRecord } from "@/features/public";
 import PrintableQrCard from "../components/PrintableQrCard";
-import { usePublicInventoryRecord } from "@/features/public/hooks/usePublicRecord";
 
 export default function PrintQrPage() {
   const { uuid } = useParams();

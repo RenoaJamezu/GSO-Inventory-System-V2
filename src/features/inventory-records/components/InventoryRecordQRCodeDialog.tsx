@@ -1,13 +1,11 @@
-import QRCode from "react-qr-code";
-
 import {
   Dialog,
   DialogBody,
   DialogFooter,
   DialogHeader,
 } from "@/components/dialog";
-
 import type { InventoryRecord } from "../types";
+import QRCode from "react-qr-code";
 
 type Props = {
   open: boolean;

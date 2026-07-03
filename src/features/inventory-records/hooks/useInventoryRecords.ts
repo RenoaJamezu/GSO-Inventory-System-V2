@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
 import {
+  bulkCreateInventoryRecords,
   createInventoryRecord,
   deleteInventoryRecord,
   getInventoryRecord,
@@ -8,7 +8,6 @@ import {
   getInventoryRecords,
   updateInventoryRecord,
 } from "../api/inventoryRecords.api";
-
 import type { InventoryRecordInput } from "../types";
 
 export function useInventoryRecords(accountId: number) {
@@ -88,5 +87,21 @@ export function useInventoryRecordByUuid(uuid: string) {
     queryKey: ["inventory-record-uuid", uuid],
     queryFn: () => getInventoryRecordByUuid(uuid),
     enabled: !!uuid,
+  });
+}
+
+export function useBulkInsertInventoryRecords() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: bulkCreateInventoryRecords,
+
+    onSuccess(data) {
+      if (!data.length) return;
+
+      queryClient.invalidateQueries({
+        queryKey: ["inventory-records", data[0].account_id],
+      });
+    },
   });
 }

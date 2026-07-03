@@ -1,7 +1,11 @@
 export * from "./types";
 export * from "./hooks/useInventoryRecords";
+export { default as BulkPrintPage } from "./pages/BulkPrintPage";
+export { default as InventoryRecordQrCodePage } from "./pages/InventoryRecordQrCodePage";
 export { default as InventoryRecordsPage } from "./pages/InventoryRecordsPage";
+export { default as PrintQrPage } from "./pages/PrintQrPage";
 export { default as DynamicField } from "./components/DynamicField";
-// export { default as DynamicForm } from "./components/DynamicForm";
 export { default as InventoryRecordDialog } from "./components/InventoryRecordDialog";
+export { default as InventoryRecordQRCodeDialog } from "./components/InventoryRecordQRCodeDialog";
 export { default as InventoryRecordsTable } from "./components/InventoryRecordsTable";
+export { default as PrintableQrCard } from "./components/PrintableQrCard";

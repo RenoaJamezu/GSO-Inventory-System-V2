@@ -1,18 +1,14 @@
-import { useEffect } from "react";
-
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import {
   useCreateInventoryAccount,
   useUpdateInventoryAccount,
 } from "../hooks/useInventoryAccounts";
-
 import {
-  inventoryAccountSchema,
   type InventoryAccountForm,
+  inventoryAccountSchema,
 } from "../schemas/inventoryAccount.schema";
-
 import type { InventoryAccount } from "../types";
 
 type Props = {
@@ -29,7 +25,11 @@ function slugify(text: string) {
     .replace(/[^\w-]/g, "");
 }
 
-export default function InventoryAccountDialog({ open, onClose, account }: Props) {
+export default function InventoryAccountDialog({
+  open,
+  onClose,
+  account,
+}: Props) {
   const createMutation = useCreateInventoryAccount();
   const updateMutation = useUpdateInventoryAccount();
 

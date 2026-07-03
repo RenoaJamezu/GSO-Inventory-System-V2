@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabase";
-
 import type { AccountColumn, AccountColumnInput } from "../types";
 
 function normalizeFieldKey(label: string) {

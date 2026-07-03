@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useInventoryRecordByUuid } from "../hooks/useInventoryRecords";
-import { QRCode } from "react-qr-code";
+import QRCode from "react-qr-code";
 
 export default function InventoryRecordQrCodePage() {
   const { uuid } = useParams();

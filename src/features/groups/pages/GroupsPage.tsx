@@ -1,13 +1,9 @@
-import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
-
 import { useInventoryAccount } from "@/features/inventory-accounts";
-
-import GroupsTable from "../components/GroupsTable";
+import { useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import GroupDialog from "../components/GroupDialog";
-
+import GroupsTable from "../components/GroupsTable";
 import { useGroups } from "../hooks/useGroups";
-
 import type { Group } from "../types";
 
 export default function GroupsPage() {

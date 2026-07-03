@@ -66,7 +66,6 @@ export default function PrintableQrCard({ record }: Props) {
             <p className="text-[9px] font-medium">Province of Agusan del Sur</p>
 
             <h1 className="text-[12px] font-bold">MUNICIPALITY OF SIBAGAT</h1>
-
           </div>
           <img
             src="/images/gso-logo.png"
@@ -74,7 +73,7 @@ export default function PrintableQrCard({ record }: Props) {
             className="h-12 w-12 object-contain"
           />
         </div>
-            <p className="text-[9px] text-center">GENERAL SERVICES OFFICE</p>
+        <p className="text-[9px] text-center">GENERAL SERVICES OFFICE</p>
       </div>
 
       {/* Divider */}

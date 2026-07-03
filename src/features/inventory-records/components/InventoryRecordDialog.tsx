@@ -1,29 +1,24 @@
-import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-
 import {
   Dialog,
   DialogBody,
-  DialogFooter,
   DialogHeader,
+  DialogFooter,
 } from "@/components/dialog";
-
-import DynamicField from "./DynamicField";
-
 import { useAccountColumns } from "@/features/account-columns";
 import { useGroups } from "@/features/groups";
-
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMemo, useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import {
   useCreateInventoryRecord,
   useUpdateInventoryRecord,
 } from "../hooks/useInventoryRecords";
-
-import type { InventoryRecord } from "../types";
 import {
   createInventoryRecordSchema,
   type InventoryRecordFormValues,
 } from "../schemas/InventoryRecordSchema";
+import type { InventoryRecord } from "../types";
+import DynamicField from "./DynamicField";
 
 type Props = {
   open: boolean;

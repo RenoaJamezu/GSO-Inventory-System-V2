@@ -1,20 +1,15 @@
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-
 import {
   Dialog,
+  DialogHeader,
   DialogBody,
   DialogFooter,
-  DialogHeader,
 } from "@/components/dialog";
-
 import { FormField, FormInput, FormTextarea } from "@/components/form";
-
-import { groupSchema, type GroupFormValues } from "../schemas/groupSchema";
-
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { useCreateGroup, useUpdateGroup } from "../hooks/useGroups";
-
+import { type GroupFormValues, groupSchema } from "../schemas/groupSchema";
 import type { Group } from "../types";
 
 type Props = {

@@ -5,5 +5,9 @@ type Props = {
 };
 
 export default function DialogBody({ children }: Props) {
-  return <div className="space-y-4 p-6">{children}</div>;
+  return (
+    <div className="max-h-[calc(90vh-140px)] overflow-y-auto p-6">
+      <div className="space-y-4">{children}</div>
+    </div>
+  );
 }

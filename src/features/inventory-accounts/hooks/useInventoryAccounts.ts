@@ -1,10 +1,14 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  createInventoryAccount,
-  deleteInventoryAccount,
-  getInventoryAccountById,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import {
   getInventoryAccounts,
+  createInventoryAccount,
+  getInventoryAccountById,
   updateInventoryAccount,
+  deleteInventoryAccount,
 } from "../api/inventoryAccounts.api";
 import type { InventoryAccountInput } from "../types";
 

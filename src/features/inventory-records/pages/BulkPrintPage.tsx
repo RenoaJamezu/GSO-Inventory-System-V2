@@ -1,7 +1,6 @@
+import { usePublicInventoryRecords } from "@/features/public";
 import { useSearchParams } from "react-router-dom";
-
 import PrintableQrCard from "../components/PrintableQrCard";
-import { usePublicInventoryRecords } from "@/features/public/hooks/usePublicRecord";
 
 export default function BulkPrintPage() {
   const [searchParams] = useSearchParams();

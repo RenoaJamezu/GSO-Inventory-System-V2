@@ -1,11 +1,9 @@
-import { Fragment } from "react";
-import { Link } from "react-router-dom";
-
 import type { AccountColumn } from "@/features/account-columns";
-import type { Group } from "@/features/groups";
-
-import { useDeleteInventoryRecord } from "../hooks/useInventoryRecords";
 import type { InventoryRecord } from "../types";
+import type { Group } from "@/features/groups";
+import { useDeleteInventoryRecord } from "../hooks/useInventoryRecords";
+import { Fragment } from "react/jsx-runtime";
+import { Link } from "react-router-dom";
 
 type Props = {
   columns: AccountColumn[];
@@ -77,7 +75,7 @@ export default function InventoryRecordsTable({
 
   return (
     <div className="overflow-x-auto rounded border">
-      <table className="min-w-full border-collapse">
+      <table className="table-fixed min-w-full border-collapse">
         <thead className="bg-gray-100">
           <tr>
             <th className="border px-4 py-2 text-center">
