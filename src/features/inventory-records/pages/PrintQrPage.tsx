@@ -29,8 +29,8 @@ export default function PrintQrPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 py-10">
-      <div className="mb-6 flex justify-center">
+    <main className="min-h-screen bg-gray-100 print:bg-white">
+      <div className="sticky top-0 z-10 flex justify-center bg-white p-4 shadow print:hidden">
         <button
           onClick={() => window.print()}
           className="rounded bg-blue-600 px-6 py-2 text-white print:hidden"
@@ -39,7 +39,9 @@ export default function PrintQrPage() {
         </button>
       </div>
 
-      <PrintableQrCard record={record} />
+      <div className="mx-auto flex flex-wrap justify-center gap-2 p-0 print:gap-0 print:p-0">
+        <PrintableQrCard record={record} />
+      </div>
     </main>
   );
 }

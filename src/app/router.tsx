@@ -29,6 +29,10 @@ const PrintQrPage = lazy(
   () => import("@/features/inventory-records/pages/PrintQrPage"),
 );
 
+const BulkPrintPage = lazy(
+  () => import("@/features/inventory-records/pages/BulkPrintPage"),
+);
+
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 
 export default function AppRoutes() {
@@ -62,6 +66,8 @@ export default function AppRoutes() {
         <Route path="/public/:uuid" element={<PublicInventoryRecordPage />} />
 
         <Route path="/print/:uuid" element={<PrintQrPage />} />
+
+        <Route path="/bulk-print" element={<BulkPrintPage />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

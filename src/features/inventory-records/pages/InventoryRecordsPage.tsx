@@ -25,6 +25,8 @@ export default function InventoryRecordsPage() {
     null,
   );
 
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
   const { data: account, isLoading: accountLoading } = useInventoryAccount(id);
 
   const { data: records = [], isLoading: recordsLoading } =
@@ -90,6 +92,21 @@ export default function InventoryRecordsPage() {
             </button>
 
             <button
+              onClick={() => {
+                if (!selectedIds.length) return;
+
+                window.open(
+                  `/bulk-print?ids=${selectedIds.join(",")}`,
+                  "_blank",
+                );
+              }}
+              disabled={!selectedIds.length}
+              className="rounded bg-green-600 px-4 py-2 text-white disabled:opacity-50"
+            >
+              Print Selected ({selectedIds.length})
+            </button>
+
+            <button
               onClick={handleCreate}
               className="rounded bg-blue-600 px-4 py-2 text-white"
             >
@@ -102,6 +119,8 @@ export default function InventoryRecordsPage() {
           columns={columns}
           records={records}
           groups={groups}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
           onEdit={handleEdit}
         />
       </div>

@@ -15,3 +15,15 @@ export async function getPublicInventoryRecord(uuid: string) {
 
   return data as PublicInventoryRecord;
 }
+
+export async function getPublicInventoryRecordsByIds(ids: number[]) {
+  const { data, error } = await supabase
+    .from("public_inventory_records")
+    .select("*")
+    .in("id", ids)
+    .order("id");
+
+  if (error) throw error;
+
+  return data;
+}

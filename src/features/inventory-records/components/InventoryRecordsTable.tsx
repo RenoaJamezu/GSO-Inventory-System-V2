@@ -1,17 +1,20 @@
 import { Fragment } from "react";
+import { Link } from "react-router-dom";
 
 import type { AccountColumn } from "@/features/account-columns";
 import type { Group } from "@/features/groups";
 
 import { useDeleteInventoryRecord } from "../hooks/useInventoryRecords";
-
 import type { InventoryRecord } from "../types";
-import { Link } from "react-router-dom";
 
 type Props = {
   columns: AccountColumn[];
   records: InventoryRecord[];
   groups: Group[];
+
+  selectedIds: number[];
+  onSelectionChange: (ids: number[]) => void;
+
   onEdit: (record: InventoryRecord) => void;
 };
 
@@ -19,6 +22,8 @@ export default function InventoryRecordsTable({
   columns,
   records,
   groups,
+  selectedIds,
+  onSelectionChange,
   onEdit,
 }: Props) {
   const deleteMutation = useDeleteInventoryRecord();
@@ -34,6 +39,22 @@ export default function InventoryRecordsTable({
       id: record.id,
       account_id: record.account_id,
     });
+  };
+
+  const toggleRecord = (id: number) => {
+    if (selectedIds.includes(id)) {
+      onSelectionChange(selectedIds.filter((x) => x !== id));
+    } else {
+      onSelectionChange([...selectedIds, id]);
+    }
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.length === records.length) {
+      onSelectionChange([]);
+    } else {
+      onSelectionChange(records.map((r) => r.id));
+    }
   };
 
   const sections = [
@@ -59,6 +80,16 @@ export default function InventoryRecordsTable({
       <table className="min-w-full border-collapse">
         <thead className="bg-gray-100">
           <tr>
+            <th className="border px-4 py-2 text-center">
+              <input
+                type="checkbox"
+                checked={
+                  records.length > 0 && selectedIds.length === records.length
+                }
+                onChange={toggleAll}
+              />
+            </th>
+
             {columns.map((column) => (
               <th key={column.id} className="border px-4 py-2 text-left">
                 {column.label}
@@ -73,7 +104,7 @@ export default function InventoryRecordsTable({
           {records.length === 0 ? (
             <tr>
               <td
-                colSpan={columns.length + 1}
+                colSpan={columns.length + 2}
                 className="border px-4 py-8 text-center text-gray-500"
               >
                 No records found.
@@ -84,7 +115,7 @@ export default function InventoryRecordsTable({
               <Fragment key={section.id}>
                 <tr className="bg-gray-100">
                   <td
-                    colSpan={columns.length + 1}
+                    colSpan={columns.length + 2}
                     className="border px-4 py-2 font-semibold"
                   >
                     {section.title}
@@ -93,6 +124,14 @@ export default function InventoryRecordsTable({
 
                 {section.records.map((record) => (
                   <tr key={record.id} className="hover:bg-gray-50">
+                    <td className="border px-4 py-2 text-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(record.id)}
+                        onChange={() => toggleRecord(record.id)}
+                      />
+                    </td>
+
                     {columns.map((column) => (
                       <td key={column.id} className="border px-4 py-2">
                         {renderCell(
@@ -104,23 +143,22 @@ export default function InventoryRecordsTable({
 
                     <td className="border px-4 py-2">
                       <div className="flex justify-center gap-2">
-                        <div className="flex justify-center gap-2">
-                          <Link
-                            to={`/record/${record.qr_uuid}`}
-                            target="_blank"
-                            className="rounded bg-green-600 px-3 py-1 text-sm text-white"
-                          >
-                            QR
-                          </Link>
+                        <Link
+                          to={`/record/${record.qr_uuid}`}
+                          target="_blank"
+                          className="rounded bg-green-600 px-3 py-1 text-sm text-white"
+                        >
+                          QR
+                        </Link>
 
-                          <Link
-                            to={`/print/${record.qr_uuid}`}
-                            target="_blank"
-                            className="rounded bg-blue-600 px-3 py-1 text-sm text-white"
-                          >
-                            Print
-                          </Link>
-                        </div>
+                        <Link
+                          to={`/print/${record.qr_uuid}`}
+                          target="_blank"
+                          className="rounded bg-blue-600 px-3 py-1 text-sm text-white"
+                        >
+                          Print
+                        </Link>
+
                         <button
                           onClick={() => onEdit(record)}
                           className="rounded bg-yellow-500 px-3 py-1 text-sm text-white"
@@ -159,6 +197,16 @@ function renderCell(value: unknown, type: string) {
 
     case "number":
       return Number(value).toLocaleString();
+
+    case "date": {
+      const date = new Date(String(value));
+
+      if (Number.isNaN(date.getTime())) {
+        return String(value);
+      }
+
+      return date.toLocaleDateString();
+    }
 
     default:
       return String(value);
