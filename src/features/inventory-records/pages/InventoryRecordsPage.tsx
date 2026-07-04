@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import type { InventoryRecord } from "../types";
 import { useInventoryAccount } from "@/features/inventory-accounts";
 import { useInventoryRecords } from "../hooks/useInventoryRecords";
@@ -10,8 +10,8 @@ import InventoryRecordsTable from "../components/InventoryRecordsTable";
 import InventoryRecordDialog from "../components/InventoryRecordDialog";
 import { ExcelImportDialog } from "@/features/excel-import";
 
-
 export default function InventoryRecordsPage() {
+  const navigate = useNavigate();
   const { accountId } = useParams();
 
   const id = Number(accountId);
@@ -114,6 +114,15 @@ export default function InventoryRecordsPage() {
               className="rounded border px-4 py-2"
             >
               Manage Groups
+            </button>
+
+            <button
+              onClick={() =>
+                navigate(`/inventory-accounts/${account.id}/columns`)
+              }
+              className="rounded bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700"
+            >
+              Manage Columns
             </button>
 
             <button

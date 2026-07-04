@@ -85,14 +85,6 @@ export default function InventoryAccountsTable({
                   >
                     Records
                   </button>
-                  <button
-                    onClick={() =>
-                      navigate(`/inventory-accounts/${account.id}/columns`)
-                    }
-                    className="rounded bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700"
-                  >
-                    Columns
-                  </button>
 
                   <button
                     onClick={() => onEdit(account)}

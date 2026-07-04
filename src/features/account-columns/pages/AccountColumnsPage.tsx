@@ -69,7 +69,10 @@ export default function AccountColumnsPage() {
 
   return (
     <div className="mx-auto max-w-7xl p-6">
-      <Link to="/inventory-accounts" className="text-blue-600 hover:underline">
+      <Link
+        to={`/inventory-accounts/${id}/records`}
+        className="text-blue-600 hover:underline"
+      >
         ← Back
       </Link>
 

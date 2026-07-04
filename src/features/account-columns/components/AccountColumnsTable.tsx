@@ -17,11 +17,17 @@ export default function AccountColumnsTable({
         <thead className="bg-gray-100">
           <tr>
             <th className="border px-4 py-2 text-center">No.</th>
+
             <th className="border px-4 py-2 text-left">Label</th>
+
             <th className="border px-4 py-2 text-left">Field Key</th>
+
             <th className="border px-4 py-2 text-center">Type</th>
+
             <th className="border px-4 py-2 text-center">Required</th>
+
             <th className="border px-4 py-2 text-center">Amount</th>
+
             <th className="border px-4 py-2 text-center">Actions</th>
           </tr>
         </thead>
@@ -41,17 +47,23 @@ export default function AccountColumnsTable({
           {columns.map((column, index) => (
             <tr key={column.id} className="hover:bg-gray-50">
               <td className="border px-4 py-2 text-center">{index + 1}</td>
+
               <td className="border px-4 py-2">{column.label}</td>
+
               <td className="border px-4 py-2">{column.field_key}</td>
+
               <td className="border px-4 py-2 text-center capitalize">
                 {column.data_type}
               </td>
+
               <td className="border px-4 py-2 text-center">
                 {column.is_required ? "Yes" : "No"}
               </td>
+
               <td className="border px-4 py-2 text-center">
                 {column.is_amount_column ? "Yes" : "No"}
               </td>
+
               <td className="border px-4 py-2 text-center">
                 <div className="flex justify-center gap-2">
                   <button
@@ -60,6 +72,7 @@ export default function AccountColumnsTable({
                   >
                     Edit
                   </button>
+
                   <button
                     onClick={() => onDelete(column)}
                     className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
