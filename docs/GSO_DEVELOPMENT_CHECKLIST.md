@@ -1,8 +1,14 @@
-# GSO Inventory System
+# GSO Inventory Management System
 
 Development Checklist
 
-Legend:
+This document tracks the development progress of the **General Services Office (GSO) Inventory Management System**.
+
+The current implementation focuses exclusively on the inventory management processes of the General Services Office. Future municipal office modules (Accounting, Mayor's Office, Engineering, etc.) will maintain their own independent development checklists.
+
+---
+
+## Legend
 
 - ✅ Completed
 - 🟨 In Progress
@@ -25,7 +31,7 @@ Legend:
 - [x] Open Inventory Records Page
 - [x] Generate PPE Summary Report
 
-Status: ✅ Complete
+**Status:** ✅ Complete
 
 ---
 
@@ -41,7 +47,7 @@ Status: ✅ Complete
 - [x] Dynamic Forms
 - [x] Dynamic Record Table
 
-Status: ✅ Complete
+**Status:** ✅ Complete
 
 ---
 
@@ -60,7 +66,7 @@ Status: ✅ Complete
 - [x] Bulk QR Label Printing
 - [x] Public Asset View via QR Code
 
-Status: ✅ Complete
+**Status:** ✅ Complete
 
 ---
 
@@ -75,7 +81,7 @@ Status: ✅ Complete
 - [x] Bulk Assign Records to Group
 - [x] Manage Groups Dialog
 
-Status: ✅ Complete
+**Status:** ✅ Complete
 
 ---
 
@@ -103,7 +109,7 @@ Status: ✅ Complete
 - [x] Normalize Numeric Values
 - [x] Bulk Import to Database
 
-Status: ✅ Complete
+**Status:** ✅ Complete
 
 ---
 
@@ -117,7 +123,7 @@ Status: ✅ Complete
 - [x] Bulk QR Label Printing
 - [ ] Select All Records Per Group
 
-Status: 🟨 Almost Complete
+**Status:** 🟨 Almost Complete
 
 ---
 
@@ -128,9 +134,12 @@ Status: 🟨 Almost Complete
 - [x] Generate QR UUID
 - [x] Individual QR Label Printing
 - [x] Bulk QR Label Printing
+- [x] Browser Print (A4 Vinyl Sticker)
 - [x] Public Asset Information Page
+- [ ] Direct PDF Export (Individual QR Label)
+- [ ] Direct PDF Export (Bulk QR Labels)
 
-Status: ✅ Complete
+**Status:** 🟨 In Progress
 
 ---
 
@@ -159,34 +168,97 @@ Status: ✅ Complete
 - [ ] Browser Print (Long Bond 8.5 × 13)
 - [ ] Direct PDF Export (Long Bond 8.5 × 13)
 
-## QR Label Printing
-
-- [x] Individual QR Label
-- [x] Bulk QR Label
-- [x] Browser Print (A4 Vinyl Sticker)
-- [x] Public Asset Information Page
-- [ ] Direct PDF Export (Individual QR Label)
-- [ ] Direct PDF Export (Bulk QR Labels)
-
-Status: 🟨 In Progress
+**Status:** 🟨 In Progress
 
 ---
 
-# Module 9 — Dashboard
+# Module 9 — Authentication & Authorization
 
-- [ ] Dashboard
-- [ ] Inventory Statistics
-- [ ] Total Inventory Value
+## Authentication
+
+- [ ] Login Page
+- [ ] Logout
+- [ ] Protected Routes
+- [ ] Session Persistence
+- [ ] Remember Logged-in User
+
+## Authorization
+
+### GSO Administrator
+
+- [ ] Full System Access
+- [ ] Inventory Management
+- [ ] Reports
+- [ ] QR Printing
+- [ ] Excel Import
+- [ ] Group Management
+
+### Public User
+
+- [x] View Asset Information via QR Code
+- [x] No Login Required
+- [x] Read-only Access
+
+## Security
+
+- [ ] Supabase Authentication
+- [ ] Protected API Access
+- [ ] Unauthorized Route Redirect
+- [ ] Session Expiration Handling
+
+## Future Expansion
+
+- [ ] Multiple User Accounts
+- [ ] User Management
+- [ ] Role-Based Access Control (RBAC)
+- [ ] Permissions
+- [ ] Activity Logs
+- [ ] Password Reset
+
+**Status:** 🟨 Basic Authentication
+
+---
+
+# Module 10 — Dashboard
+
+## Overview
+
+- [ ] Welcome Card
+- [ ] Logged-in User Information
+- [ ] Current Date & Time
+
+## Statistics
+
 - [ ] Total Inventory Accounts
+- [ ] Total Inventory Records
 - [ ] Total Groups
-- [ ] Charts
-- [ ] Recent Activities
+- [ ] Total Book Value
+- [ ] Total Inventory Value
+- [ ] Total Variance
+
+## Charts
+
+- [ ] Inventory per Account
+- [ ] Inventory by Group
+- [ ] Asset Distribution
+
+## Activity
+
+- [ ] Recently Added Records
+- [ ] Recently Updated Records
+
+## Quick Actions
+
+- [ ] Add Inventory Record
+- [ ] Import Excel
+- [ ] Generate PPE Summary
+- [ ] Print QR Labels
 
 Status: ⬜ Not Started
 
 ---
 
-# Module 10 — User Interface & Experience
+# Module 11 — User Interface & Experience
 
 ## Inventory Records
 
@@ -211,7 +283,7 @@ Status: ⬜ Not Started
 - [ ] Accessibility Improvements
 - [ ] Final UI Polish
 
-Status: ⬜ Not Started
+**Status:** ⬜ Not Started
 
 ---
 
@@ -225,25 +297,28 @@ Status: ⬜ Not Started
 | Group Management             | ✅ Complete        |
 | Excel Import                 | ✅ Complete        |
 | Bulk Operations              | 🟨 Almost Complete |
-| QR Code Module               | ✅ Complete        |
-| Reports                      | 🟨 In Progress     |
-| Dashboard                    | ⬜ Not Started     |
-| UI/UX Polish                 | ⬜ Not Started     |
+| QR Code Module               | 🟨 In Progress     |
+| Reports & Printing           | 🟨 In Progress     |
+| Authentication               | 🟨 Planned         |
+| UI / UX                      | ⬜ Not Started     |
 
 ---
 
-# Current Completion Estimate
+# Current Completion
 
-Core Inventory System: **~92% Complete**
+**Estimated Progress:** **92%**
 
-Remaining priorities:
+---
 
-1. Finish PPE Summary (Direct PDF Export)
-2. Develop Inventory Account Report
-3. Dashboard (Optional)
+# Current Priorities
+
+1. Finish Inventory Account Report
+2. Direct PDF Export for Reports
+3. Authentication
 4. Final UI/UX Polish
 
 ---
 
-Last Updated:
-July 2026
+Last Updated
+
+**July 2026**
