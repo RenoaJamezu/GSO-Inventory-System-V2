@@ -5,6 +5,8 @@ export { default as InventoryRecordQrCodePage } from "./pages/InventoryRecordQrC
 export { default as InventoryRecordsPage } from "./pages/InventoryRecordsPage";
 export { default as PrintQrPage } from "./pages/PrintQrPage";
 export { default as DynamicField } from "./components/DynamicField";
+export { default as InventoryBulkToolbar } from "./components/InventoryBulkToolbar";
+export { default as InventoryHeader } from "./components/InventoryHeader";
 export { default as InventoryRecordDialog } from "./components/InventoryRecordDialog";
 export { default as InventoryRecordQRCodeDialog } from "./components/InventoryRecordQRCodeDialog";
 export { default as InventoryRecordsTable } from "./components/InventoryRecordsTable";

@@ -47,19 +47,19 @@ export default function ExcelPreviewTable({
   );
 
   return (
-    <div className="rounded-xl border overflow-auto max-h-105">
-      <table className="table-fixed min-w-full text-sm">
+    <div className="rounded-xl border overflow-auto max-h-175">
+      <table className="w-full table-fixed text-sm">
         <thead className="bg-gray-100 sticky top-0">
           <tr>
-            <th className="p-2 border w-30">Group</th>
+            <th className="w-40 p-2 border">Group</th>
 
             {columns.map((col) => (
-              <th key={col.id} className="p-2 border text-left">
+              <th key={col.id} className="w-60 p-2 border text-left">
                 {col.label}
               </th>
             ))}
 
-            <th className="p-2 border">Actions</th>
+            <th className="w-28 p-2 border">Actions</th>
           </tr>
         </thead>
 

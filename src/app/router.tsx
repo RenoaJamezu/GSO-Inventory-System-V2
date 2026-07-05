@@ -7,6 +7,10 @@ const InventoryAccountsPage = lazy(
   () => import("@/features/inventory-accounts/pages/InventoryAccountsPage"),
 );
 
+const PPESummaryPage = lazy(
+  () => import("@/features/reporting/ppe-summary/pages/PPESummaryPage"),
+);
+
 const AccountColumnsPage = lazy(
   () => import("@/features/account-columns/pages/AccountColumnsPage"),
 );
@@ -45,6 +49,8 @@ export default function AppRoutes() {
         />
 
         <Route path="/inventory-accounts" element={<InventoryAccountsPage />} />
+
+        <Route path="/reports/ppe-summary" element={<PPESummaryPage />} />
 
         <Route
           path="/inventory-accounts/:accountId/columns"

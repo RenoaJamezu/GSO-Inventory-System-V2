@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  bulkAssignGroup,
   bulkCreateInventoryRecords,
+  bulkDeleteInventoryRecords,
   createInventoryRecord,
   deleteInventoryRecord,
   getInventoryRecord,
@@ -101,6 +103,35 @@ export function useBulkInsertInventoryRecords() {
 
       queryClient.invalidateQueries({
         queryKey: ["inventory-records", data[0].account_id],
+      });
+    },
+  });
+}
+
+export function useBulkDeleteInventoryRecords() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: bulkDeleteInventoryRecords,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["inventory-records"],
+      });
+    },
+  });
+}
+
+export function useBulkAssignGroup() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ ids, groupId }: { ids: number[]; groupId: number | null }) =>
+      bulkAssignGroup(ids, groupId),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["inventory-records"],
       });
     },
   });

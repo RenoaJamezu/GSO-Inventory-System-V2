@@ -5,5 +5,6 @@ export function parseWorksheet(workbook: XLSX.WorkBook, sheetName: string) {
 
   return XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, {
     defval: "",
+    raw: false,
   });
 }

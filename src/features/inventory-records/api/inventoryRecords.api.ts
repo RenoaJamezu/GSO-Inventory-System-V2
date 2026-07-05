@@ -89,3 +89,29 @@ export async function bulkCreateInventoryRecords(
 
   return data;
 }
+
+export async function bulkDeleteInventoryRecords(ids: number[]) {
+  if (!ids.length) return;
+
+  const { error } = await supabase
+    .from(TABLE)
+    .update({
+      deleted_at: new Date().toISOString(),
+    })
+    .in("id", ids);
+
+  if (error) throw error;
+}
+
+export async function bulkAssignGroup(ids: number[], groupId: number | null) {
+  if (!ids.length) return;
+
+  const { error } = await supabase
+    .from(TABLE)
+    .update({
+      group_id: groupId,
+    })
+    .in("id", ids);
+
+  if (error) throw error;
+}

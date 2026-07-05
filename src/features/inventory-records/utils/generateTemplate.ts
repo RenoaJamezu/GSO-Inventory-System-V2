@@ -1,7 +1,8 @@
 import * as XLSX from "xlsx";
 import type { AccountColumn } from "@/features/account-columns";
+import type { InventoryAccount } from "@/features/inventory-accounts";
 
-export function generateTemplate(columns: AccountColumn[]) {
+export function generateTemplate(columns: AccountColumn[], account: InventoryAccount) {
   const headers = columns
     .sort((a, b) => a.display_order - b.display_order)
     .map((c) => c.label);
@@ -12,5 +13,5 @@ export function generateTemplate(columns: AccountColumn[]) {
 
   XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
 
-  XLSX.writeFile(workbook, "inventory-template.xlsx");
+  XLSX.writeFile(workbook, `${account.account_title} template.xlsx`);
 }

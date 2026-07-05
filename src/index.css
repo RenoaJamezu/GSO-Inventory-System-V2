@@ -1,1 +1,5 @@
 @import "tailwindcss";
+
+@theme {
+  --font-times: "Times New Roman", Times, serif;
+}

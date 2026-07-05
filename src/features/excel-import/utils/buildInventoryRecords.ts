@@ -2,11 +2,14 @@ import type {
   InventoryRecordInput,
   PreviewRow,
 } from "@/features/inventory-records";
+import { normalizeCellValue } from "./normalizeCellValue";
+import type { AccountColumn } from "@/features/account-columns";
 
 export function buildInventoryRecords(
   rows: PreviewRow[],
   mapping: Record<string, string>,
   accountId: number,
+  systemColumns: AccountColumn[],
 ): InventoryRecordInput[] {
   return rows
     .map((row) => {
@@ -15,7 +18,14 @@ export function buildInventoryRecords(
       Object.entries(mapping).forEach(([excelColumn, fieldKey]) => {
         if (!fieldKey) return;
 
-        const value = row.data[excelColumn];
+        const column = systemColumns.find(
+          (column) => column.field_key === fieldKey,
+        );
+
+        const value = normalizeCellValue(
+          row.data[excelColumn],
+          column?.data_type ?? "text",
+        );
 
         if (
           value !== undefined &&

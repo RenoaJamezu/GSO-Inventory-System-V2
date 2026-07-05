@@ -2,6 +2,7 @@ export * from "./types";
 export * from "./utils/buildInventoryRecords";
 export * from "./utils/createAutoMapping";
 export * from "./utils/normalize";
+export * from "./utils/normalizeCellValue";
 export * from "./utils/parseWorksheet";
 export * from "./utils/readWorkbook";
 export { default as ColumnMapper } from "./components/ColumnMapper";

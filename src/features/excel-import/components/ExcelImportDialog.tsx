@@ -108,8 +108,13 @@ export default function ExcelImportDialog({
           value !== null && value !== undefined && String(value).trim() !== "",
       ),
     );
-
-    const records = buildInventoryRecords(validRows, mapping, accountId);
+    
+    const records = buildInventoryRecords(
+      validRows,
+      mapping,
+      accountId,
+      columns,
+    );
 
     if (!records.length) {
       alert("Nothing to import.");

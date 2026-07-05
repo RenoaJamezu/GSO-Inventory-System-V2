@@ -1,17 +1,23 @@
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import type { InventoryRecord } from "../types";
 import { useInventoryAccount } from "@/features/inventory-accounts";
-import { useInventoryRecords } from "../hooks/useInventoryRecords";
+import {
+  useBulkAssignGroup,
+  useBulkDeleteInventoryRecords,
+  useInventoryRecords,
+} from "../hooks/useInventoryRecords";
 import { GroupManagementDialog, useGroups } from "@/features/groups";
 import { useAccountColumns } from "@/features/account-columns";
 import { generateTemplate } from "../utils/generateTemplate";
 import InventoryRecordsTable from "../components/InventoryRecordsTable";
 import InventoryRecordDialog from "../components/InventoryRecordDialog";
 import { ExcelImportDialog } from "@/features/excel-import";
+import { ConfirmDialog } from "@/components/dialog";
+import InventoryHeader from "../components/InventoryHeader";
+import InventoryBulkToolbar from "../components/InventoryBulkToolbar";
 
 export default function InventoryRecordsPage() {
-  const navigate = useNavigate();
   const { accountId } = useParams();
 
   const id = Number(accountId);
@@ -22,6 +28,10 @@ export default function InventoryRecordsPage() {
   const [selectedRecord, setSelectedRecord] = useState<InventoryRecord | null>(
     null,
   );
+
+  const [deleteSelectedOpen, setDeleteSelectedOpen] = useState(false);
+
+  const [selectedGroupId, setSelectedGroupId] = useState("");
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
@@ -36,6 +46,10 @@ export default function InventoryRecordsPage() {
 
   const { data: columns = [], isLoading: columnsLoading } =
     useAccountColumns(id);
+
+  const bulkDeleteMutation = useBulkDeleteInventoryRecords();
+
+  const bulkAssignMutation = useBulkAssignGroup();
 
   const handleCreate = () => {
     setSelectedRecord(null);
@@ -61,7 +75,7 @@ export default function InventoryRecordsPage() {
   };
 
   const handleDownloadTemplate = () => {
-    generateTemplate(columns);
+    generateTemplate(columns, account);
   };
 
   const handleOpenImport = () => {
@@ -71,6 +85,50 @@ export default function InventoryRecordsPage() {
   const handleCloseImport = () => {
     setImportOpen(false);
   };
+
+  function handleOpenBulkDelete() {
+    if (!selectedIds.length) return;
+
+    setDeleteSelectedOpen(true);
+  }
+
+  function handleCloseBulkDelete() {
+    setDeleteSelectedOpen(false);
+  }
+
+  async function handleConfirmBulkDelete() {
+    try {
+      await bulkDeleteMutation.mutateAsync(selectedIds);
+
+      setSelectedIds([]);
+
+      setDeleteSelectedOpen(false);
+    } catch (error) {
+      console.error(error);
+
+      alert("Failed to delete records.");
+    }
+  }
+
+  async function handleBulkAssignGroup() {
+    if (!selectedIds.length || !selectedGroupId) return;
+
+    try {
+      await bulkAssignMutation.mutateAsync({
+        ids: selectedIds,
+        groupId: Number(selectedGroupId),
+      });
+
+      setSelectedIds([]);
+      setSelectedGroupId("");
+
+      alert("Group assigned successfully.");
+    } catch (error) {
+      console.error(error);
+
+      alert("Failed to assign group.");
+    }
+  }
 
   if (accountLoading || recordsLoading || columnsLoading || groupsLoading) {
     return <div className="p-6">Loading...</div>;
@@ -86,68 +144,25 @@ export default function InventoryRecordsPage() {
           ← Back
         </Link>
 
-        <div className="mb-6 mt-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold capitalize">
-              {account?.account_title}
-            </h1>
+        <InventoryHeader
+          account={account!}
+          onAdd={handleCreate}
+          onImport={handleOpenImport}
+          onDownloadTemplate={handleDownloadTemplate}
+          onManageGroups={handleOpenGroups}
+        />
 
-            <p className="text-gray-500">Inventory Records</p>
-          </div>
-
-          <div className="flex gap-2">
-            <button
-              onClick={handleDownloadTemplate}
-              className="rounded bg-green-600 px-4 py-2 text-white"
-            >
-              Download Template
-            </button>
-
-            <button
-              onClick={handleOpenImport}
-              className="rounded bg-purple-600 px-4 py-2 text-white"
-            >
-              Import Excel
-            </button>
-            <button
-              onClick={handleOpenGroups}
-              className="rounded border px-4 py-2"
-            >
-              Manage Groups
-            </button>
-
-            <button
-              onClick={() =>
-                navigate(`/inventory-accounts/${account.id}/columns`)
-              }
-              className="rounded bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700"
-            >
-              Manage Columns
-            </button>
-
-            <button
-              onClick={() => {
-                if (!selectedIds.length) return;
-
-                window.open(
-                  `/bulk-print?ids=${selectedIds.join(",")}`,
-                  "_blank",
-                );
-              }}
-              disabled={!selectedIds.length}
-              className="rounded bg-green-600 px-4 py-2 text-white disabled:opacity-50"
-            >
-              Print Selected ({selectedIds.length})
-            </button>
-
-            <button
-              onClick={handleCreate}
-              className="rounded bg-blue-600 px-4 py-2 text-white"
-            >
-              Add Record
-            </button>
-          </div>
-        </div>
+        <InventoryBulkToolbar
+          selectedIds={selectedIds}
+          groups={groups}
+          selectedGroupId={selectedGroupId}
+          setSelectedGroupId={setSelectedGroupId}
+          onApplyGroup={handleBulkAssignGroup}
+          onDelete={handleOpenBulkDelete}
+          onPrint={() =>
+            window.open(`/bulk-print?ids=${selectedIds.join(",")}`, "_blank")
+          }
+        />
 
         <InventoryRecordsTable
           columns={columns}
@@ -178,6 +193,17 @@ export default function InventoryRecordsPage() {
         open={groupDialogOpen}
         accountId={id}
         onClose={handleCloseGroups}
+      />
+
+      <ConfirmDialog
+        open={deleteSelectedOpen}
+        title="Delete Selected Records"
+        description={`Delete ${selectedIds.length} selected record${
+          selectedIds.length === 1 ? "" : "s"
+        }? This action cannot be undone.`}
+        loading={bulkDeleteMutation.isPending}
+        onCancel={handleCloseBulkDelete}
+        onConfirm={handleConfirmBulkDelete}
       />
     </>
   );

@@ -3,6 +3,7 @@ import InventoryAccountDialog from "../components/InventoryAccountDialog";
 import InventoryAccountsTable from "../components/InventoryAccountsTable";
 import { useInventoryAccounts } from "../hooks/useInventoryAccounts";
 import type { InventoryAccount } from "../types";
+import PPESummaryDialog from "@/features/reporting/ppe-summary/components/PpeSummaryDialog";
 
 export default function InventoryAccountPage() {
   const { data = [], isLoading, error } = useInventoryAccounts();
@@ -10,6 +11,7 @@ export default function InventoryAccountPage() {
   const [search, setSearch] = useState("");
 
   const [open, setOpen] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(false);
 
   const [selectedAccount, setSelectedAccount] =
     useState<InventoryAccount | null>(null);
@@ -34,15 +36,24 @@ export default function InventoryAccountPage() {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <button
-          onClick={() => {
-            setSelectedAccount(null);
-            setOpen(true);
-          }}
-          className="rounded bg-blue-600 px-4 py-2 text-white"
-        >
-          Add Account
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setSummaryOpen(true)}
+            className="rounded bg-green-600 px-4 py-2 text-white disabled:opacity-50"
+          >
+            PPE Summary
+          </button>
+
+          <button
+            onClick={() => {
+              setSelectedAccount(null);
+              setOpen(true);
+            }}
+            className="rounded bg-blue-600 px-4 py-2 text-white"
+          >
+            Add Account
+          </button>
+        </div>
       </div>
 
       <InventoryAccountsTable
@@ -57,6 +68,11 @@ export default function InventoryAccountPage() {
         open={open}
         account={selectedAccount}
         onClose={() => setOpen(false)}
+      />
+
+      <PPESummaryDialog
+        open={summaryOpen}
+        onClose={() => setSummaryOpen(false)}
       />
     </div>
   );
