@@ -1,8 +1,7 @@
 import type { PPESummaryData } from "../types";
-
+import PPESummaryFooter from "./PPESummaryFooter";
 import PPESummaryHeader from "./PPESummaryHeader";
 import PPESummaryTable from "./PPESummaryTable";
-import PPESummaryFooter from "./PPESummaryFooter";
 
 type Props = {
   data: PPESummaryData;

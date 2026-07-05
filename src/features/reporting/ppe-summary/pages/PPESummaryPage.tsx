@@ -1,9 +1,9 @@
-import { useRef } from "react";
-import { useReactToPrint } from "react-to-print";
 import { useInventoryAccounts } from "@/features/inventory-accounts";
+import { useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import PPESummaryTemplate from "../components/PPESummaryTemplate";
 import { buildPPESummary } from "../utils/buildPPESummary";
-import { useSearchParams } from "react-router-dom";
+import { useReactToPrint } from "react-to-print";
 
 export default function PPESummaryPage() {
   const { data: accounts = [], isLoading } = useInventoryAccounts();

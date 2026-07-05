@@ -10,7 +10,7 @@ type BuildPPESummaryParams = {
 export function buildPPESummary({
   accounts,
   propertyType,
-  asOf = new Date(date),
+  asOf = new Date(),
 }: BuildPPESummaryParams): PPESummaryData {
   const rows = accounts.map((account) => ({
     id: account.id,

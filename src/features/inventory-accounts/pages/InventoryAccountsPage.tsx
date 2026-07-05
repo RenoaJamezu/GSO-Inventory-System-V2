@@ -3,6 +3,7 @@ import InventoryAccountDialog from "../components/InventoryAccountDialog";
 import InventoryAccountsTable from "../components/InventoryAccountsTable";
 import { useInventoryAccounts } from "../hooks/useInventoryAccounts";
 import type { InventoryAccount } from "../types";
+import { PPESummaryDialog } from "@/features/reporting/ppe-summary";
 
 export default function InventoryAccountPage() {
   const { data = [], isLoading, error } = useInventoryAccounts();
@@ -10,7 +11,6 @@ export default function InventoryAccountPage() {
   const [search, setSearch] = useState("");
 
   const [open, setOpen] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [summaryOpen, setSummaryOpen] = useState(false);
 
   const [selectedAccount, setSelectedAccount] =
@@ -70,10 +70,10 @@ export default function InventoryAccountPage() {
         onClose={() => setOpen(false)}
       />
 
-      {/* <PPESummaryDialog
+      <PPESummaryDialog
         open={summaryOpen}
         onClose={() => setSummaryOpen(false)}
-      /> */}
+      />
     </div>
   );
 }

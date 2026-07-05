@@ -1,21 +1,21 @@
-import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import type { InventoryRecord } from "../types";
-import { useInventoryAccount } from "@/features/inventory-accounts";
-import {
-  useBulkAssignGroup,
-  useBulkDeleteInventoryRecords,
-  useInventoryRecords,
-} from "../hooks/useInventoryRecords";
-import { GroupManagementDialog, useGroups } from "@/features/groups";
-import { useAccountColumns } from "@/features/account-columns";
-import { generateTemplate } from "../utils/generateTemplate";
-import InventoryRecordsTable from "../components/InventoryRecordsTable";
-import InventoryRecordDialog from "../components/InventoryRecordDialog";
-import { ExcelImportDialog } from "@/features/excel-import";
 import { ConfirmDialog } from "@/components/dialog";
-import InventoryHeader from "../components/InventoryHeader";
+import { useAccountColumns } from "@/features/account-columns";
+import { ExcelImportDialog } from "@/features/excel-import";
+import { useGroups, GroupManagementDialog } from "@/features/groups";
+import { useInventoryAccount } from "@/features/inventory-accounts";
+import { useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import InventoryBulkToolbar from "../components/InventoryBulkToolbar";
+import InventoryHeader from "../components/InventoryHeader";
+import InventoryRecordDialog from "../components/InventoryRecordDialog";
+import InventoryRecordsTable from "../components/InventoryRecordsTable";
+import {
+  useInventoryRecords,
+  useBulkDeleteInventoryRecords,
+  useBulkAssignGroup,
+} from "../hooks/useInventoryRecords";
+import type { InventoryRecord } from "../types";
+import { generateTemplate } from "../utils/generateTemplate";
 
 export default function InventoryRecordsPage() {
   const { accountId } = useParams();

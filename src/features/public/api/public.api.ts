@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabase";
-
 import type { PublicInventoryRecord } from "../types";
 
 const TABLE = "public_inventory_records";
