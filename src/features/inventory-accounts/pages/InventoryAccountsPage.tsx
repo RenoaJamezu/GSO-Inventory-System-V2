@@ -4,9 +4,12 @@ import InventoryAccountsTable from "../components/InventoryAccountsTable";
 import { useInventoryAccounts } from "../hooks/useInventoryAccounts";
 import type { InventoryAccount } from "../types";
 import { PPESummaryDialog } from "@/features/reporting/ppe-summary";
+import { useLogout } from "@/features/auth";
 
 export default function InventoryAccountPage() {
   const { data = [], isLoading, error } = useInventoryAccounts();
+
+  const logout = useLogout();
 
   const [search, setSearch] = useState("");
 
@@ -52,6 +55,13 @@ export default function InventoryAccountPage() {
             className="rounded bg-blue-600 px-4 py-2 text-white"
           >
             Add Account
+          </button>
+
+          <button
+            onClick={logout}
+            className="rounded bg-red-600 px-4 py-2 text-white"
+          >
+            Logout
           </button>
         </div>
       </div>
