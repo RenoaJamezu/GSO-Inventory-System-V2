@@ -1,4 +1,5 @@
 export * from "./types";
+export * from "./hooks/useInventoryRecordFilters";
 export * from "./hooks/useInventoryRecords";
 export { default as BulkPrintPage } from "./pages/BulkPrintPage";
 export { default as InventoryRecordQrCodePage } from "./pages/InventoryRecordQrCodePage";

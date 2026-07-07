@@ -16,6 +16,8 @@ import {
 } from "../hooks/useInventoryRecords";
 import type { InventoryRecord } from "../types";
 import { generateTemplate } from "../utils/generateTemplate";
+import SearchInput from "@/components/SearchInput";
+import { useInventoryRecordFilters } from "../hooks/useInventoryRecordFilters";
 
 export default function InventoryRecordsPage() {
   const { accountId } = useParams();
@@ -50,6 +52,11 @@ export default function InventoryRecordsPage() {
   const bulkDeleteMutation = useBulkDeleteInventoryRecords();
 
   const bulkAssignMutation = useBulkAssignGroup();
+
+  const { search, setSearch, filteredRecords } = useInventoryRecordFilters({
+    records,
+    groups,
+  });
 
   const handleCreate = () => {
     setSelectedRecord(null);
@@ -152,6 +159,14 @@ export default function InventoryRecordsPage() {
           onManageGroups={handleOpenGroups}
         />
 
+        <div className="mb-4">
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Search inventory records..."
+          />
+        </div>
+
         <InventoryBulkToolbar
           selectedIds={selectedIds}
           groups={groups}
@@ -166,7 +181,7 @@ export default function InventoryRecordsPage() {
 
         <InventoryRecordsTable
           columns={columns}
-          records={records}
+          records={filteredRecords}
           groups={groups}
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
