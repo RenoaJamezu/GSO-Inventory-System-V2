@@ -11,22 +11,24 @@ import {
   FormTextarea,
   FormCheckbox,
 } from "@/components/form";
+import { Button } from "@/components/ui";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+
 import {
   useCreateAccountColumn,
   useUpdateAccountColumn,
 } from "../hooks/useAccountColumns";
+
 import {
   type AccountColumnForm,
   accountColumnSchema,
 } from "../schemas/accountColumn.schema";
-import type {
-  AccountColumn,
-  ColumnDataType,
-  AccountColumnInput,
-} from "../types";
+
+import type { AccountColumn, AccountColumnInput } from "../types";
+import { DATA_TYPES } from "../constants";
 
 type Props = {
   open: boolean;
@@ -34,14 +36,6 @@ type Props = {
   column?: AccountColumn | null;
   onClose: () => void;
 };
-
-const DATA_TYPES: ColumnDataType[] = [
-  "text",
-  "textarea",
-  "number",
-  "date",
-  "boolean",
-];
 
 export default function AccountColumnDialog({
   open,
@@ -127,69 +121,119 @@ export default function AccountColumnDialog({
   }
 
   return (
-    <Dialog open={open} maxWidth="md">
-      <DialogHeader title={isEdit ? "Edit Column" : "Add Column"} />
+    <Dialog open={open} maxWidth="lg">
+      <DialogHeader title={isEdit ? "Edit Column" : "New Column"}>
+        <p className="mt-1 text-sm font-normal text-gray-500">
+          {isEdit
+            ? "Update the configuration of this inventory field."
+            : "Create a new field that will appear on every inventory record."}
+        </p>
+      </DialogHeader>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogBody>
-          <FormField label="Label" required>
-            <FormInput {...register("label")} />
+          <div className="space-y-8">
+            {/* General */}
 
-            {errors.label && (
-              <p className="mt-1 text-sm text-red-500">
-                {errors.label.message}
-              </p>
-            )}
-          </FormField>
+            <section className="space-y-5">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">
+                  General Information
+                </h3>
 
-          <FormField label="Data Type">
-            <FormSelect {...register("data_type")}>
-              {DATA_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </FormSelect>
-          </FormField>
+                <p className="mt-1 text-sm text-gray-500">
+                  Configure how this field will appear on inventory records.
+                </p>
+              </div>
 
-          <FormField label="Placeholder">
-            <FormInput {...register("placeholder")} />
-          </FormField>
+              <FormField label="Column Label" required>
+                <FormInput
+                  placeholder="Example: Serial Number"
+                  {...register("label")}
+                />
 
-          <FormField label="Description">
-            <FormTextarea rows={3} {...register("description")} />
-          </FormField>
+                {errors.label && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.label.message}
+                  </p>
+                )}
+              </FormField>
 
-          <div className="space-y-3">
-            <FormCheckbox label="Required" {...register("is_required")} />
+              <FormField label="Input Type">
+                <FormSelect {...register("data_type")}>
+                  {DATA_TYPES.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </FormSelect>
+              </FormField>
 
-            <FormCheckbox
-              label="Amount Column"
-              {...register("is_amount_column")}
-            />
+              <FormField label="Placeholder Text">
+                <FormInput
+                  placeholder="Example: Enter serial number..."
+                  {...register("placeholder")}
+                />
+              </FormField>
+
+              <FormField label="Help Text">
+                <FormTextarea
+                  rows={3}
+                  placeholder="Optional instructions shown to users..."
+                  {...register("description")}
+                />
+              </FormField>
+            </section>
+
+            {/* Options */}
+
+            <section className="space-y-4 border-t pt-6">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">
+                  Options
+                </h3>
+
+                <p className="mt-1 text-sm text-gray-500">
+                  Configure how this field behaves.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="rounded-xl border p-4 hover:border-emerald-300 hover:bg-emerald-50/30 transition">
+                  <FormCheckbox
+                    label="Required Field"
+                    description="Users must provide a value before saving a record."
+                    {...register("is_required")}
+                  />
+                </div>
+
+                <div className="rounded-xl border p-4 hover:border-emerald-300 hover:bg-emerald-50/30 transition">
+                  <FormCheckbox
+                    label="Amount Column"
+                    description="Used for report totals and calculations. Only one amount column is allowed."
+                    {...register("is_amount_column")}
+                  />
+                </div>
+              </div>
+            </section>
           </div>
         </DialogBody>
 
         <DialogFooter>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded border px-4 py-2"
-          >
+          <Button type="button" variant="secondary" onClick={onClose}>
             Cancel
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="submit"
-            disabled={
+            loading={
               isSubmitting ||
               createMutation.isPending ||
               updateMutation.isPending
             }
-            className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
           >
-            {isEdit ? "Save Changes" : "Create"}
-          </button>
+            {isEdit ? "Save Changes" : "Create Column"}
+          </Button>
         </DialogFooter>
       </form>
     </Dialog>

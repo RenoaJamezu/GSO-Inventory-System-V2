@@ -1,21 +1,29 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import {
-  getInventoryAccounts,
   createInventoryAccount,
-  getInventoryAccountById,
-  updateInventoryAccount,
   deleteInventoryAccount,
+  getInventoryAccountById,
+  getInventoryAccounts,
+  updateInventoryAccount,
 } from "../api/inventoryAccounts.api";
+
 import type { InventoryAccountInput } from "../types";
+
+import { inventoryAccountKeys } from "../queryKeys";
 
 export function useInventoryAccounts() {
   return useQuery({
-    queryKey: ["inventory_accounts"],
+    queryKey: inventoryAccountKeys.all,
     queryFn: getInventoryAccounts,
+  });
+}
+
+export function useInventoryAccount(id: number) {
+  return useQuery({
+    queryKey: inventoryAccountKeys.detail(id),
+    queryFn: () => getInventoryAccountById(id),
+    enabled: id > 0,
   });
 }
 
@@ -25,19 +33,11 @@ export function useCreateInventoryAccount() {
   return useMutation({
     mutationFn: createInventoryAccount,
 
-    onSuccess: () => {
+    onSuccess() {
       queryClient.invalidateQueries({
-        queryKey: ["inventory_accounts"],
+        queryKey: inventoryAccountKeys.all,
       });
     },
-  });
-}
-
-export function useInventoryAccount(id: number) {
-  return useQuery({
-    queryKey: ["inventory-account", id],
-    queryFn: () => getInventoryAccountById(id),
-    enabled: !!id,
   });
 }
 
@@ -53,9 +53,9 @@ export function useUpdateInventoryAccount() {
       values: InventoryAccountInput;
     }) => updateInventoryAccount(id, values),
 
-    onSuccess: () => {
+    onSuccess() {
       queryClient.invalidateQueries({
-        queryKey: ["inventory_accounts"],
+        queryKey: inventoryAccountKeys.all,
       });
     },
   });
@@ -67,9 +67,9 @@ export function useDeleteInventoryAccount() {
   return useMutation({
     mutationFn: deleteInventoryAccount,
 
-    onSuccess: () => {
+    onSuccess() {
       queryClient.invalidateQueries({
-        queryKey: ["inventory_accounts"],
+        queryKey: inventoryAccountKeys.all,
       });
     },
   });

@@ -1,5 +1,5 @@
 export * from "./types";
-export { default as PPESummaryPage } from "./pages/PPESummaryPage";
+
 export { default as PPESummaryDialog } from "./components/PPESummaryDialog";
 export { default as PPESummaryFooter } from "./components/PPESummaryFooter";
 export { default as PPESummaryHeader } from "./components/PPESummaryHeader";

@@ -1,17 +1,11 @@
 import type { ReactNode } from "react";
+import { maxWidthClasses } from "./constants";
 
 type DialogProps = {
   open: boolean;
   title?: string;
   children: ReactNode;
   maxWidth?: "sm" | "md" | "lg" | "xl";
-};
-
-const maxWidthClasses = {
-  sm: "max-w-md",
-  md: "max-w-lg",
-  lg: "max-w-2xl",
-  xl: "max-w-7xl",
 };
 
 export default function Dialog({

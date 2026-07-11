@@ -1,24 +1,17 @@
 import {
   Dialog,
   DialogBody,
-  DialogHeader,
   DialogFooter,
+  DialogHeader,
 } from "@/components/dialog";
-import { useAccountColumns } from "@/features/account-columns";
-import { useGroups } from "@/features/groups";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo, useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import {
-  useCreateInventoryRecord,
-  useUpdateInventoryRecord,
-} from "../hooks/useInventoryRecords";
-import {
-  createInventoryRecordSchema,
-  type InventoryRecordFormValues,
-} from "../schemas/InventoryRecordSchema";
-import type { InventoryRecord } from "../types";
+
 import DynamicField from "./DynamicField";
+
+import type { InventoryRecord } from "../types";
+
+import { useInventoryRecordForm } from "../hooks/useInventoryRecordForm";
+import { Button } from "@/components/ui";
+import { FormSelect } from "@/components/form";
 
 type Props = {
   open: boolean;
@@ -33,120 +26,38 @@ export default function InventoryRecordDialog({
   record,
   onClose,
 }: Props) {
-  const { data: columns = [], isLoading } = useAccountColumns(accountId);
-
-  const { data: groups = [] } = useGroups(accountId);
-
-  const schema = useMemo(() => createInventoryRecordSchema(columns), [columns]);
-
-  const createMutation = useCreateInventoryRecord();
-  const updateMutation = useUpdateInventoryRecord();
-
-  const isEdit = Boolean(record);
-
-  const [groupId, setGroupId] = useState<number | null>(null);
-
   const {
+    columns,
+    groups,
+
     control,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<InventoryRecordFormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {},
+
+    groupId,
+    setGroupId,
+
+    onSubmit,
+
+    isEdit,
+    isSubmitting,
+  } = useInventoryRecordForm({
+    open,
+    accountId,
+    record,
+    onSuccess: onClose,
   });
 
-  useEffect(() => {
-    if (!open) return;
-
-    // wait until columns are ready
-    if (!columns.length) return;
-
-    if (record) {
-      reset({
-        ...Object.fromEntries(
-          columns.map((col) => [
-            col.field_key,
-            record.data?.[col.field_key] ?? "",
-          ]),
-        ),
-      });
-
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setGroupId(record.group_id ?? null);
-
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const values: any = {
-      group_id: null,
-    };
-
-    columns.forEach((column) => {
-      switch (column.data_type) {
-        case "boolean":
-          values[column.field_key] = false;
-          break;
-        default:
-          values[column.field_key] = "";
-      }
-    });
-
-    reset(values);
-    setGroupId(null);
-  }, [open, record, columns, reset]);
-
-  const onSubmit = async (values: InventoryRecordFormValues) => {
-    console.log("Submitting...", values);
-    try {
-      if (isEdit && record) {
-        await updateMutation.mutateAsync({
-          id: record.id,
-          values: {
-            group_id: groupId,
-            data: values,
-          },
-        });
-      } else {
-        await createMutation.mutateAsync({
-          account_id: accountId,
-          group_id: groupId,
-          data: values,
-        });
-      }
-
-      onClose();
-    } catch (error) {
-      console.error(error);
-      alert("Failed to save record.");
-    }
-  };
-
   if (!open) return null;
-
-  if (isLoading) {
-    return (
-      <Dialog open={open} maxWidth="lg">
-        <DialogBody>
-          <div className="py-8 text-center">Loading...</div>
-        </DialogBody>
-      </Dialog>
-    );
-  }
-
-  console.log(errors);
 
   return (
     <Dialog open={open} maxWidth="lg">
       <DialogHeader title={isEdit ? "Edit Record" : "Add Record"} />
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={onSubmit}>
         <DialogBody>
           <div className="mb-4">
             <label className="mb-1 block text-sm font-medium">Group</label>
 
-            <select
+            <FormSelect
               value={groupId ?? ""}
               onChange={(e) =>
                 setGroupId(
@@ -162,7 +73,7 @@ export default function InventoryRecordDialog({
                   {group.group_name}
                 </option>
               ))}
-            </select>
+            </FormSelect>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -173,27 +84,19 @@ export default function InventoryRecordDialog({
         </DialogBody>
 
         <DialogFooter>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded border px-4 py-2"
-          >
+          <Button type="button" variant="secondary" onClick={onClose}>
             Cancel
-          </button>
+          </Button>
 
-          <button
-            type="submit"
-            disabled={createMutation.isPending || updateMutation.isPending}
-            className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
-          >
+          <Button type="submit" disabled={isSubmitting}>
             {isEdit
-              ? updateMutation.isPending
+              ? isSubmitting
                 ? "Saving..."
                 : "Save Changes"
-              : createMutation.isPending
+              : isSubmitting
                 ? "Creating..."
                 : "Create"}
-          </button>
+          </Button>
         </DialogFooter>
       </form>
     </Dialog>

@@ -1,4 +1,8 @@
 import { useNavigate } from "react-router-dom";
+
+import { Button } from "@/components/ui";
+import { formatCurrency, formatNumber } from "@/lib/utils/format";
+
 import { useDeleteInventoryAccount } from "../hooks/useInventoryAccounts";
 import type { InventoryAccount } from "../types";
 
@@ -12,9 +16,10 @@ export default function InventoryAccountsTable({
   onEdit,
 }: InventoryAccountsTableProps) {
   const navigate = useNavigate();
+
   const deleteMutation = useDeleteInventoryAccount();
 
-  const handleDelete = (account: InventoryAccount) => {
+  function handleDelete(account: InventoryAccount) {
     const confirmed = window.confirm(
       `Are you sure you want to delete "${account.account_title}"?`,
     );
@@ -22,90 +27,118 @@ export default function InventoryAccountsTable({
     if (!confirmed) return;
 
     deleteMutation.mutate(account.id);
-  };
+  }
 
   return (
-    <div className="overflow-x-auto rounded border">
-      <table className="table-fixed min-w-full border-collapse">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border px-4 py-2 text-center">No.</th>
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="max-h-102 overflow-auto">
+        <table className="min-w-full border-collapse">
+          <thead className="sticky top-0 z-10 bg-gray-100">
+            <tr className="text-sm font-semibold text-gray-700">
+              <th className="border-b border-gray-200 px-4 py-3 text-center w-20">
+                No.
+              </th>
 
-            <th className="border px-4 py-2 text-left">Account Title</th>
+              <th className="border-b border-gray-200 px-4 py-3 text-left">
+                Account Title
+              </th>
 
-            <th className="border px-4 py-2 text-right">Book Value</th>
+              <th className="border-b border-gray-200 px-4 py-3 text-right">
+                Book Value
+              </th>
 
-            <th className="border px-4 py-2 text-right">
-              Per Inventory Report
-            </th>
+              <th className="border-b border-gray-200 px-4 py-3 text-right">
+                Per Inventory Report
+              </th>
 
-            <th className="border px-4 py-2 text-right">Variance</th>
+              <th className="border-b border-gray-200 px-4 py-3 text-right">
+                Variance
+              </th>
 
-            <th className="border px-4 py-2 text-center">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {accounts.length === 0 && (
-            <tr>
-              <td
-                colSpan={6}
-                className="border px-4 py-8 text-center text-gray-500"
-              >
-                No inventory accounts found.
-              </td>
+              <th className="border-b border-gray-200 px-4 py-3 text-center w-72">
+                Actions
+              </th>
             </tr>
-          )}
+          </thead>
 
-          {accounts.map((account, index) => (
-            <tr key={account.id} className="hover:bg-gray-50 capitalize">
-              <td className="border px-4 py-2 text-center">{index + 1}</td>
+          <tbody>
+            {accounts.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-6 py-12 text-center text-gray-500"
+                >
+                  No inventory accounts found.
+                </td>
+              </tr>
+            ) : (
+              accounts.map((account, index) => (
+                <tr
+                  key={account.id}
+                  onClick={() =>
+                    navigate(`/inventory-accounts/${account.id}/records`)
+                  }
+                  className="
+                    cursor-pointer
+                    odd:bg-white
+                    even:bg-gray-50
+                    hover:bg-blue-50
+                    transition-colors
+                    capitalize
+                  "
+                >
+                  <td className="border-b border-gray-100 px-4 py-3 text-center">
+                    {index + 1}
+                  </td>
 
-              <td className="border px-4 py-2">{account.account_title}</td>
+                  <td className="border-b border-gray-100 px-4 py-3 font-medium text-gray-800">
+                    {account.account_title}
+                  </td>
 
-              <td className="border px-4 py-2 text-right">
-                {Number(account.book_value).toLocaleString()}
-              </td>
+                  <td className="border-b border-gray-100 px-4 py-3 text-right tabular-nums">
+                    {formatNumber(account.book_value)}
+                  </td>
 
-              <td className="border px-4 py-2 text-right">
-                {Number(account.per_inventory_report).toLocaleString()}
-              </td>
+                  <td className="border-b border-gray-100 px-4 py-3 text-right tabular-nums">
+                    {formatCurrency(account.per_inventory_report)}
+                  </td>
 
-              <td className="border px-4 py-2 text-right">
-                {Number(account.variance).toLocaleString()}
-              </td>
+                  <td className="border-b border-gray-100 px-4 py-3 text-right tabular-nums">
+                    {formatNumber(account.variance)}
+                  </td>
 
-              <td className="border px-4 py-2">
-                <div className="flex justify-center gap-2">
-                  <button
-                    onClick={() =>
-                      navigate(`/inventory-accounts/${account.id}/records`)
-                    }
-                    className="rounded bg-green-600 px-3 py-1 text-sm text-white hover:bg-green-700"
-                  >
-                    Records
-                  </button>
+                  <td className="border-b border-gray-100 px-4 py-3">
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="warning"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(account);
+                        }}
+                      >
+                        Edit
+                      </Button>
 
-                  <button
-                    onClick={() => onEdit(account)}
-                    className="rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(account)}
-                    disabled={deleteMutation.isPending}
-                    className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        loading={deleteMutation.isPending}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(account);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

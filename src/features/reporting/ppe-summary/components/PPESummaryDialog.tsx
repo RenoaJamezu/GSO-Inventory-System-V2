@@ -5,6 +5,7 @@ import {
   DialogFooter,
 } from "@/components/dialog";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type Props = {
   open: boolean;
@@ -12,12 +13,14 @@ type Props = {
 };
 
 export default function PPESummaryDialog({ open, onClose }: Props) {
+  const navigate = useNavigate();
+
   const today = new Date().toISOString().split("T")[0];
 
   const [asOfDate, setAsOfDate] = useState(today);
 
   function handleGenerate() {
-    window.open(`/reports/ppe-summary?date=${asOfDate}`, "_blank");
+    navigate(`/reports/ppe-summary?date=${asOfDate}`);
 
     onClose();
   }

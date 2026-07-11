@@ -29,13 +29,26 @@ export default function PPESummaryFooter() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 mt-8">
+      <div className="mt-4 grid grid-cols-2">
+        {/* Prepared */}
+        <div>
+          <div className="mb-4 font-bold text-[13px]">Prepared by:</div>
+          <div className="text-center text-[12px]">
+            <div className="uppercase underline font-bold">
+              Norma G. Rocacorba
+            </div>
+            <div>Aid-I</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2">
         {/* Certified */}
         <div>
-          <div className="mb-4 font-bold text-[13px]">
+          <div className="mt-3 mb-4 font-bold text-[13px]">
             Certified Correct by:
           </div>
-          <div className="text-center text-[12px]">
+          <div className="mt-7 text-center text-[12px]">
             <div className="uppercase underline font-bold">
               Marcedito E. Polestico
             </div>
@@ -45,7 +58,7 @@ export default function PPESummaryFooter() {
 
         {/* Approved */}
         <div>
-          <div className="mt-18 mb-4 font-bold text-[13px]">Approved By:</div>
+          <div className="mt-20 mb-4 font-bold text-[13px]">Approved By:</div>
           <div className="text-center text-[12px]">
             <div className="uppercase underline font-bold">
               Thelma G. Lamanilao,MD.

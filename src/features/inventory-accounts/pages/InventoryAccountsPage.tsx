@@ -1,19 +1,30 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+
+import { PPESummaryDialog } from "@/features/reporting/ppe-summary";
+
 import InventoryAccountDialog from "../components/InventoryAccountDialog";
 import InventoryAccountsTable from "../components/InventoryAccountsTable";
+
 import { useInventoryAccounts } from "../hooks/useInventoryAccounts";
+
 import type { InventoryAccount } from "../types";
-import { PPESummaryDialog } from "@/features/reporting/ppe-summary";
-import { useLogout } from "@/features/auth";
+
+import { CirclePlus } from "lucide-react";
+import {
+  Button,
+  Card,
+  PageHeader,
+  SearchField,
+  Toolbar,
+} from "@/components/ui";
 
 export default function InventoryAccountPage() {
   const { data = [], isLoading, error } = useInventoryAccounts();
 
-  const logout = useLogout();
-
   const [search, setSearch] = useState("");
 
   const [open, setOpen] = useState(false);
+
   const [summaryOpen, setSummaryOpen] = useState(false);
 
   const [selectedAccount, setSelectedAccount] =
@@ -25,54 +36,64 @@ export default function InventoryAccountPage() {
     );
   }, [data, search]);
 
-  if (isLoading) return <div className="p-6">Loading...</div>;
+  if (isLoading) {
+    return <div className="p-6">Loading...</div>;
+  }
 
-  if (error) return <div className="p-6">Error loading data.</div>;
+  if (error) {
+    return <div className="p-6">Error loading data.</div>;
+  }
 
   return (
-    <div className="mx-auto max-w-6xl p-6">
-      <div className="mb-4 flex justify-between">
-        <input
-          className="rounded border px-3 py-2"
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+    <div  className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+      {/* Breadcrumb */}
 
-        <div className="flex gap-2">
-          <button
-            onClick={() => setSummaryOpen(true)}
-            className="rounded bg-green-600 px-4 py-2 text-white disabled:opacity-50"
-          >
-            PPE Summary
-          </button>
+      <nav className="flex items-center gap-2 text-sm text-gray-500">
+        <span className="font-medium text-gray-900">Inventory Accounts</span>
+      </nav>
 
-          <button
-            onClick={() => {
-              setSelectedAccount(null);
-              setOpen(true);
-            }}
-            className="rounded bg-blue-600 px-4 py-2 text-white"
-          >
-            Add Account
-          </button>
-
-          <button
-            onClick={logout}
-            className="rounded bg-red-600 px-4 py-2 text-white"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-
-      <InventoryAccountsTable
-        accounts={filteredAccounts}
-        onEdit={(account) => {
-          setSelectedAccount(account);
-          setOpen(true);
-        }}
+      <PageHeader
+        title="Inventory Accounts"
+        description="Manage inventory account titles and generate inventory reports."
       />
+
+      <Toolbar
+        left={
+          <SearchField
+            value={search}
+            onChange={setSearch}
+            placeholder="Search account title..."
+          />
+        }
+        right={
+          <>
+            <Button variant="success" onClick={() => setSummaryOpen(true)}>
+              Generate PPE Summary
+            </Button>
+
+            <Button
+              className="flex gap-1 item-center"
+              onClick={() => {
+                setSelectedAccount(null);
+                setOpen(true);
+              }}
+            >
+              <CirclePlus size={20} />
+              Add Account
+            </Button>
+          </>
+        }
+      />
+
+      <Card padding="none">
+        <InventoryAccountsTable
+          accounts={filteredAccounts}
+          onEdit={(account) => {
+            setSelectedAccount(account);
+            setOpen(true);
+          }}
+        />
+      </Card>
 
       <InventoryAccountDialog
         open={open}

@@ -1,13 +1,10 @@
 import { supabase } from "@/lib/supabase";
-import type { AccountColumn, AccountColumnInput } from "../types";
-
-function normalizeFieldKey(label: string) {
-  return label
-    .trim()
-    .toLowerCase()
-    .replace(/[^\w\s]/g, "")
-    .replace(/\s+/g, "_");
-}
+import type {
+  AccountColumn,
+  AccountColumnInput,
+  DeleteAccountColumnInput,
+} from "../types";
+import { normalizeFieldKey } from "../utils/normalizeFieldKey";
 
 export async function getAccountColumns(accountId: number) {
   const { data, error } = await supabase
@@ -121,11 +118,13 @@ export async function updateAccountColumn(
   return data;
 }
 
-export async function deleteAccountColumn(id: number) {
+export async function deleteAccountColumn({ id }: DeleteAccountColumnInput) {
+  const deleted_at = new Date().toISOString();
+
   const { error } = await supabase
     .from("account_columns")
     .update({
-      deleted_at: new Date().toISOString(),
+      deleted_at,
     })
     .eq("id", id);
 

@@ -6,6 +6,7 @@ export type ColumnDataType =
   | "boolean";
 
 export interface AccountColumn {
+  is_amount: unknown;
   id: number;
   account_id: number;
 
@@ -43,4 +44,9 @@ export interface AccountColumnInput {
   placeholder?: string | null;
 
   description?: string | null;
+}
+
+export interface DeleteAccountColumnInput {
+  id: number;
+  account_id: number;
 }

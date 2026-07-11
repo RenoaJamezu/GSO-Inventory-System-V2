@@ -1,15 +1,31 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+
+import {
+  Dialog,
+  DialogBody,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/dialog";
+
+import { FormField, FormInput } from "@/components/form";
+
+import { Button } from "@/components/ui";
+
 import {
   useCreateInventoryAccount,
   useUpdateInventoryAccount,
 } from "../hooks/useInventoryAccounts";
+
 import {
-  type InventoryAccountForm,
   inventoryAccountSchema,
+  type InventoryAccountForm,
 } from "../schemas/inventoryAccount.schema";
+
 import type { InventoryAccount } from "../types";
+
+import { normalizeFieldKey } from "@/lib/utils/normalizeFieldKey";
 
 type Props = {
   open: boolean;
@@ -17,20 +33,13 @@ type Props = {
   account?: InventoryAccount | null;
 };
 
-function slugify(text: string) {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w-]/g, "");
-}
-
 export default function InventoryAccountDialog({
   open,
   onClose,
   account,
 }: Props) {
   const createMutation = useCreateInventoryAccount();
+
   const updateMutation = useUpdateInventoryAccount();
 
   const isEditing = Boolean(account);
@@ -39,9 +48,10 @@ export default function InventoryAccountDialog({
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<InventoryAccountForm>({
     resolver: zodResolver(inventoryAccountSchema),
+
     defaultValues: {
       account_title: "",
       book_value: 0,
@@ -69,108 +79,78 @@ export default function InventoryAccountDialog({
     });
   }, [account, open, reset]);
 
-  if (!open) return null;
-
   async function onSubmit(values: InventoryAccountForm) {
-    const payload = {
-      ...values,
-      slug: slugify(values.account_title),
-    };
+    try {
+      const payload = {
+        ...values,
+        slug: normalizeFieldKey(values.account_title),
+      };
 
-    if (isEditing && account) {
-      await updateMutation.mutateAsync({
-        id: account.id,
-        values: payload,
-      });
-    } else {
-      await createMutation.mutateAsync(payload);
+      if (isEditing && account) {
+        await updateMutation.mutateAsync({
+          id: account.id,
+          values: payload,
+        });
+      } else {
+        await createMutation.mutateAsync(payload);
+      }
+
+      onClose();
+    } catch (error) {
+      console.error("Failed saving inventory account", error);
     }
-
-    onClose();
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-md rounded bg-white p-6">
-        <h2 className="mb-4 text-xl font-bold">
-          {isEditing ? "Edit Account" : "Add Account"}
-        </h2>
+    <Dialog open={open} maxWidth="md">
+      <DialogHeader title={isEditing ? "Edit Account" : "Add Account"} />
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="mb-1 block">Account Title</label>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <DialogBody>
+          <div className="space-y-4">
+            <FormField label="Account Title" required>
+              <FormInput {...register("account_title")} />
 
-            <input
-              {...register("account_title")}
-              className="w-full rounded border p-2"
-            />
+              {errors.account_title && (
+                <p className="text-sm text-red-500">
+                  {errors.account_title.message}
+                </p>
+              )}
+            </FormField>
 
-            {errors.account_title && (
-              <p className="mt-1 text-sm text-red-500">
-                {errors.account_title.message}
-              </p>
-            )}
+            <FormField label="Book Value">
+              <FormInput
+                type="number"
+                {...register("book_value", {
+                  valueAsNumber: true,
+                })}
+              />
+            </FormField>
+
+            <FormField label="Variance">
+              <FormInput
+                type="number"
+                {...register("variance", {
+                  valueAsNumber: true,
+                })}
+              />
+            </FormField>
           </div>
+        </DialogBody>
 
-          <div>
-            <label className="mb-1 block">Book Value</label>
+        <DialogFooter>
+          <Button type="button" variant="danger" onClick={onClose}>
+            Cancel
+          </Button>
 
-            <input
-              type="number"
-              {...register("book_value", {
-                valueAsNumber: true,
-              })}
-              className="w-full rounded border p-2"
-            />
-
-            {errors.book_value && (
-              <p className="mt-1 text-sm text-red-500">
-                {errors.book_value.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="mb-1 block">Variance</label>
-
-            <input
-              type="number"
-              {...register("variance", {
-                valueAsNumber: true,
-              })}
-              className="w-full rounded border p-2"
-            />
-
-            {errors.variance && (
-              <p className="mt-1 text-sm text-red-500">
-                {errors.variance.message}
-              </p>
-            )}
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded border px-4 py-2"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              disabled={
-                isSubmitting ||
-                createMutation.isPending ||
-                updateMutation.isPending
-              }
-              className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
-            >
-              {isEditing ? "Update" : "Save"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          <Button
+            type="submit"
+            disabled={createMutation.isPending || updateMutation.isPending}
+          >
+            {isEditing ? "Update" : "Save"}
+          </Button>
+        </DialogFooter>
+      </form>
+    </Dialog>
   );
 }

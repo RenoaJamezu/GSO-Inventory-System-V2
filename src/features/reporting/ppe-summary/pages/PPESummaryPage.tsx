@@ -31,7 +31,7 @@ export default function PPESummaryPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-200 py-10">
+    <div>
       <div className="mb-6 flex justify-center">
         <button
           onClick={handlePrint}
@@ -40,7 +40,7 @@ export default function PPESummaryPage() {
           Print Report
         </button>
       </div>
-      <div ref={reportRef} data-print-root>
+      <div ref={reportRef}>
         <PPESummaryTemplate data={report} />
       </div>
     </div>

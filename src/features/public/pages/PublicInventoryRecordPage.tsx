@@ -61,7 +61,7 @@ export default function PublicInventoryRecordPage() {
         className={`mx-auto max-w-2xl rounded-2xl border-2 bg-white shadow-lg ${asset.border}`}
       >
         {/* Header */}
-        <div className="border-b p-6 ${asset.bg}">
+        <div className={`border-b p-6 ${asset.bg}`}>
           <h1 className="text-2xl font-bold">{record.account_title}</h1>
 
           <p className="mt-1 text-sm text-gray-500">Public Asset Information</p>

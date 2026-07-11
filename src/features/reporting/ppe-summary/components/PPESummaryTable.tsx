@@ -1,3 +1,4 @@
+import { formatCurrency } from "@/lib/utils/format";
 import type { PPESummaryRow } from "../types";
 
 type Props = {
@@ -56,7 +57,7 @@ export default function PPESummaryTable({ rows, totals }: Props) {
             </td>
 
             <td className="border border-black px-2 text-right">
-              {formatCellValue(row.per_inventory_report)}
+              {formatCurrency(row.per_inventory_report)}
             </td>
 
             <td className="border border-black px-2 text-right">

@@ -1,26 +1,34 @@
-import type { Group } from "@/features/groups";
-import type { InventoryRecord } from "../types";
+import type { Group, InventoryRecord } from "../types";
 
 type Params = {
   records: InventoryRecord[];
   groups: Group[];
   search: string;
+  groupId: number | null;
 };
 
 export function filterInventoryRecords({
   records,
   groups,
   search,
+  groupId,
 }: Params): InventoryRecord[] {
+  let filtered = records;
+
+  // Group filter
+  if (groupId !== null) {
+    filtered = filtered.filter((record) => record.group_id === groupId);
+  }
+
   const keyword = search.trim().toLowerCase();
 
   if (!keyword) {
-    return records;
+    return filtered;
   }
 
   const words = keyword.split(/\s+/);
 
-  return records.filter((record) => {
+  return filtered.filter((record) => {
     const groupName =
       groups.find((group) => group.id === record.group_id)?.group_name ?? "";
 

@@ -9,6 +9,14 @@ export function useCurrentUser() {
     queryKey: ["current-user"],
     queryFn: getCurrentUser,
     enabled: isAuthenticated,
-    staleTime: Infinity,
+
+    // Refresh every minute
+    staleTime: 60 * 1000,
+
+    // Refresh when returning to the tab
+    refetchOnWindowFocus: true,
+
+    // Refresh when reconnecting
+    refetchOnReconnect: true,
   });
 }

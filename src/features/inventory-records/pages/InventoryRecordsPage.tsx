@@ -1,224 +1,143 @@
-import { ConfirmDialog } from "@/components/dialog";
-import { useAccountColumns } from "@/features/account-columns";
-import { ExcelImportDialog } from "@/features/excel-import";
-import { useGroups, GroupManagementDialog } from "@/features/groups";
-import { useInventoryAccount } from "@/features/inventory-accounts";
-import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import InventoryBulkToolbar from "../components/InventoryBulkToolbar";
-import InventoryHeader from "../components/InventoryHeader";
+import { useRef } from "react";
+import { useInventoryRecordsPage } from "../hooks/useInventoryRecordsPage";
+import { useReactToPrint } from "react-to-print";
+import InventoryRecordGroupManagementDialog from "../components/groups/InventoryRecordGroupManagementDialog";
+import InventoryRecordBulkToolbar from "../components/InventoryRecordBulkToolbar";
 import InventoryRecordDialog from "../components/InventoryRecordDialog";
-import InventoryRecordsTable from "../components/InventoryRecordsTable";
-import {
-  useInventoryRecords,
-  useBulkDeleteInventoryRecords,
-  useBulkAssignGroup,
-} from "../hooks/useInventoryRecords";
-import type { InventoryRecord } from "../types";
-import { generateTemplate } from "../utils/generateTemplate";
-import SearchInput from "@/components/SearchInput";
-import { useInventoryRecordFilters } from "../hooks/useInventoryRecordFilters";
+import InventoryRecordsPageHeader from "../components/InventoryRecordsPageHeader";
+import InventoryRecordStats from "../components/InventoryRecordStats";
+import InventoryRecordToolbar from "../components/InventoryRecordToolbar";
+import InventoryRecordSidePanel from "../components/side-panel/InventoryRecordSidePanel";
+import InventoryRecordTable from "../components/InventoryRecordTable";
+import InventoryRecordBulkPrint from "./InventoryRecordBulkPrint";
+import InventoryRecordExcelImportDialog from "../components/import/InventoryRecordExcelImportDialog";
 
 export default function InventoryRecordsPage() {
-  const { accountId } = useParams();
+  const {
+    id,
 
-  const id = Number(accountId);
-
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
-
-  const [selectedRecord, setSelectedRecord] = useState<InventoryRecord | null>(
-    null,
-  );
-
-  const [deleteSelectedOpen, setDeleteSelectedOpen] = useState(false);
-
-  const [selectedGroupId, setSelectedGroupId] = useState("");
-
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-
-  const [importOpen, setImportOpen] = useState(false);
-
-  const { data: account, isLoading: accountLoading } = useInventoryAccount(id);
-
-  const { data: records = [], isLoading: recordsLoading } =
-    useInventoryRecords(id);
-
-  const { data: groups = [], isLoading: groupsLoading } = useGroups(id);
-
-  const { data: columns = [], isLoading: columnsLoading } =
-    useAccountColumns(id);
-
-  const bulkDeleteMutation = useBulkDeleteInventoryRecords();
-
-  const bulkAssignMutation = useBulkAssignGroup();
-
-  const { search, setSearch, filteredRecords } = useInventoryRecordFilters({
-    records,
+    account,
     groups,
+    columns,
+
+    filters,
+    selection,
+    view,
+    groupedRecords,
+
+    selectedGroupId,
+    setSelectedGroupId,
+
+    assignSelectedGroup,
+    deleteSelectedRecords,
+    printableRecords,
+    deleteRecordById,
+
+    downloadTemplate,
+    goToColumns,
+
+    totalAmount,
+    totalGroups,
+
+    isLoading,
+  } = useInventoryRecordsPage();
+
+  const bulkPrintRef = useRef<HTMLDivElement>(null);
+
+  const handleBulkPrint = useReactToPrint({
+    contentRef: bulkPrintRef,
   });
 
-  const handleCreate = () => {
-    setSelectedRecord(null);
-    setDialogOpen(true);
-  };
-
-  const handleEdit = (record: InventoryRecord) => {
-    setSelectedRecord(record);
-    setDialogOpen(true);
-  };
-
-  const handleClose = () => {
-    setDialogOpen(false);
-    setSelectedRecord(null);
-  };
-
-  const handleOpenGroups = () => {
-    setGroupDialogOpen(true);
-  };
-
-  const handleCloseGroups = () => {
-    setGroupDialogOpen(false);
-  };
-
-  const handleDownloadTemplate = () => {
-    generateTemplate(columns, account);
-  };
-
-  const handleOpenImport = () => {
-    setImportOpen(true);
-  };
-
-  const handleCloseImport = () => {
-    setImportOpen(false);
-  };
-
-  function handleOpenBulkDelete() {
-    if (!selectedIds.length) return;
-
-    setDeleteSelectedOpen(true);
-  }
-
-  function handleCloseBulkDelete() {
-    setDeleteSelectedOpen(false);
-  }
-
-  async function handleConfirmBulkDelete() {
-    try {
-      await bulkDeleteMutation.mutateAsync(selectedIds);
-
-      setSelectedIds([]);
-
-      setDeleteSelectedOpen(false);
-    } catch (error) {
-      console.error(error);
-
-      alert("Failed to delete records.");
-    }
-  }
-
-  async function handleBulkAssignGroup() {
-    if (!selectedIds.length || !selectedGroupId) return;
-
-    try {
-      await bulkAssignMutation.mutateAsync({
-        ids: selectedIds,
-        groupId: Number(selectedGroupId),
-      });
-
-      setSelectedIds([]);
-      setSelectedGroupId("");
-
-      alert("Group assigned successfully.");
-    } catch (error) {
-      console.error(error);
-
-      alert("Failed to assign group.");
-    }
-  }
-
-  if (accountLoading || recordsLoading || columnsLoading || groupsLoading) {
+  if (isLoading) {
     return <div className="p-6">Loading...</div>;
   }
 
   return (
     <>
-      <div className="mx-auto max-w-7xl p-6">
-        <Link
-          to="/inventory-accounts"
-          className="text-blue-600 hover:underline"
-        >
-          ← Back
-        </Link>
-
-        <InventoryHeader
-          account={account!}
-          onAdd={handleCreate}
-          onImport={handleOpenImport}
-          onDownloadTemplate={handleDownloadTemplate}
-          onManageGroups={handleOpenGroups}
-        />
-
-        <div className="mb-4">
-          <SearchInput
-            value={search}
-            onChange={setSearch}
-            placeholder="Search inventory records..."
-          />
+      {/* Hidden printable content */}
+      <div className="hidden">
+        <div ref={bulkPrintRef}>
+          <InventoryRecordBulkPrint records={printableRecords} />
         </div>
+      </div>
 
-        <InventoryBulkToolbar
-          selectedIds={selectedIds}
-          groups={groups}
-          selectedGroupId={selectedGroupId}
-          setSelectedGroupId={setSelectedGroupId}
-          onApplyGroup={handleBulkAssignGroup}
-          onDelete={handleOpenBulkDelete}
-          onPrint={() =>
-            window.open(`/bulk-print?ids=${selectedIds.join(",")}`, "_blank")
-          }
+      <div>
+        <InventoryRecordsPageHeader
+          accountTitle={account.data?.account_title ?? ""}
         />
 
-        <InventoryRecordsTable
-          columns={columns}
-          records={filteredRecords}
-          groups={groups}
-          selectedIds={selectedIds}
-          onSelectionChange={setSelectedIds}
-          onEdit={handleEdit}
+        <InventoryRecordStats
+          totalRecords={filters.filteredRecords.length}
+          totalAmount={totalAmount}
+          totalGroups={totalGroups}
+        />
+
+        <InventoryRecordToolbar
+          search={filters.search}
+          onSearchChange={filters.setSearch}
+          onAddRecord={view.createRecord}
+          onImportExcel={view.openImportDialog}
+          onDownloadTemplate={downloadTemplate}
+          onManageColumns={goToColumns}
+          onManageGroups={view.openGroupDialog}
+        />
+
+        <InventoryRecordBulkToolbar
+          selectedCount={selection.selectedCount}
+          groups={groups.data ?? []}
+          selectedGroupId={selectedGroupId}
+          onGroupChange={setSelectedGroupId}
+          onAssign={assignSelectedGroup}
+          onPrint={handleBulkPrint}
+          onDelete={deleteSelectedRecords}
+        />
+
+        <InventoryRecordTable
+          groupedRecords={groupedRecords}
+          columns={columns.data ?? []}
+          selectedIds={selection.selectedIds}
+          onSelect={selection.toggle}
+          onSelectAll={selection.toggleAll}
+          onToggleGroup={selection.toggleGroup}
+          isGroupSelected={selection.isGroupSelected}
+          isGroupIndeterminate={selection.isGroupIndeterminate}
+          onOpenRecord={view.openRecord}
         />
       </div>
 
       <InventoryRecordDialog
-        open={dialogOpen}
+        open={view.dialogOpen}
         accountId={id}
-        record={selectedRecord}
-        onClose={handleClose}
+        record={view.editingRecord}
+        onClose={view.closeDialog}
       />
 
-      <ExcelImportDialog
-        open={importOpen}
+      <InventoryRecordGroupManagementDialog
+        open={view.groupDialogOpen}
         accountId={id}
-        groups={groups}
-        columns={columns}
-        onClose={handleCloseImport}
+        onClose={view.closeGroupDialog}
       />
 
-      <GroupManagementDialog
-        open={groupDialogOpen}
+      <InventoryRecordExcelImportDialog
+        open={view.importDialogOpen}
         accountId={id}
-        onClose={handleCloseGroups}
+        columns={columns.data ?? []}
+        groups={groups.data ?? []}
+        onClose={view.closeImportDialog}
       />
 
-      <ConfirmDialog
-        open={deleteSelectedOpen}
-        title="Delete Selected Records"
-        description={`Delete ${selectedIds.length} selected record${
-          selectedIds.length === 1 ? "" : "s"
-        }? This action cannot be undone.`}
-        loading={bulkDeleteMutation.isPending}
-        onCancel={handleCloseBulkDelete}
-        onConfirm={handleConfirmBulkDelete}
+      <InventoryRecordSidePanel
+        open={view.sidePanelOpen}
+        record={view.openedRecord}
+        columns={columns.data ?? []}
+        accountTitle={account.data?.account_title ?? ""}
+        onClose={view.closeSidePanel}
+        onEdit={view.editOpenedRecord}
+        onDelete={() => {
+          if (!view.openedRecord) return;
+
+          deleteRecordById(view.openedRecord.id, id, view.removeOpenedRecord);
+        }}
       />
     </>
   );

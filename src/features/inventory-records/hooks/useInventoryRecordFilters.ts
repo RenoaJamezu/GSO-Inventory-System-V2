@@ -1,8 +1,5 @@
-import { useMemo, useState } from "react";
-
-import type { Group } from "@/features/groups";
-import type { InventoryRecord } from "../types";
-
+import { useState, useMemo } from "react";
+import type { InventoryRecord, Group } from "../types";
 import { filterInventoryRecords } from "../utils/filterInventoryRecords";
 
 type Params = {
@@ -13,18 +10,33 @@ type Params = {
 export function useInventoryRecordFilters({ records, groups }: Params) {
   const [search, setSearch] = useState("");
 
-  const filteredRecords = useMemo(() => {
-    return filterInventoryRecords({
-      records,
-      groups,
-      search,
-    });
-  }, [records, groups, search]);
+  const [groupId, setGroupId] = useState<number | null>(null);
+
+  const filteredRecords = useMemo(
+    () =>
+      filterInventoryRecords({
+        records,
+        groups,
+        search,
+        groupId,
+      }),
+    [records, groups, search, groupId],
+  );
+
+  function clearFilters() {
+    setSearch("")
+    setGroupId(null)
+  }
 
   return {
     search,
     setSearch,
 
+    groupId,
+    setGroupId,
+
     filteredRecords,
+
+    clearFilters
   };
 }
