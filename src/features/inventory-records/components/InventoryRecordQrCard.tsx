@@ -84,7 +84,7 @@ export default function InventoryRecordQrCard({ qrUuid, amount }: Props) {
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center justify-end">
           <QRCode value={qrUrl} size={80} />
           <p className="text-[6px] font-medium">Scan to view</p>
         </div>
