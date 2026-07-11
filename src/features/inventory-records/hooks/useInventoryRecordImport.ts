@@ -25,8 +25,6 @@ type Params = {
 export function useInventoryRecordImport({
   accountId,
   columns,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  groups,
   onClose,
 }: Params) {
   const [file, setFile] = useState<File | null>(null);
