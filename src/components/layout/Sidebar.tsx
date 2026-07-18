@@ -1,11 +1,10 @@
-import { LogOut } from "lucide-react";
+import { Boxes, ChartColumnIncreasing, FileText, LayoutDashboard, LogOut, Package } from "lucide-react";
 
 import { useLogout } from "@/features/auth";
 
-import SidebarItem from "./SidebarItem";
-import { navigation } from "@/app/router/navigation";
 import { ConfirmDialog } from "../dialog";
 import { useState } from "react";
+import { NavLink } from "react-router-dom";
 
 export default function Sidebar() {
   const logout = useLogout();
@@ -28,18 +27,106 @@ export default function Sidebar() {
         {/* Navigation */}
 
         <nav className="flex-1 space-y-2 p-4">
-          {navigation.map((item) => {
-            const Icon = item.icon;
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) =>
+              [
+                "flex items-center gap-3 rounded-lg px-4 py-3 transition-colors",
+                isActive
+                  ? "bg-gray-200/75 text-black shadow-sm"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+              ].join(" ")
+            }
+          >
+            <span className="text-lg"><LayoutDashboard /></span>
 
-            return (
-              <SidebarItem
-                key={item.path}
-                to={item.path}
-                icon={<Icon size={20} />}
-                label={item.label}
-              />
-            );
-          })}
+            <span className="font-medium">Dashboard</span>
+          </NavLink>
+          
+          <h5 className="text-sm text-gray-500 font-bold">Inventory</h5>
+          <NavLink
+            to="/par"
+            className={({ isActive }) =>
+              [
+                "flex items-center gap-3 rounded-lg px-4 py-3 transition-colors",
+                isActive
+                  ? "bg-gray-200/75 text-black shadow-sm"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+              ].join(" ")
+            }
+          >
+            <span className="rounded-full bg-blue-500 p-1"/>
+
+            <span className="text-lg"><FileText /></span>
+
+            <span className="font-medium">PAR Inventory</span>
+          </NavLink>
+          <NavLink
+            to="/high-cost"
+            className={({ isActive }) =>
+              [
+                "flex items-center gap-3 rounded-lg px-4 py-3 transition-colors",
+                isActive
+                  ? "bg-gray-200/75 text-black shadow-sm"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+              ].join(" ")
+            }
+          >
+            <span className="rounded-full bg-orange-500 p-1"/>
+
+            <span className="text-lg"><Package /></span>
+
+            <span className="font-medium">High Cost Inventory</span>
+          </NavLink>
+          <NavLink
+            to="/low-cost"
+            className={({ isActive }) =>
+              [
+                "flex items-center gap-3 rounded-lg px-4 py-3 transition-colors",
+                isActive
+                  ? "bg-gray-200/75 text-black shadow-sm"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+              ].join(" ")
+            }
+          >
+            <span className="rounded-full bg-purple-500 p-1"/>
+
+            <span className="text-lg"><Boxes /></span>
+
+            <span className="font-medium">Low Cost Inventory</span>
+          </NavLink>
+
+          <h5 className="text-sm text-gray-500 font-bold">Workspace</h5>
+          <NavLink
+            to="/report"
+            className={({ isActive }) =>
+              [
+                "flex items-center gap-3 rounded-lg px-4 py-3 transition-colors",
+                isActive
+                  ? "bg-gray-200/75 text-black shadow-sm"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+              ].join(" ")
+            }
+          >
+            <span className="text-lg"><ChartColumnIncreasing /></span>
+
+            <span className="font-medium">Reports</span>
+          </NavLink>
+          <NavLink
+            to="/settings"
+            className={({ isActive }) =>
+              [
+                "flex items-center gap-3 rounded-lg px-4 py-3 transition-colors",
+                isActive
+                  ? "bg-gray-200/75 text-black shadow-sm"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+              ].join(" ")
+            }
+          >
+            <span className="text-lg"><LayoutDashboard /></span>
+
+            <span className="font-medium">Settings</span>
+          </NavLink>
         </nav>
 
         {/* Footer */}
@@ -73,7 +160,7 @@ export default function Sidebar() {
         confirmText="Confirm"
         cancelText="Cancel"
         onConfirm={logout}
-        onCancel={() => setConfirmLogout(false)}
+        onClose={() => setConfirmLogout(false)}
       />
     </>
   );

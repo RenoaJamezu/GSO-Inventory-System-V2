@@ -9,7 +9,7 @@ export default function GuestRoute() {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/inventory-accounts" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;

@@ -17,7 +17,7 @@ export default function LoginForm() {
 
       await signIn(email, password);
 
-      navigate("/inventory-accounts");
+      navigate("/dashboard");
     } catch (error) {
       console.error(error);
       alert("Invalid email or password.");

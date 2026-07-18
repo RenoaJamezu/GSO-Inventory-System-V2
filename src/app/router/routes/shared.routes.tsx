@@ -8,7 +8,7 @@ export const sharedRoutes = [
   <Route
     key="home"
     path="/"
-    element={<Navigate to="/inventory-accounts" replace />}
+    element={<Navigate to="/dashboard" replace />}
   />,
 
   <Route

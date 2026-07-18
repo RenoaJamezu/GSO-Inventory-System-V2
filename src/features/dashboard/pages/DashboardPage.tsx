@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Boxes, Database, FileText, Package } from "lucide-react";
 
 export default function DashboardPage() {
   return (
@@ -15,65 +15,60 @@ export default function DashboardPage() {
 
       <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
         <DashboardCard
-          title="Inventory Accounts"
+          icon={<FileText size={15} />}
+          colorTheme="text-blue-500 bg-blue-100"
+          title="PAR Total"
           value="--"
-          description="Total account titles"
         />
 
         <DashboardCard
+          icon={<Package size={15} />}
+          colorTheme="text-orange-500 bg-orange-100"
+          title="High Cost Total"
+          value="--"
+        />
+
+        <DashboardCard
+          icon={<Boxes size={15} />}
+          colorTheme="text-purple-500 bg-purple-100"
+          title="Low Cost Total"
+          value="--"
+        />
+
+        <DashboardCard
+          icon={<Database size={15} />}
+          colorTheme="text-gray-500 bg-gray-100"
           title="Inventory Records"
           value="--"
-          description="Total inventory records"
         />
-
-        <DashboardCard
-          title="Groups"
-          value="--"
-          description="Configured groups"
-        />
-
-        <DashboardCard
-          title="Reports"
-          value="--"
-          description="Available reports"
-        />
-      </div>
-
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">
-          Quick Actions
-        </h2>
-
-        <div className="flex flex-wrap gap-3">
-          <Link
-            to="/inventory-accounts"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-          >
-            Manage Inventory Accounts
-          </Link>
-
-          <Link
-            to="/reports/ppe-summary"
-            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700"
-          >
-            View PPE Summary
-          </Link>
-        </div>
       </div>
     </div>
   );
 }
 
 type DashboardCardProps = {
+  icon: React.ReactNode;
+  colorTheme: string;
   title: string;
   value: string;
-  description: string;
+  description?: string;
 };
 
-function DashboardCard({ title, value, description }: DashboardCardProps) {
+function DashboardCard({
+  icon,
+  colorTheme,
+  title,
+  value,
+  description,
+}: DashboardCardProps) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md">
-      <p className="text-sm font-medium text-gray-500">{title}</p>
+      <div className="flex justify-between items-center">
+        <p className="text-sm font-semibold text-gray-500">{title}</p>
+        <span className={`p-2 rounded-lg border shadow-md ${colorTheme}`}>
+          {icon}
+        </span>
+      </div>
 
       <h2 className="mt-3 text-3xl font-bold text-gray-900">{value}</h2>
 

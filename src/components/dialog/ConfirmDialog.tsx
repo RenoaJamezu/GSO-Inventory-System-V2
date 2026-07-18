@@ -13,7 +13,7 @@ type ConfirmDialogProps = {
   loadingText?: string;
 
   onConfirm: () => void;
-  onCancel: () => void;
+  onClose: () => void;
 };
 
 export default function ConfirmDialog({
@@ -28,10 +28,10 @@ export default function ConfirmDialog({
   loadingText = "Processing...",
 
   onConfirm,
-  onCancel,
+  onClose,
 }: ConfirmDialogProps) {
   return (
-    <Dialog open={open} maxWidth="sm">
+    <Dialog open={open} maxWidth="md" onClose={onClose}>
       <DialogHeader title={title} />
 
       <DialogBody>
@@ -41,7 +41,7 @@ export default function ConfirmDialog({
       <DialogFooter>
         <button
           type="button"
-          onClick={onCancel}
+          onClick={onClose}
           disabled={loading}
           className="rounded border px-4 py-2 disabled:opacity-50"
         >

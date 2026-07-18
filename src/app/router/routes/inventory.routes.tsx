@@ -9,16 +9,16 @@ const DashboardPage = lazy(
   () => import("@/features/dashboard/pages/DashboardPage"),
 );
 
-const InventoryAccountsPage = lazy(
-  () => import("@/features/inventory-accounts/pages/InventoryAccountsPage"),
+const InventoryWorkspacePage = lazy(
+  () => import("@/features/inventory/inventory-accounts/pages/InventoryWorkspacePage"),
 );
 
 const AccountColumnsPage = lazy(
-  () => import("@/features/account-columns/pages/AccountColumnsPage"),
+  () => import("@/features/inventory/account-columns/pages/AccountColumnsPage"),
 );
 
 const InventoryRecordsPage = lazy(
-  () => import("@/features/inventory-records/pages/InventoryRecordsPage"),
+  () => import("@/features/inventory/inventory-records/pages/InventoryRecordsPage"),
 );
 
 export const inventoryRoutes = [
@@ -26,16 +26,43 @@ export const inventoryRoutes = [
     <Route element={<AppLayout />}>
       <Route path="/dashboard" element={<DashboardPage />} />
 
-      <Route path="/inventory-accounts" element={<InventoryAccountsPage />} />
+      {/* Inventory Workspaces */}
+      <Route path="/par" element={<InventoryWorkspacePage />} />
+
+      <Route path="/high-cost" element={<InventoryWorkspacePage />} />
+
+      <Route path="/low-cost" element={<InventoryWorkspacePage />} />
+
+      {/* Inventory Record Page */}
+      <Route
+        path="/par/:accountId/records"
+        element={<InventoryRecordsPage />}
+      />
 
       <Route
-        path="/inventory-accounts/:accountId/columns"
+        path="/high-cost/:accountId/records"
+        element={<InventoryRecordsPage />}
+      />
+
+      <Route
+        path="/low-cost/:accountId/records"
+        element={<InventoryRecordsPage />}
+      />
+
+      {/* Account Column Page */}
+      <Route
+        path="/par/:accountId/columns"
         element={<AccountColumnsPage />}
       />
 
       <Route
-        path="/inventory-accounts/:accountId/records"
-        element={<InventoryRecordsPage />}
+        path="/high-cost/:accountId/columns"
+        element={<AccountColumnsPage />}
+      />
+
+      <Route
+        path="/low-cost/:accountId/columns"
+        element={<AccountColumnsPage />}
       />
     </Route>
   </Route>,

@@ -1,12 +1,22 @@
-import { useInventoryAccounts } from "@/features/inventory-accounts";
+import { useInventoryAccounts } from "@/features/inventory/inventory-accounts";
 import { useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import PPESummaryTemplate from "../components/PPESummaryTemplate";
 import { buildPPESummary } from "../utils/buildPPESummary";
 import { useReactToPrint } from "react-to-print";
 
 export default function PPESummaryPage() {
-  const { data: accounts = [], isLoading } = useInventoryAccounts();
+  const { pathname } = useLocation();
+
+  const inventoryType =
+    pathname === "/par"
+      ? "PAR"
+      : pathname === "/high-cost"
+        ? "HIGH_COST"
+        : "LOW_COST";
+        
+  const { data: accounts = [], isLoading } =
+    useInventoryAccounts(inventoryType);
 
   const [searchParams] = useSearchParams();
 

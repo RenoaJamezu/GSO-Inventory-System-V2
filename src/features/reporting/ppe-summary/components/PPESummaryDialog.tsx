@@ -26,7 +26,7 @@ export default function PPESummaryDialog({ open, onClose }: Props) {
   }
 
   return (
-    <Dialog open={open}>
+    <Dialog open={open} maxWidth="lg" onClose={onClose}>
       <DialogHeader title="Generate PPE Summary" />
 
       <DialogBody>

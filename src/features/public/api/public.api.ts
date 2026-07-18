@@ -8,6 +8,7 @@ export async function getPublicInventoryRecord(uuid: string) {
     .from(TABLE)
     .select("*")
     .eq("qr_uuid", uuid)
+    .is("deleted_at", null)
     .single();
 
   if (error) throw error;
@@ -20,7 +21,7 @@ export async function getPublicInventoryRecordsByIds(ids: number[]) {
     .from("public_inventory_records")
     .select("*")
     .in("id", ids)
-    .order("id");
+    .is("deleted_at", null);
 
   if (error) throw error;
 

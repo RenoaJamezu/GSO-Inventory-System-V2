@@ -1,4 +1,4 @@
-import type { InventoryAccount } from "@/features/inventory-accounts";
+import type { InventoryAccount } from "@/features/inventory/inventory-accounts";
 import type { PPESummaryData } from "../types";
 
 type BuildPPESummaryParams = {

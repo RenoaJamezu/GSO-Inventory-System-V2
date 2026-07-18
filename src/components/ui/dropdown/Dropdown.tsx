@@ -25,8 +25,8 @@ export default function Dropdown({ trigger, children }: Props) {
   }, []);
 
   return (
-    <div ref={ref} className="relative">
-      <div onClick={() => setOpen((prev) => !prev)} className="cursor-pointer">
+    <div ref={ref} className="relative" onClick={(e) => e.stopPropagation()}>
+      <div className="cursor-pointer" onClick={() => setOpen((prev) => !prev)}>
         {trigger}
       </div>
 
