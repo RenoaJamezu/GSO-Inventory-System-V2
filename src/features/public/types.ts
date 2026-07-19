@@ -7,12 +7,11 @@ export interface PublicColumn {
 
 export interface PublicInventoryRecord {
   id: number;
+
   qr_uuid: string;
 
-  account_id: number;
   account_title: string;
 
-  group_id: number | null;
   group_name: string | null;
 
   data: Record<string, unknown>;
@@ -20,6 +19,4 @@ export interface PublicInventoryRecord {
   columns: PublicColumn[];
 
   amount: number;
-
-  created_at: string;
 }
