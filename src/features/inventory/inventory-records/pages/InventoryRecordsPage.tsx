@@ -56,7 +56,6 @@ export default function InventoryRecordsPage() {
     inventoryType,
 
     totalAmount,
-    totalGroups,
 
     isLoading,
   } = useInventoryRecordsPage();
@@ -80,8 +79,8 @@ export default function InventoryRecordsPage() {
         </div>
       </div>
 
-      <div>
-        <header className="mb-6">
+      <div className="space-y-4">
+        <header>
           {/* Breadcrumb */}
           <nav className="mb-4 flex items-center gap-2 text-sm text-gray-500">
             <Link
@@ -122,7 +121,6 @@ export default function InventoryRecordsPage() {
         <InventoryRecordStats
           totalRecords={filters.filteredRecords.length}
           totalAmount={totalAmount}
-          totalGroups={totalGroups}
         />
 
         <InventoryRecordToolbar

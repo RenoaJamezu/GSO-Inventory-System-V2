@@ -30,7 +30,7 @@ export default function InventoryRecordBulkToolbar({
   if (!selectedCount) return null;
 
   return (
-    <section className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+    <section className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div className="font-medium text-emerald-700">
           {selectedCount} record{selectedCount > 1 ? "s" : ""} selected

@@ -48,6 +48,10 @@ export function useCreateInventoryRecord() {
           variables.inventory_type,
         ],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-summary"],
+      });
     },
   });
 }
@@ -71,6 +75,10 @@ export function useUpdateInventoryRecord() {
 
       queryClient.invalidateQueries({
         queryKey: ["inventory-record", data.id],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-summary"],
       });
     },
   });
@@ -102,6 +110,10 @@ export function useDeleteInventoryRecord() {
       queryClient.invalidateQueries({
         queryKey: ["inventory-record", record.id],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-summary"],
+      });
     },
   });
 }
@@ -130,6 +142,10 @@ export function useBulkInsertInventoryRecords() {
           data[0].inventory_type,
         ],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-summary"],
+      });
     },
   });
 }
@@ -143,6 +159,10 @@ export function useBulkDeleteInventoryRecords() {
     onSuccess() {
       queryClient.invalidateQueries({
         queryKey: ["inventory-records"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-summary"],
       });
     },
   });

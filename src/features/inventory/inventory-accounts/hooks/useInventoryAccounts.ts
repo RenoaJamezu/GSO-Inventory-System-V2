@@ -49,6 +49,10 @@ export function useCreateInventoryAccount() {
         queryKey: inventoryAccountKeys.all,
         exact: false,
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-summary"],
+      });
     },
   });
 }
@@ -70,6 +74,10 @@ export function useUpdateInventoryAccount() {
         queryKey: inventoryAccountKeys.all,
         exact: false,
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-summary"],
+      });
     },
   });
 }
@@ -84,6 +92,10 @@ export function useDeleteInventoryAccount() {
       queryClient.invalidateQueries({
         queryKey: inventoryAccountKeys.all,
         exact: false,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-summary"],
       });
     },
   });

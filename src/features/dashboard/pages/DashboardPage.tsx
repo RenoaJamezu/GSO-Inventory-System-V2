@@ -1,6 +1,11 @@
-import { Boxes, Database, FileText, Package } from "lucide-react";
+import { StatCard } from "@/components/ui";
+import { Boxes, FileText, Package } from "lucide-react";
+import { useDashboard } from "../hooks/useDashboard";
+import { formatCurrency } from "@/lib/utils/format";
 
 export default function DashboardPage() {
+  const { data, isLoading } = useDashboard();
+
   return (
     <div className="space-y-8">
       <div>
@@ -13,66 +18,40 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-        <DashboardCard
-          icon={<FileText size={15} />}
-          colorTheme="text-blue-500 bg-blue-100"
+      <div className="grid gap-6 xl:grid-cols-3">
+        <StatCard
+          icon={<FileText size={18} />}
+          colorTheme="blue"
           title="PAR Total"
-          value="--"
+          value={isLoading ? "--" : formatCurrency(data?.par.total ?? 0)}
+          route="/par"
+          description={
+            isLoading ? "-- records" : `${data?.par.records} records`
+          }
         />
 
-        <DashboardCard
-          icon={<Package size={15} />}
-          colorTheme="text-orange-500 bg-orange-100"
+        <StatCard
+          icon={<Package size={18} />}
+          colorTheme="orange"
           title="High Cost Total"
-          value="--"
+          value={isLoading ? "--" : formatCurrency(data?.highCost.total ?? 0)}
+          route="/high-cost"
+          description={
+            isLoading ? "-- records" : `${data?.highCost.records} records`
+          }
         />
 
-        <DashboardCard
-          icon={<Boxes size={15} />}
-          colorTheme="text-purple-500 bg-purple-100"
+        <StatCard
+          icon={<Boxes size={18} />}
+          colorTheme="purple"
           title="Low Cost Total"
-          value="--"
-        />
-
-        <DashboardCard
-          icon={<Database size={15} />}
-          colorTheme="text-gray-500 bg-gray-100"
-          title="Inventory Records"
-          value="--"
+          value={isLoading ? "--" : formatCurrency(data?.lowCost.total ?? 0)}
+          route="/low-cost"
+          description={
+            isLoading ? "-- records" : `${data?.lowCost.records} records`
+          }
         />
       </div>
-    </div>
-  );
-}
-
-type DashboardCardProps = {
-  icon: React.ReactNode;
-  colorTheme: string;
-  title: string;
-  value: string;
-  description?: string;
-};
-
-function DashboardCard({
-  icon,
-  colorTheme,
-  title,
-  value,
-  description,
-}: DashboardCardProps) {
-  return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md">
-      <div className="flex justify-between items-center">
-        <p className="text-sm font-semibold text-gray-500">{title}</p>
-        <span className={`p-2 rounded-lg border shadow-md ${colorTheme}`}>
-          {icon}
-        </span>
-      </div>
-
-      <h2 className="mt-3 text-3xl font-bold text-gray-900">{value}</h2>
-
-      <p className="mt-2 text-sm text-gray-500">{description}</p>
     </div>
   );
 }
