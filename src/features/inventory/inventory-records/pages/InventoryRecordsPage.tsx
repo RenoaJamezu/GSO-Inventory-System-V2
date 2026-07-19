@@ -52,6 +52,7 @@ export default function InventoryRecordsPage() {
 
     downloadTemplate,
     goToColumns,
+    openPublicView,
 
     inventoryType,
 
@@ -186,6 +187,11 @@ export default function InventoryRecordsPage() {
         accountTitle={account.data?.account_title ?? ""}
         onClose={view.closeSidePanel}
         onEdit={view.editOpenedRecord}
+        onPublicView={() => {
+          if (!view.openedRecord) return;
+
+          openPublicView(view.openedRecord.qr_uuid);
+        }}
         onDelete={() => {
           if (!view.openedRecord) return;
 

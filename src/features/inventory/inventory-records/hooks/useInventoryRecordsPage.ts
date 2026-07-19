@@ -164,6 +164,10 @@ export function useInventoryRecordsPage() {
     navigate(`/${workspace}/${id}/columns`);
   }
 
+  function openPublicView(uuid: string) {
+    window.open(`/public/${uuid}`, "_blank", "noopener,noreferrer");
+  }
+
   return {
     id,
 
@@ -190,6 +194,7 @@ export function useInventoryRecordsPage() {
 
     downloadTemplate,
     goToColumns,
+    openPublicView,
 
     totalAmount,
     totalGroups,

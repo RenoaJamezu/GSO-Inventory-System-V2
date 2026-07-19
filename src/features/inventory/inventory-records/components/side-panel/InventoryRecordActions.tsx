@@ -3,12 +3,14 @@ import { Button } from "@/components/ui";
 type Props = {
   onEdit: () => void;
   onPrintQr: () => void;
+  onPublicView: () => void;
   onDelete: () => void;
 };
 
 export default function InventoryRecordActions({
   onEdit,
   onPrintQr,
+  onPublicView,
   onDelete,
 }: Props) {
   return (
@@ -17,16 +19,18 @@ export default function InventoryRecordActions({
         Actions
       </h3>
 
-      <div className="grid grid-cols-3 gap-2">
-        <Button fullWidth onClick={onEdit}>
-          Edit Record
-        </Button>
-
-        <Button variant="secondary" fullWidth onClick={onPrintQr}>
+      <div className="grid grid-cols-2 gap-2">
+        <Button variant="secondary" onClick={onPrintQr}>
           Print QR
         </Button>
 
-        <Button variant="danger" fullWidth onClick={onDelete}>
+        <Button variant="secondary" onClick={onPublicView}>
+          Public View
+        </Button>
+        
+        <Button onClick={onEdit}>Edit Record</Button>
+
+        <Button variant="danger" onClick={onDelete}>
           Delete Record
         </Button>
       </div>

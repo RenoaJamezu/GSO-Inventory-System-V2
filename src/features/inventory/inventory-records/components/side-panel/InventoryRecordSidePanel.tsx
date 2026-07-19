@@ -24,6 +24,7 @@ type Props = {
 
   onClose: () => void;
   onEdit: () => void;
+  onPublicView: () => void;
   onDelete: () => void;
 };
 
@@ -34,6 +35,7 @@ export default function InventoryRecordSidePanel({
   accountTitle,
   onClose,
   onEdit,
+  onPublicView,
   onDelete,
 }: Props) {
   const printRef = useRef<HTMLDivElement>(null);
@@ -88,6 +90,7 @@ export default function InventoryRecordSidePanel({
           <InventoryRecordActions
             onEdit={onEdit}
             onPrintQr={handlePrint}
+            onPublicView={onPublicView}
             onDelete={onDelete}
           />
 
