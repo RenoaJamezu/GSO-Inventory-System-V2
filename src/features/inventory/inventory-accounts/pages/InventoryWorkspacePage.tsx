@@ -1,14 +1,24 @@
 import { Link, useLocation } from "react-router-dom";
-import { CirclePlus } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { Button, Card, SearchField } from "@/components/ui";
+import { Card } from "@/components/ui";
 import InventoryAccountsTable from "../components/InventoryAccountsTable";
 import InventoryAccountDialog from "../components/InventoryAccountDialog";
 import { useInventoryAccounts } from "..";
+import InventoryAccountToolbar from "../components/InventoryAccountToolbar";
+import { useInventoryAccountsPage } from "../hooks/useInventoryAccountsPage";
 
 export default function InventoryWorkspacePage() {
   const { pathname } = useLocation();
+  const {
+    dialogOpen,
+    selectedAccountId,
+    createAccount,
+    editAccount,
+    closeAccountDialog,
+
+    exportExcel
+  } = useInventoryAccountsPage();
 
   const workspace = {
     "/par": {
@@ -41,12 +51,6 @@ export default function InventoryWorkspacePage() {
 
   const [search, setSearch] = useState("");
 
-  const [open, setOpen] = useState(false);
-
-  const [selectedAccountId, setSelectedAccountId] = useState<number | null>(
-    null,
-  );
-
   const filteredAccounts = useMemo(() => {
     if (!workspace) return [];
 
@@ -69,6 +73,10 @@ export default function InventoryWorkspacePage() {
 
   if (error) {
     return <div className="p-6">Error loading inventory accounts.</div>;
+  }
+
+  if (!workspace) {
+    return <div>Invalid workspace.</div>;
   }
 
   return (
@@ -102,53 +110,29 @@ export default function InventoryWorkspacePage() {
       <Card padding="none">
         {/* Toolbar */}
 
-        <div className="flex items-center justify-between border-b border-gray-200 p-5">
-          <SearchField
-            value={search}
-            onChange={setSearch}
-            placeholder="Search accounts..."
-          />
-
-          <div className="flex items-center gap-3">
-            <Button variant="secondary">Generate PPE Summary</Button>
-
-            <Button variant="secondary">Export Excel</Button>
-
-            <Button variant="secondary">Add Record</Button>
-
-            <Button
-              className="flex items-center gap-2"
-              onClick={() => {
-                setSelectedAccountId(null);
-                setOpen(true);
-              }}
-            >
-              <CirclePlus size={18} />
-              Add Account
-            </Button>
-          </div>
-        </div>
+        <InventoryAccountToolbar
+          search={search}
+          onSearchChange={setSearch}
+          onAddAccount={createAccount}
+          onAddRecord={() => {}}
+          onExportExcel={() => exportExcel(workspace, filteredAccounts)}
+          onGeneratePPESummary={() => {}}
+        />
 
         {/* Table */}
 
         <InventoryAccountsTable
           accounts={filteredAccounts}
           workspace={inventoryType}
-          onEdit={(account) => {
-            setSelectedAccountId(account.id);
-            setOpen(true);
-          }}
+          onEdit={editAccount}
         />
       </Card>
 
       <InventoryAccountDialog
-        open={open}
+        open={dialogOpen}
         account={selectedAccount}
         workspace={inventoryType}
-        onClose={() => {
-          setOpen(false);
-          setSelectedAccountId(null);
-        }}
+        onClose={closeAccountDialog}
       />
     </div>
   );
