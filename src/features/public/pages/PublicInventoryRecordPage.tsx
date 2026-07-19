@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { usePublicInventoryRecord } from "../hooks/usePublicRecord";
+import { renderPublicValue } from "../utils/renderPublicView";
 
 function getAssetColor(amount: number) {
   if (amount >= 50000) {
@@ -82,7 +83,10 @@ export default function PublicInventoryRecordPage() {
               <div className="font-medium text-gray-600">{column.label}</div>
 
               <div className="text-gray-900 sm:text-right">
-                {renderValue(record.data[column.field_key], column.data_type)}
+                {renderPublicValue(
+                  record.data[column.field_key],
+                  column.data_type,
+                )}
               </div>
             </div>
           ))}
@@ -90,31 +94,4 @@ export default function PublicInventoryRecordPage() {
       </div>
     </main>
   );
-}
-
-function renderValue(value: unknown, type: string) {
-  if (value === null || value === undefined || value === "") {
-    return "-";
-  }
-
-  switch (type) {
-    case "boolean":
-      return value ? "Yes" : "No";
-
-    case "number":
-      return Number(value).toLocaleString();
-
-    case "date": {
-      const date = new Date(String(value));
-
-      if (Number.isNaN(date.getTime())) {
-        return String(value);
-      }
-
-      return date.toLocaleDateString();
-    }
-
-    default:
-      return String(value);
-  }
 }
