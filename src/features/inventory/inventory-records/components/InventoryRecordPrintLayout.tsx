@@ -8,7 +8,7 @@ export default function InventoryRecordPrintLayout({ children }: Props) {
       <style>
         {`
           @page {
-            size: Letter portrait;
+            size: A4 portrait;
             margin: 0;
           }
 
@@ -28,15 +28,16 @@ export default function InventoryRecordPrintLayout({ children }: Props) {
       <div
         className="
           box-border
-          w-204
-          h-264
+          w-[8.27in]
+          h-[11.69in]
           bg-white
 
           grid
           grid-cols-2
           grid-rows-5
 
-          px-[0.55in]
+          px-[0.2in]
+          py-[0.2in]
         "
       >
         {children}
