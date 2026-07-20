@@ -19,4 +19,6 @@ export interface PublicInventoryRecord {
   columns: PublicColumn[];
 
   amount: number;
+
+  inventory_type: string;
 }

@@ -130,7 +130,7 @@ export function useInventoryRecordsPage() {
       .filter((record) => selection.selectedIds.includes(record.id))
       .map((record) => ({
         qrUuid: record.qr_uuid,
-        amount: getRecordAmount(columns.data, record.data),
+        inventoryType: record.inventory_type,
       }));
   }, [records.data, columns.data, selection.selectedIds]);
 

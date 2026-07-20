@@ -10,7 +10,6 @@ import InventoryRecordQr from "./InventoryRecordQr";
 import InventoryRecordActions from "./InventoryRecordActions";
 import InventoryRecordFields from "./InventoryRecordFields";
 
-import { getRecordAmount } from "../../utils/getRecordAmount";
 import InventoryRecordPrintLayout from "../InventoryRecordPrintLayout";
 import InventoryRecordQrCard from "../InventoryRecordQrCard";
 
@@ -47,8 +46,6 @@ export default function InventoryRecordSidePanel({
 
   if (!open || !record) return null;
 
-  const amount = getRecordAmount(columns, record.data);
-
   return (
     <>
       {/* Backdrop */}
@@ -60,7 +57,7 @@ export default function InventoryRecordSidePanel({
           <InventoryRecordPrintLayout>
             <InventoryRecordQrCard
               qrUuid={record.qr_uuid}
-              amount={amount}
+              inventoryType={record.inventory_type}
             />
           </InventoryRecordPrintLayout>
         </div>
@@ -73,7 +70,9 @@ export default function InventoryRecordSidePanel({
           <div>
             <h2 className="text-2xl font-bold capitalize">{accountTitle}</h2>
 
-            <p className="text-sm text-gray-500">Inventory Record: ID #{record.id}</p>
+            <p className="text-sm text-gray-500">
+              Inventory Record: ID #{record.id}
+            </p>
           </div>
 
           <Button variant="ghost" onClick={onClose}>
@@ -84,7 +83,10 @@ export default function InventoryRecordSidePanel({
         {/* Scrollable */}
         <div className="flex-1 overflow-y-auto">
           {/* QR */}
-          <InventoryRecordQr qrUuid={record.qr_uuid} amount={amount} />
+          <InventoryRecordQr
+            qrUuid={record.qr_uuid}
+            inventoryType={record.inventory_type}
+          />
 
           {/* Actions */}
           <InventoryRecordActions

@@ -3,14 +3,14 @@ import InventoryRecordQrCard from "../components/InventoryRecordQrCard";
 
 type PrintableRecord = {
   qrUuid: string;
-  amount?: number;
+  inventoryType: string;
 };
 
 type Props = {
   records: PrintableRecord[];
 };
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 10;
 
 export default function InventoryRecordBulkPrint({ records }: Props) {
   const pages: PrintableRecord[][] = [];
@@ -35,7 +35,7 @@ export default function InventoryRecordBulkPrint({ records }: Props) {
               <InventoryRecordQrCard
                 key={record.qrUuid}
                 qrUuid={record.qrUuid}
-                amount={record.amount}
+                inventoryType={record.inventoryType}
               />
             ))}
           </InventoryRecordPrintLayout>

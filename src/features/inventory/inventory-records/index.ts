@@ -13,7 +13,6 @@ export * from "./utils/buildInventoryRecords";
 export * from "./utils/createAutoMapping";
 export * from "./utils/filterInventoryRecords";
 export * from "./utils/generateTemplate";
-export * from "./utils/getRecordAmount";
 export * from "./utils/groupInventoryRecords";
 export * from "./utils/normalize";
 export * from "./utils/normalizeCellValue";

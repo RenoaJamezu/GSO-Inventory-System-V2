@@ -4,13 +4,13 @@ import { getTheme } from "../constants";
 
 type Props = {
   qrUuid: string;
-  amount?: number;
+  inventoryType: string;  
 };
 
-export default function InventoryRecordQrCard({ qrUuid, amount }: Props) {
+export default function InventoryRecordQrCard({ qrUuid, inventoryType }: Props) {
   const qrUrl = `${window.location.origin}/public/${qrUuid}`;
 
-  const theme = getTheme(Number(amount));
+  const theme = getTheme(inventoryType);
 
   return (
     <div

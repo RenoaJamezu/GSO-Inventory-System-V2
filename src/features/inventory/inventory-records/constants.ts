@@ -1,11 +1,11 @@
-export function getTheme(amount: number) {
-  if (amount >= 50000) {
+export function getTheme(inventoryType: string) {
+  if (inventoryType === "PAR") {
     return {
       color: "#15803d",
     };
   }
 
-  if (amount >= 15000) {
+  if (inventoryType === "HIGH_COST") {
     return {
       color: "#eab308",
     };

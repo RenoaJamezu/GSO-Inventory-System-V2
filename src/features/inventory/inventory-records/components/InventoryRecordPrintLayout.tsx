@@ -28,18 +28,15 @@ export default function InventoryRecordPrintLayout({ children }: Props) {
       <div
         className="
           box-border
-          w-[8.5in]
-          h-[11in]
+          w-204
+          h-264
           bg-white
 
           grid
           grid-cols-2
-          grid-rows-4
+          grid-rows-5
 
-          gap-x-6
-          gap-y-4
-
-          p-[0.55in]
+          px-[0.55in]
         "
       >
         {children}
