@@ -66,7 +66,7 @@ export default function PublicInventoryRecordPage() {
       <div className="max-w-2xl mx-auto space-y-4">
         <div className="flex items-center gap-2">
           <img
-            src="/public/images/sibagat-logo.png"
+            src="/images/sibagat-logo.png"
             className="h-16 p-2 border border-gray-300 rounded-lg bg-white shadow-md"
           />
           <div>
