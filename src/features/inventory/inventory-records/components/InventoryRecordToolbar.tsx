@@ -13,6 +13,7 @@ type Props = {
 
   onImportExcel: () => void;
   onDownloadTemplate: () => void;
+  onExportExcel: () => void;
   onManageColumns: () => void;
   onManageGroups: () => void;
 };
@@ -25,6 +26,7 @@ export default function InventoryRecordToolbar({
 
   onImportExcel,
   onDownloadTemplate,
+  onExportExcel,
   onManageColumns,
   onManageGroups,
 }: Props) {
@@ -50,6 +52,8 @@ export default function InventoryRecordToolbar({
             <DropdownItem onClick={onDownloadTemplate}>
               📄 Download Template
             </DropdownItem>
+
+            <DropdownItem onClick={onExportExcel}>📤 Export Excel</DropdownItem>
 
             <DropdownDivider />
 

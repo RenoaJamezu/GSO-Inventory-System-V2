@@ -11,6 +11,7 @@ function getInventoryType(inventory_type: string) {
       border: "border-green-500",
       badge: "bg-green-600 text-white",
       text: "text-green-600",
+      type: "PAR",
     };
   }
 
@@ -20,6 +21,7 @@ function getInventoryType(inventory_type: string) {
       border: "border-yellow-500",
       badge: "bg-yellow-500 text-white",
       text: "text-yellow-600",
+      type: "High Cost",
     };
   }
 
@@ -28,6 +30,7 @@ function getInventoryType(inventory_type: string) {
     border: "border-purple-400",
     badge: "bg-purple-500 text-white",
     text: "text-purple-600",
+    type: "Low Cost",
   };
 }
 
@@ -57,9 +60,8 @@ export default function PublicInventoryRecordPage() {
   }
 
   const asset = getInventoryType(record.inventory_type);
-  
-  const qrUrl = `${window.location.origin}/public/${record.qr_uuid}`;
 
+  const qrUrl = `${window.location.origin}/public/${record.qr_uuid}`;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 ">
@@ -90,7 +92,7 @@ export default function PublicInventoryRecordPage() {
               >
                 <span className={`rounded-full text-xs p-1 ${asset.badge}`} />
                 <span className={`text-[11px] font-bold ${asset.text}`}>
-                  {record.inventory_type}
+                  {asset.type}
                 </span>
               </div>
 

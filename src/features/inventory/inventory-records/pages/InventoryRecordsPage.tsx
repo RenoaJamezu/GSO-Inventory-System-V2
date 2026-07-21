@@ -130,6 +130,7 @@ export default function InventoryRecordsPage() {
           onAddRecord={view.createRecord}
           onImportExcel={view.openImportDialog}
           onDownloadTemplate={downloadTemplate}
+          onExportExcel={() => {}}
           onManageColumns={goToColumns}
           onManageGroups={view.openGroupDialog}
         />
