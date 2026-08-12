@@ -2,7 +2,7 @@ import LoginForm from "../components/LoginForm";
 
 export default function LoginPage() {
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden">
+    <main className="flex min-h-screen items-center justify-center overflow-hidden px-4">
       {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center"
@@ -18,7 +18,7 @@ export default function LoginPage() {
       <div className="absolute inset-0 bg-linear-to-br from-emerald-900/40 via-transparent to-emerald-700/30" />
 
       {/* Login Card */}
-      <div className="relative z-10 w-full max-w-md px-6">
+      <div className="z-10">
         <LoginForm />
       </div>
     </main>

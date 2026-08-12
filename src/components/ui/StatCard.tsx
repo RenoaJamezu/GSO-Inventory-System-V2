@@ -64,11 +64,11 @@ export default function StatCard({
       ].join(" ")}
     >
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm font-semibold text-gray-600">{title}</p>
+        <p className="text-sm sm:text-lg font-semibold text-gray-600">{title}</p>
 
         <div
           className={[
-            "rounded-lg p-2 shadow-sm transition-colors",
+            "rounded-lg p-1 sm:p-2 shadow-sm transition-colors",
             theme.icon,
           ].join(" ")}
         >
@@ -76,12 +76,12 @@ export default function StatCard({
         </div>
       </div>
 
-      <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+      <h2 className="text-xl sm:text-3xl font-bold tracking-tight text-gray-900">
         {value}
       </h2>
 
       {description && (
-        <p className="mt-2 text-sm text-gray-600">{description}</p>
+        <p className="mt-2 text-xs sm:text-sm text-gray-600">{description}</p>
       )}
     </div>
   );
