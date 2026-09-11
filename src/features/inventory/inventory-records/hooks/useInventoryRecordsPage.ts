@@ -16,6 +16,7 @@ import {
 import { useInventoryRecordSelection } from "./useInventoryRecordSelection";
 import { useInventoryRecordView } from "./useInventoryRecordView";
 import type { InventoryType } from "../types";
+import { exportInventoryRecords } from "../utils/exportInventoryRecords";
 
 export function useInventoryRecordsPage() {
   const { accountId } = useParams();
@@ -168,6 +169,16 @@ export function useInventoryRecordsPage() {
     window.open(`/public/${uuid}`, "_blank", "noopener,noreferrer");
   }
 
+  function exportRecordsToExcel() {
+  if (!account.data) return;
+
+  exportInventoryRecords({
+    records: filters.filteredRecords,
+    columns: columns.data ?? [],
+    accountTitle: account.data.account_title,
+  });
+}
+
   return {
     id,
 
@@ -193,6 +204,7 @@ export function useInventoryRecordsPage() {
     deleteRecordById,
 
     downloadTemplate,
+    exportRecordsToExcel,
     goToColumns,
     openPublicView,
 

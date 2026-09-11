@@ -9,6 +9,8 @@ import { publicRoutes } from "./routes/public.routes";
 import { reportsRoutes } from "./routes/reports.routes";
 import { sharedRoutes } from "./routes/shared.routes";
 import { settingsRoutes } from "./routes/settings.route";
+import { stockCardRoutes } from "./routes/stock-card.routes";
+import { vehicleRecordRoutes } from "./routes/vehicle-record.routes"
 
 export default function AppRoutes() {
   return (
@@ -21,6 +23,10 @@ export default function AppRoutes() {
         {publicRoutes}
 
         {inventoryRoutes}
+
+        {stockCardRoutes}
+
+        {vehicleRecordRoutes}
 
         {reportsRoutes}
 

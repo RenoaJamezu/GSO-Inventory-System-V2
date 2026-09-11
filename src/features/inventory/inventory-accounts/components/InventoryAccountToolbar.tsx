@@ -18,9 +18,9 @@ export default function InventoryAccountToolbar({
   onSearchChange,
 
   onAddAccount,
-  onAddRecord,
+  // onAddRecord,
 
-  onGeneratePPESummary,
+  // onGeneratePPESummary,
   onExportExcel,
 }: Props) {
   return (
@@ -32,18 +32,18 @@ export default function InventoryAccountToolbar({
       />
 
       <div className="flex items-center gap-2">
-        <Button onClick={onAddRecord} className="flex items-center gap-2" variant="secondary">
+        {/* <Button onClick={onAddRecord} className="flex items-center gap-2" variant="secondary">
           <CirclePlus size={18} /> Add Record
-        </Button>
+        </Button> */}
 
         <Button onClick={onAddAccount} className="flex items-center gap-2">
           <CirclePlus size={18} /> Add Account
         </Button>
 
         <Dropdown trigger={<Button variant="secondary">Tools ▾</Button>}>
-          <DropdownItem onClick={onGeneratePPESummary}>
+          {/* <DropdownItem onClick={onGeneratePPESummary}>
             📄 Generate PPE Summary
-          </DropdownItem>
+          </DropdownItem> */}
 
           <DropdownItem onClick={onExportExcel}>📤 Export Excel</DropdownItem>
         </Dropdown>

@@ -4,7 +4,9 @@ import {
   FileText,
   LayoutDashboard,
   Package,
+  SquareDashedText,
   Settings,
+  Car,
 } from "lucide-react";
 
 import type { LucideIcon } from "lucide-react";
@@ -55,6 +57,18 @@ export const sidebarSections: SidebarSection[] = [
         label: "Low Cost Inventory",
         icon: Boxes,
         indicatorColor: "bg-purple-500",
+      },
+
+      {
+        to: "/stock-card",
+        label: "Stock Card",
+        icon: SquareDashedText,
+      },
+
+      {
+        to: "/vehicle-record",
+        label: "Vehicle Records",
+        icon: Car,
       },
     ],
   },

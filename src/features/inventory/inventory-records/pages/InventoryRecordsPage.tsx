@@ -51,6 +51,7 @@ export default function InventoryRecordsPage() {
     deleteRecordById,
 
     downloadTemplate,
+    exportRecordsToExcel,
     goToColumns,
     openPublicView,
 
@@ -130,7 +131,7 @@ export default function InventoryRecordsPage() {
           onAddRecord={view.createRecord}
           onImportExcel={view.openImportDialog}
           onDownloadTemplate={downloadTemplate}
-          onExportExcel={() => {}}
+          onExportExcel={exportRecordsToExcel}
           onManageColumns={goToColumns}
           onManageGroups={view.openGroupDialog}
         />
