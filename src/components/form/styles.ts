@@ -8,7 +8,7 @@ export const inputClass = [
   "px-3",
   "py-2",
   "text-sm",
-  "text-slate-900",
+  "text-black",
   "outline-none",
   "transition-colors",
   "placeholder:text-slate-400",
