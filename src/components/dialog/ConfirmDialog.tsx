@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui";
+
 import { Dialog, DialogBody, DialogFooter, DialogHeader } from ".";
 
 type ConfirmDialogProps = {
@@ -31,31 +33,33 @@ export default function ConfirmDialog({
   onClose,
 }: ConfirmDialogProps) {
   return (
-    <Dialog open={open} maxWidth="md" onClose={onClose}>
+    <Dialog open={open} maxWidth="md" onClose={loading ? undefined : onClose}>
       <DialogHeader title={title} />
 
       <DialogBody>
-        <p className="text-sm text-gray-600">{description}</p>
+        <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">
+          {description}
+        </p>
       </DialogBody>
 
       <DialogFooter>
-        <button
+        <Button
           type="button"
+          variant="secondary"
           onClick={onClose}
           disabled={loading}
-          className="rounded border px-4 py-2 disabled:opacity-50"
         >
           {cancelText}
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="button"
+          variant="danger"
           onClick={onConfirm}
           disabled={loading}
-          className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? loadingText : confirmText}
-        </button>
+        </Button>
       </DialogFooter>
     </Dialog>
   );

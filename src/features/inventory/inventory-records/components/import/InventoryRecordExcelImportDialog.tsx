@@ -1,15 +1,21 @@
 import type { AccountColumn } from "@/features/inventory/account-columns";
+
 import type { Group, InventoryType } from "../../types";
+
 import {
   Dialog,
   DialogBody,
   DialogFooter,
   DialogHeader,
 } from "@/components/dialog";
+
+import { Button } from "@/components/ui";
+
 import InventoryRecordExcelDropzone from "./InventoryRecordExcelDropzone";
 import InventoryRecordSheetSelector from "./InventoryRecordSheetSelector";
 import InventoryRecordColumnMapper from "./InventoryRecordColumnMapper";
 import InventoryRecordExcelPreviewTable from "./InventoryRecordExcelPreviewTable";
+
 import { useInventoryRecordImport } from "../../hooks/useInventoryRecordImport";
 
 type Props = {
@@ -56,64 +62,124 @@ export default function InventoryRecordExcelImportDialog({
 
   if (!open) return null;
 
+  const loading = bulkInsert.isPending;
+
   return (
-    <Dialog open={open} maxWidth="xl" onClose={onClose}>
-      <DialogHeader title="Import Excel Records" />
+    <Dialog
+      open={open}
+      maxWidth="xl"
+      onClose={loading ? undefined : handleClose}
+    >
+      <DialogHeader title="Import Excel Records">
+        <p className="mt-1 text-sm font-normal text-slate-500 dark:text-slate-400">
+          Upload an Excel file, map its columns, review the records, then import
+          them into this inventory account.
+        </p>
+      </DialogHeader>
 
       <DialogBody>
         <div className="space-y-6">
-          {/* Upload */}
-          <InventoryRecordExcelDropzone file={file} onFileSelect={handleFile} />
+          <section className="space-y-3">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                1. Upload File
+              </h3>
 
-          {/* Sheet */}
-          <InventoryRecordSheetSelector
-            workbook={workbook}
-            value={sheetName}
-            onChange={handleSheetChange}
-          />
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Select the Excel workbook containing the inventory records.
+              </p>
+            </div>
 
-          {/* Column Mapping */}
-          {excelColumns.length > 0 && (
-            <InventoryRecordColumnMapper
-              excelColumns={excelColumns}
-              systemColumns={columns}
-              mapping={mapping}
-              setMapping={setMapping}
+            <InventoryRecordExcelDropzone
+              file={file}
+              onFileSelect={handleFile}
             />
+          </section>
+
+          {workbook && (
+            <section className="space-y-3 border-t border-slate-200 pt-6 dark:border-slate-800">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  2. Select Worksheet
+                </h3>
+
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Choose the worksheet that contains the records you want to
+                  import.
+                </p>
+              </div>
+
+              <InventoryRecordSheetSelector
+                workbook={workbook}
+                value={sheetName}
+                onChange={handleSheetChange}
+              />
+            </section>
           )}
 
-          {/* Preview */}
+          {excelColumns.length > 0 && (
+            <section className="space-y-3 border-t border-slate-200 pt-6 dark:border-slate-800">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  3. Map Columns
+                </h3>
+
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Match each Excel column with a configured inventory field.
+                </p>
+              </div>
+
+              <InventoryRecordColumnMapper
+                excelColumns={excelColumns}
+                systemColumns={columns}
+                mapping={mapping}
+                setMapping={setMapping}
+              />
+            </section>
+          )}
+
           {rows.length > 0 && (
-            <InventoryRecordExcelPreviewTable
-              rows={rows}
-              setRows={setRows}
-              columns={columns}
-              groups={groups}
-              mapping={mapping}
-            />
+            <section className="space-y-3 border-t border-slate-200 pt-6 dark:border-slate-800">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  4. Review Records
+                </h3>
+
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Review the parsed records before importing them.
+                </p>
+              </div>
+
+              <InventoryRecordExcelPreviewTable
+                rows={rows}
+                setRows={setRows}
+                columns={columns}
+                groups={groups}
+                mapping={mapping}
+              />
+            </section>
           )}
         </div>
       </DialogBody>
 
       <DialogFooter>
-        <button
+        <Button
           type="button"
+          variant="secondary"
           onClick={handleClose}
-          className="rounded border px-4 py-2"
+          disabled={loading}
         >
           Cancel
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="button"
           onClick={handleImport}
-          disabled={bulkInsert.isPending || rows.length === 0}
-          className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+          loading={loading}
+          disabled={loading || rows.length === 0}
         >
-          {bulkInsert.isPending
-            ? "Importing..."
-            : `Import ${rows.length} Records`}
-        </button>
+          Import {rows.length} {rows.length === 1 ? "Record" : "Records"}
+        </Button>
       </DialogFooter>
     </Dialog>
   );

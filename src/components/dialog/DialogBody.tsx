@@ -6,8 +6,8 @@ type Props = {
 
 export default function DialogBody({ children }: Props) {
   return (
-    <div className="max-h-[calc(90vh-140px)] overflow-y-auto p-6">
-      <div className="space-y-4">{children}</div>
+    <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+      {children}
     </div>
   );
 }

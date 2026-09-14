@@ -1,8 +1,19 @@
+import {
+  CirclePlus,
+  Columns3,
+  Download,
+  FileDown,
+  FolderCog,
+  Upload,
+  Wrench,
+} from "lucide-react";
+
 import { Button, SearchField } from "@/components/ui";
+
 import {
   Dropdown,
-  DropdownItem,
   DropdownDivider,
+  DropdownItem,
 } from "@/components/ui/dropdown";
 
 type Props = {
@@ -31,41 +42,68 @@ export default function InventoryRecordToolbar({
   onManageGroups,
 }: Props) {
   return (
-    <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        {/* Search */}
-        <div className="w-full lg:max-w-md">
-          <SearchField
-            value={search}
-            onChange={onSearchChange}
-            placeholder="Search inventory records..."
-          />
-        </div>
+    <section
+      className="
+        flex flex-col gap-3
+        rounded-lg border
+        border-slate-200
+        bg-white p-4
+        dark:border-slate-800
+        dark:bg-slate-900
+        lg:flex-row
+        lg:items-center
+        lg:justify-between
+      "
+    >
+      <div className="w-full lg:max-w-md">
+        <SearchField
+          value={search}
+          onChange={onSearchChange}
+          placeholder="Search inventory records..."
+        />
+      </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          <Button onClick={onAddRecord}>Add Record</Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button onClick={onAddRecord} className="flex items-center gap-2">
+          <CirclePlus size={17} />
+          Add Record
+        </Button>
 
-          <Dropdown trigger={<Button variant="secondary">Tools ▾</Button>}>
-            <DropdownItem onClick={onImportExcel}>📥 Import Excel</DropdownItem>
+        <Dropdown
+          trigger={
+            <Button variant="secondary" className="flex items-center gap-2">
+              <Wrench size={16} />
+              Tools
+            </Button>
+          }
+        >
+          <DropdownItem onClick={onImportExcel}>
+            <Upload size={16} />
+            Import Excel
+          </DropdownItem>
 
-            <DropdownItem onClick={onDownloadTemplate}>
-              📄 Download Template
-            </DropdownItem>
+          <DropdownItem onClick={onDownloadTemplate}>
+            <FileDown size={16} />
+            Download Template
+          </DropdownItem>
 
-            <DropdownItem onClick={onExportExcel}>📤 Export Excel</DropdownItem>
+          <DropdownItem onClick={onExportExcel}>
+            <Download size={16} />
+            Export Excel
+          </DropdownItem>
 
-            <DropdownDivider />
+          <DropdownDivider />
 
-            <DropdownItem onClick={onManageColumns}>
-              📑 Manage Columns
-            </DropdownItem>
+          <DropdownItem onClick={onManageColumns}>
+            <Columns3 size={16} />
+            Manage Columns
+          </DropdownItem>
 
-            <DropdownItem onClick={onManageGroups}>
-              📂 Manage Groups
-            </DropdownItem>
-          </Dropdown>
-        </div>
+          <DropdownItem onClick={onManageGroups}>
+            <FolderCog size={16} />
+            Manage Groups
+          </DropdownItem>
+        </Dropdown>
       </div>
     </section>
   );

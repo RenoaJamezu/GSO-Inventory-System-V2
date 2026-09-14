@@ -9,105 +9,77 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & {
   colorTheme?: ColorTheme;
 };
 
-const themes = {
-  emerald: {
-    activeCard: "border-emerald-500 bg-emerald-50",
-    inactiveCard:
-      "border-gray-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/30",
-    iconActive: "bg-emerald-100 text-emerald-700",
-    iconInactive: "bg-gray-100 text-gray-500",
-    checkbox: "text-emerald-600 focus:ring-emerald-500",
-  },
-
-  blue: {
-    activeCard: "border-blue-500 bg-blue-50",
-    inactiveCard:
-      "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/30",
-    iconActive: "bg-blue-100 text-blue-700",
-    iconInactive: "bg-gray-100 text-gray-500",
-    checkbox: "text-blue-600 focus:ring-blue-500",
-  },
-
-  orange: {
-    activeCard: "border-orange-500 bg-orange-50",
-    inactiveCard:
-      "border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50/30",
-    iconActive: "bg-orange-100 text-orange-700",
-    iconInactive: "bg-gray-100 text-gray-500",
-    checkbox: "text-orange-600 focus:ring-orange-500",
-  },
-
-  purple: {
-    activeCard: "border-purple-500 bg-purple-50",
-    inactiveCard:
-      "border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50/30",
-    iconActive: "bg-purple-100 text-purple-700",
-    iconInactive: "bg-gray-100 text-gray-500",
-    checkbox: "text-purple-600 focus:ring-purple-500",
-  },
-
-  gray: {
-    activeCard: "border-gray-500 bg-gray-100",
-    inactiveCard:
-      "border-gray-200 bg-white hover:border-gray-400 hover:bg-gray-100",
-    iconActive: "bg-gray-200 text-gray-700",
-    iconInactive: "bg-gray-100 text-gray-500",
-    checkbox: "text-gray-600 focus:ring-gray-500",
-  },
-} satisfies Record<ColorTheme, Record<string, string>>;
-
 export default function FormCheckbox({
   label,
   description,
   icon,
-  colorTheme = "emerald",
+  colorTheme,
   className = "",
   checked,
   ...props
 }: Props) {
-  const active = Boolean(checked);
-
-  const theme = themes[colorTheme];
-
   return (
     <label
+      data-color-theme={colorTheme}
       className={[
-        "flex cursor-pointer items-start justify-between rounded-xl border p-4 transition-all duration-200",
-        active ? theme.activeCard : theme.inactiveCard,
+        "flex cursor-pointer items-start gap-3",
+        "rounded-md border p-3",
+        "transition-colors",
+
+        "border-slate-200 bg-white",
+        "hover:bg-slate-50",
+
+        "dark:border-slate-700",
+        "dark:bg-slate-900",
+        "dark:hover:bg-slate-800/70",
+
+        checked
+          ? [
+              "border-emerald-300 bg-emerald-50/50",
+              "dark:border-emerald-800",
+              "dark:bg-emerald-950/30",
+            ].join(" ")
+          : "",
       ].join(" ")}
     >
-      <div className="w-full">
-        <div className="mb-2 flex items-center justify-between">
+      <input
+        type="checkbox"
+        checked={checked}
+        {...props}
+        className={[
+          "mt-0.5 h-4 w-4 shrink-0 rounded",
+          "border-slate-300",
+          "text-emerald-700",
+          "focus:ring-2",
+          "focus:ring-emerald-600/20",
+
+          "dark:border-slate-600",
+          "dark:bg-slate-800",
+          "dark:text-emerald-500",
+          "dark:focus:ring-emerald-500/20",
+
+          className,
+        ].join(" ")}
+      />
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
           {icon && (
-            <div
-              className={[
-                "rounded-lg p-2 transition-colors",
-                active ? theme.iconActive : theme.iconInactive,
-              ].join(" ")}
-            >
-              {icon}
-            </div>
+            <span className="text-slate-500 dark:text-slate-400">{icon}</span>
           )}
 
-          <input
-            type="checkbox"
-            checked={checked}
-            {...props}
-            className={[
-              "h-5 w-5 rounded border-gray-300",
-              theme.checkbox,
-              className,
-            ].join(" ")}
-          />
-        </div>
-
-        <div>
-          <p className="font-bold text-gray-900">{label}</p>
-
-          {description && (
-            <p className="text-sm text-gray-500">{description}</p>
+          {label && (
+            <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+              {label}
+            </span>
           )}
         </div>
+
+        {description && (
+          <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
+            {description}
+          </p>
+        )}
       </div>
     </label>
   );

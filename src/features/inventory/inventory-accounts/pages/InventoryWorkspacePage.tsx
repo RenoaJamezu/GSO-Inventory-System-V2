@@ -1,23 +1,26 @@
 import { Link, useLocation } from "react-router-dom";
 import { useMemo, useState } from "react";
+import { ChevronRight } from "lucide-react";
 
-import { Card } from "@/components/ui";
+import { Card, PageHeader } from "@/components/ui";
+
 import InventoryAccountsTable from "../components/InventoryAccountsTable";
 import InventoryAccountDialog from "../components/InventoryAccountDialog";
-import { useInventoryAccounts } from "..";
 import InventoryAccountToolbar from "../components/InventoryAccountToolbar";
+
+import { useInventoryAccounts } from "..";
 import { useInventoryAccountsPage } from "../hooks/useInventoryAccountsPage";
 
 export default function InventoryWorkspacePage() {
   const { pathname } = useLocation();
+
   const {
     dialogOpen,
     selectedAccountId,
     createAccount,
     editAccount,
     closeAccountDialog,
-
-    exportExcel
+    exportExcel,
   } = useInventoryAccountsPage();
 
   const workspace = {
@@ -68,48 +71,64 @@ export default function InventoryWorkspacePage() {
   }, [data, selectedAccountId]);
 
   if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+    return (
+      <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+        Loading inventory accounts...
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="p-6">Error loading inventory accounts.</div>;
+    return (
+      <div className="py-12 text-center text-sm text-red-600 dark:text-red-400">
+        Error loading inventory accounts.
+      </div>
+    );
   }
 
   if (!workspace) {
-    return <div>Invalid workspace.</div>;
+    return (
+      <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+        Invalid workspace.
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="space-y-6">
       {/* Breadcrumb */}
-
-      <nav className="flex items-center gap-2 text-sm text-gray-500">
+      <nav
+        aria-label="Breadcrumb"
+        className="flex items-center gap-1.5 text-sm"
+      >
         <Link
           to="/dashboard"
-          className="transition-colors hover:text-emerald-600"
+          className="
+            text-slate-500
+            transition-colors
+            hover:text-emerald-700
+            dark:text-slate-400
+            dark:hover:text-emerald-400
+          "
         >
-          Home
+          Dashboard
         </Link>
 
-        <span>/</span>
+        <ChevronRight
+          size={15}
+          className="text-slate-400 dark:text-slate-600"
+        />
 
-        <span className="font-medium text-gray-900">{workspace?.title}</span>
+        <span className="font-medium text-slate-700 dark:text-slate-200">
+          {workspace.title}
+        </span>
       </nav>
 
-      <hr className="border-gray-200" />
-
       {/* Header */}
-
-      <header className="space-y-2">
-        <h2 className="text-4xl font-bold">{workspace?.title}</h2>
-        <p className="text-gray-500">{workspace?.description}</p>
-      </header>
+      <PageHeader title={workspace.title} description={workspace.description} />
 
       {/* Workspace */}
-
       <Card padding="none">
-        {/* Toolbar */}
-
         <InventoryAccountToolbar
           search={search}
           onSearchChange={setSearch}
@@ -118,8 +137,6 @@ export default function InventoryWorkspacePage() {
           onExportExcel={() => exportExcel(workspace, filteredAccounts)}
           onGeneratePPESummary={() => {}}
         />
-
-        {/* Table */}
 
         <InventoryAccountsTable
           accounts={filteredAccounts}

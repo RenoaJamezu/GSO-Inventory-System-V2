@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X } from "lucide-react";
 
 import {
   Dialog,
@@ -21,7 +20,7 @@ import {
   type StockCardFormValues,
 } from "../schemas/stockCard.schema";
 
-import type { StockCard } from "../types";
+import type { StockCard, StockCardInput } from "../types";
 
 type Props = {
   open: boolean;
@@ -39,6 +38,7 @@ const defaultValues: StockCardFormValues = {
 
 export default function StockCardDialog({ open, stockCard, onClose }: Props) {
   const createStockCard = useCreateStockCard();
+
   const updateStockCard = useUpdateStockCard();
 
   const {
@@ -51,6 +51,8 @@ export default function StockCardDialog({ open, stockCard, onClose }: Props) {
     defaultValues,
   });
 
+  const isPending = createStockCard.isPending || updateStockCard.isPending;
+
   useEffect(() => {
     if (!open) return;
 
@@ -58,9 +60,15 @@ export default function StockCardDialog({ open, stockCard, onClose }: Props) {
       reset({
         item: stockCard.item,
         stock_no: stockCard.stock_no,
+
         description: stockCard.description ?? "",
+
         unit_of_measurement: stockCard.unit_of_measurement,
-        reorder_point: String(stockCard.reorder_point),
+
+        reorder_point:
+          stockCard.reorder_point === null
+            ? ""
+            : String(stockCard.reorder_point),
       });
 
       return;
@@ -69,15 +77,25 @@ export default function StockCardDialog({ open, stockCard, onClose }: Props) {
     reset(defaultValues);
   }, [open, stockCard, reset]);
 
-  const isPending = createStockCard.isPending || updateStockCard.isPending;
+  function handleClose() {
+    if (isPending) return;
+
+    onClose();
+  }
 
   async function onSubmit(values: StockCardFormValues) {
-    const input = {
+    const reorderPoint = values.reorder_point.trim();
+
+    const input: StockCardInput = {
       item: values.item.trim(),
+
       stock_no: values.stock_no.trim(),
+
       description: values.description.trim() || null,
+
       unit_of_measurement: values.unit_of_measurement.trim(),
-      reorder_point: Number(values.reorder_point),
+
+      reorder_point: reorderPoint === "" ? null : Number(reorderPoint),
     };
 
     if (stockCard) {
@@ -93,81 +111,120 @@ export default function StockCardDialog({ open, stockCard, onClose }: Props) {
   }
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogHeader title={stockCard ? "Edit Stock Card" : "Create Stock Card"}>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-md p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
-          aria-label="Close"
-        >
-          <X className="h-5 w-5" />
-        </button>
+    <Dialog
+      open={open}
+      maxWidth="lg"
+      onClose={isPending ? undefined : handleClose}
+    >
+      <DialogHeader title={stockCard ? "Edit Stock Item" : "Add Stock Item"}>
+        <p className="mt-1 text-sm font-normal text-slate-500 dark:text-slate-400">
+          {stockCard
+            ? "Update the information for this stock card item."
+            : "Create an item that can receive and issue stock transactions."}
+        </p>
       </DialogHeader>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogBody>
-          <div className="space-y-4">
-            <FormField label="Item" required>
-              <FormInput
-                {...register("item")}
-                placeholder="e.g. Bond Paper A4"
-              />
+          <div className="space-y-6">
+            <section className="space-y-4">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Item Information
+                </h3>
 
-              {errors.item?.message && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.item.message}
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Enter the identifying information for the stock item.
                 </p>
-              )}
-            </FormField>
+              </div>
 
-            <FormField label="Stock No." required>
-              <FormInput {...register("stock_no")} placeholder="e.g. OS-001" />
-
-              {errors.stock_no?.message && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.stock_no.message}
-                </p>
-              )}
-            </FormField>
-
-            <FormField label="Description">
-              <FormTextarea
-                {...register("description")}
-                placeholder="Enter item description"
-              />
-
-              {errors.description?.message && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.description.message}
-                </p>
-              )}
-            </FormField>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="Unit of Measurement" required>
+              <FormField label="Item" required>
                 <FormInput
-                  {...register("unit_of_measurement")}
-                  placeholder="e.g. Ream"
+                  {...register("item")}
+                  placeholder="e.g. Bond Paper A4"
                 />
 
-                {errors.unit_of_measurement?.message && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.unit_of_measurement.message}
+                {errors.item?.message && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {errors.item.message}
                   </p>
                 )}
               </FormField>
 
-              <FormField label="Re-order Point">
-                <FormInput {...register("reorder_point")} placeholder="0" />
+              <FormField label="Stock No." required>
+                <FormInput
+                  {...register("stock_no")}
+                  placeholder="e.g. OS-001"
+                />
 
-                {errors.reorder_point?.message && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.reorder_point.message}
+                {errors.stock_no?.message && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {errors.stock_no.message}
                   </p>
                 )}
               </FormField>
-            </div>
+
+              <FormField label="Description">
+                <FormTextarea
+                  rows={3}
+                  {...register("description")}
+                  placeholder="Enter item description"
+                />
+
+                {errors.description?.message && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {errors.description.message}
+                  </p>
+                )}
+              </FormField>
+            </section>
+
+            <section className="space-y-4 border-t border-slate-200 pt-6 dark:border-slate-800">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Stock Settings
+                </h3>
+
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Configure the item's unit and optional re-order threshold.
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField label="Unit of Measurement" required>
+                  <FormInput
+                    {...register("unit_of_measurement")}
+                    placeholder="e.g. Ream"
+                  />
+
+                  {errors.unit_of_measurement?.message && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                      {errors.unit_of_measurement.message}
+                    </p>
+                  )}
+                </FormField>
+
+                <FormField label="Re-order Point">
+                  <FormInput
+                    type="number"
+                    min="0"
+                    step="1"
+                    {...register("reorder_point")}
+                    placeholder="Leave blank if unspecified"
+                  />
+
+                  {errors.reorder_point?.message && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                      {errors.reorder_point.message}
+                    </p>
+                  )}
+
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Leave blank when no re-order point has been specified.
+                  </p>
+                </FormField>
+              </div>
+            </section>
           </div>
         </DialogBody>
 
@@ -175,18 +232,14 @@ export default function StockCardDialog({ open, stockCard, onClose }: Props) {
           <Button
             type="button"
             variant="secondary"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={isPending}
           >
             Cancel
           </Button>
 
-          <Button type="submit" disabled={isPending}>
-            {isPending
-              ? "Saving..."
-              : stockCard
-                ? "Save Changes"
-                : "Create Stock Card"}
+          <Button type="submit" loading={isPending}>
+            {stockCard ? "Save Changes" : "Create Stock Item"}
           </Button>
         </DialogFooter>
       </form>

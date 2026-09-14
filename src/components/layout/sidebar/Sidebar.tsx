@@ -22,20 +22,25 @@ export default function Sidebar({ collapsed, onToggle }: Props) {
     <>
       <aside
         className={[
-          "flex h-screen flex-col border-r border-gray-200 bg-white transition-all duration-300",
+          "flex h-screen shrink-0 flex-col",
+          "border-r border-slate-200 dark:border-slate-800",
+          "bg-white dark:bg-slate-900",
+          "transition-[width] duration-300",
           collapsed ? "w-20" : "w-72",
         ].join(" ")}
       >
         <SidebarHeader collapsed={collapsed} onToggle={onToggle} />
 
-        <nav className="flex-1 space-y-6 p-4">
-          {sidebarSections.map((section, index) => (
-            <SidebarSection
-              key={index}
-              section={section}
-              collapsed={collapsed}
-            />
-          ))}
+        <nav className="flex-1 overflow-y-auto px-3 py-5">
+          <div className="space-y-7">
+            {sidebarSections.map((section, index) => (
+              <SidebarSection
+                key={index}
+                section={section}
+                collapsed={collapsed}
+              />
+            ))}
+          </div>
         </nav>
 
         <SidebarFooter
@@ -46,9 +51,9 @@ export default function Sidebar({ collapsed, onToggle }: Props) {
 
       <ConfirmDialog
         open={confirmLogout}
-        title="Logout"
-        description="Are you sure you want to logout?"
-        confirmText="Confirm"
+        title="Sign Out"
+        description="Are you sure you want to sign out of the system?"
+        confirmText="Sign Out"
         cancelText="Cancel"
         onConfirm={logout}
         onClose={() => setConfirmLogout(false)}

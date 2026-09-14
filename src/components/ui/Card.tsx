@@ -8,8 +8,8 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 const paddingClasses = {
   none: "",
   sm: "p-4",
-  md: "p-6",
-  lg: "p-8",
+  md: "p-5",
+  lg: "p-6",
 };
 
 export default function Card({
@@ -22,7 +22,9 @@ export default function Card({
     <div
       {...props}
       className={[
-        "rounded-xl border border-gray-200 bg-white shadow-sm",
+        "rounded-lg border",
+        "border-slate-200 bg-white",
+        "dark:border-slate-800 dark:bg-slate-900",
         paddingClasses[padding],
         className,
       ]

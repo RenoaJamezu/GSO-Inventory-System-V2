@@ -7,8 +7,10 @@ type Props = {
 
 export default function DialogHeader({ title, children }: Props) {
   return (
-    <div className="flex items-center justify-between border-b border-gray-500 px-6 py-4">
-      <h2 className="text-lg font-bold">{title}</h2>
+    <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4 dark:border-slate-800 sm:px-6">
+      <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+        {title}
+      </h2>
 
       {children}
     </div>

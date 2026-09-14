@@ -1,4 +1,15 @@
+import {
+  CircleDollarSign,
+  CircleCheck,
+  Ellipsis,
+  Pencil,
+  Trash2,
+} from "lucide-react";
+
 import { Button } from "@/components/ui";
+
+import { Dropdown, DropdownItem } from "@/components/ui/dropdown";
+
 import type { AccountColumn } from "../types";
 
 type Props = {
@@ -22,133 +33,187 @@ export default function AccountColumnsTable({
 }: Props) {
   if (columns.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-20 text-center">
-        <h3 className="text-lg font-semibold text-gray-800">No Columns Yet</h3>
+      <div className="px-6 py-14 text-center">
+        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+          No columns configured
+        </h3>
 
-        <p className="mt-2 max-w-md text-sm text-gray-500">
-          Create your first column to define what information should be stored
-          for this inventory account.
+        <p className="mx-auto mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
+          Add a column to define what information should be stored for inventory
+          records under this account.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="max-h-162.5 overflow-auto">
-        <table className="min-w-full border-collapse">
-          <thead className="sticky top-0 z-10 bg-gray-100">
-            <tr className="text-xs font-semibold text-gray-700 uppercase">
-              <th className="w-16 border-b border-gray-200 px-4 py-3 text-center">
-                #
-              </th>
+    <div className="max-h-[40rem] overflow-auto">
+      <table className="min-w-full border-collapse">
+        <thead className="sticky top-0 z-10">
+          <tr
+            className="
+              border-b border-slate-200
+              bg-slate-50
+              text-xs font-semibold
+              uppercase tracking-wide
+              text-slate-500
 
-              <th className="border-b border-gray-200 px-4 py-3 text-left">
-                Label
-              </th>
+              dark:border-slate-800
+              dark:bg-slate-800/60
+              dark:text-slate-400
+            "
+          >
+            <th className="w-16 px-4 py-3 text-center">No.</th>
 
-              <th className="border-b border-gray-200 px-4 py-3 text-left">
-                Field Key
-              </th>
+            <th className="px-4 py-3 text-left">Label</th>
 
-              <th className="w-40 border-b border-gray-200 px-4 py-3 text-center">
-                Type
-              </th>
+            <th className="px-4 py-3 text-left">Field Key</th>
 
-              <th className="w-36 border-b border-gray-200 px-4 py-3 text-center">
-                Required
-              </th>
+            <th className="w-36 px-4 py-3 text-left">Type</th>
 
-              <th className="w-36 border-b border-gray-200 px-4 py-3 text-center">
-                Amount
-              </th>
+            <th className="w-32 px-4 py-3 text-center">Required</th>
 
-              <th className="w-44 border-b border-gray-200 px-4 py-3 text-center">
-                Actions
-              </th>
-            </tr>
-          </thead>
+            <th className="w-32 px-4 py-3 text-center">Amount</th>
 
-          <tbody>
-            {columns.map((column, index) => (
-              <tr
-                key={column.id}
-                className="border-b transition-colors hover:bg-gray-50"
-              >
-                <td className="border-b border-gray-100 px-4 py-3 text-center text-sm font-medium text-gray-500">
-                  {index + 1}
-                </td>
+            <th className="w-16 px-4 py-3">
+              <span className="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
 
-                <td className="border-b border-gray-100 px-4 py-3">
-                  <div className="font-medium text-gray-900">
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          {columns.map((column, index) => (
+            <tr
+              key={column.id}
+              className="
+                  bg-white
+                  text-sm
+                  transition-colors
+                  hover:bg-slate-50
+
+                  dark:bg-slate-900
+                  dark:hover:bg-slate-800/50
+                "
+            >
+              <td className="px-4 py-3.5 text-center text-slate-500 dark:text-slate-400">
+                {index + 1}
+              </td>
+
+              <td className="px-4 py-3.5">
+                <div>
+                  <p className="font-medium text-slate-900 dark:text-slate-100">
                     {column.label}
-                  </div>
+                  </p>
 
                   {column.description && (
-                    <div className="mt-1 text-xs border-b border-gray-100 px-4 py-3 text-gray-500">
+                    <p className="mt-0.5 max-w-72 truncate text-xs text-slate-500 dark:text-slate-400">
                       {column.description}
-                    </div>
+                    </p>
                   )}
-                </td>
+                </div>
+              </td>
 
-                <td className="border-b border-gray-100 px-4 py-3">
-                  <code className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
-                    {column.field_key}
-                  </code>
-                </td>
+              <td className="px-4 py-3.5">
+                <code
+                  className="
+                      rounded-md
+                      bg-slate-100
+                      px-2 py-1
+                      text-xs
+                      text-slate-700
 
-                <td className="border-b border-gray-100 px-4 py-3 text-center">
-                  <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-                    {DATA_TYPE_LABELS[column.data_type]}
+                      dark:bg-slate-800
+                      dark:text-slate-300
+                    "
+                >
+                  {column.field_key}
+                </code>
+              </td>
+
+              <td className="px-4 py-3.5 text-slate-700 dark:text-slate-300">
+                {DATA_TYPE_LABELS[column.data_type] ?? column.data_type}
+              </td>
+
+              <td className="px-4 py-3.5 text-center">
+                {column.is_required ? (
+                  <span
+                    className="
+                        inline-flex
+                        items-center gap-1
+                        rounded-full
+                        bg-slate-100
+                        px-2 py-1
+                        text-xs font-medium
+                        text-slate-700
+
+                        dark:bg-slate-800
+                        dark:text-slate-300
+                      "
+                  >
+                    <CircleCheck size={13} />
+                    Yes
                   </span>
-                </td>
+                ) : (
+                  <span className="text-sm text-slate-400 dark:text-slate-500">
+                    —
+                  </span>
+                )}
+              </td>
 
-                <td className="border-b border-gray-100 px-4 py-3 text-center">
-                  {column.is_required ? (
-                    <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-                      Required
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
-                      Optional
-                    </span>
-                  )}
-                </td>
+              <td className="px-4 py-3.5 text-center">
+                {column.is_amount_column ? (
+                  <span
+                    className="
+                        inline-flex
+                        items-center gap-1
+                        rounded-full
+                        bg-emerald-50
+                        px-2 py-1
+                        text-xs font-medium
+                        text-emerald-700
 
-                <td className="border-b border-gray-100 px-4 py-3 text-center">
-                  {column.is_amount_column ? (
-                    <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
-                      Amount
-                    </span>
-                  ) : (
-                    <span className="text-sm text-gray-400">—</span>
-                  )}
-                </td>
+                        dark:bg-emerald-950/40
+                        dark:text-emerald-300
+                      "
+                  >
+                    <CircleDollarSign size={13} />
+                    Amount
+                  </span>
+                ) : (
+                  <span className="text-sm text-slate-400 dark:text-slate-500">
+                    —
+                  </span>
+                )}
+              </td>
 
-                <td className="border-b border-gray-100 px-4 py-3">
-                  <div className="flex justify-center gap-2">
+              <td className="px-3 py-2">
+                <Dropdown
+                  trigger={
                     <Button
+                      type="button"
+                      variant="ghost"
                       size="sm"
-                      variant="secondary"
-                      onClick={() => onEdit(column)}
+                      aria-label={`Actions for ${column.label}`}
                     >
-                      Edit
+                      <Ellipsis size={18} />
                     </Button>
+                  }
+                >
+                  <DropdownItem onClick={() => onEdit(column)}>
+                    <Pencil size={16} />
+                    Edit Column
+                  </DropdownItem>
 
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      onClick={() => onDelete(column)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  <DropdownItem danger onClick={() => onDelete(column)}>
+                    <Trash2 size={16} />
+                    Delete Column
+                  </DropdownItem>
+                </Dropdown>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

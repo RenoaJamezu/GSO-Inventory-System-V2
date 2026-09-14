@@ -1,8 +1,18 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+
+import { ChevronRight } from "lucide-react";
+
+import { ConfirmDialog } from "@/components/dialog";
+import { PageHeader } from "@/components/ui";
+
 import { useVehicleRecordFilters } from "../hooks/useVehicleRecordFilters";
+
 import {
   useDeleteVehicleRecord,
   useVehicleRecords,
 } from "../hooks/useVehicleRecords";
+
 import { useVehicleRecordView } from "../hooks/useVehicleRecordView";
 
 import VehicleRecordDialog from "../components/VehicleRecordDialog";
@@ -24,48 +34,108 @@ export default function VehicleRecordsPage() {
 
   const deleteMutation = useDeleteVehicleRecord();
 
-  async function deleteOpenedVehicle() {
-    if (!view.openedVehicle) return;
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  function requestDeleteOpenedVehicle() {
+    if (!view.openedVehicle) {
+      return;
+    }
+
+    setDeleteDialogOpen(true);
+  }
+
+  function closeDeleteDialog() {
+    if (deleteMutation.isPending) {
+      return;
+    }
+
+    setDeleteDialogOpen(false);
+  }
+
+  async function confirmDeleteVehicle() {
+    if (!view.openedVehicle) {
+      return;
+    }
 
     if (deleteMutation.isPending) {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Delete vehicle "${view.openedVehicle.plate_no}"?`,
-    );
-
-    if (!confirmed) return;
-
     try {
       await deleteMutation.mutateAsync(view.openedVehicle.id);
 
+      setDeleteDialogOpen(false);
+
       view.removeOpenedVehicle();
     } catch (error) {
-      console.error(error);
-
-      alert("Failed to delete vehicle.");
+      console.error("Failed deleting vehicle record", error);
     }
   }
 
   if (vehiclesQuery.isLoading) {
-    return <div className="p-6">Loading vehicle records...</div>;
+    return (
+      <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+        Loading vehicle records...
+      </div>
+    );
   }
 
   if (vehiclesQuery.error) {
-    return <div className="p-6">Failed to load vehicle records.</div>;
+    return (
+      <div
+        className="
+          rounded-lg border
+          border-red-200
+          bg-red-50
+          px-5 py-4
+          text-sm text-red-700
+
+          dark:border-red-900
+          dark:bg-red-950/30
+          dark:text-red-300
+        "
+      >
+        Failed to load vehicle records.
+      </div>
+    );
   }
 
   return (
     <>
-      <div className="space-y-4">
-        <header>
-          <h1 className="text-3xl font-bold">Vehicle Records</h1>
+      <div className="space-y-6">
+        {/* Breadcrumb */}
+        <nav
+          aria-label="Breadcrumb"
+          className="flex items-center gap-1.5 text-sm"
+        >
+          <Link
+            to="/dashboard"
+            className="
+              text-slate-500
+              transition-colors
+              hover:text-emerald-700
 
-          <p className="mt-1 text-sm text-gray-500">
-            Manage and monitor municipal vehicle records.
-          </p>
-        </header>
+              dark:text-slate-400
+              dark:hover:text-emerald-400
+            "
+          >
+            Dashboard
+          </Link>
+
+          <ChevronRight
+            size={15}
+            className="text-slate-400 dark:text-slate-600"
+          />
+
+          <span className="font-medium text-slate-700 dark:text-slate-200">
+            Vehicle Records
+          </span>
+        </nav>
+
+        <PageHeader
+          title="Vehicle Records"
+          description="Manage and monitor municipal vehicles, assignments, acquisition information, and registration expiration."
+        />
 
         <VehicleRecordToolbar
           search={filters.search}
@@ -80,9 +150,34 @@ export default function VehicleRecordsPage() {
           onAdd={view.createVehicle}
         />
 
-        <div className="text-sm text-gray-500">
-          Showing {filters.filteredVehicles.length} of {vehicles.length} vehicle
-          {vehicles.length === 1 ? "" : "s"}
+        <div
+          className="
+            flex flex-wrap
+            items-center
+            justify-between
+            gap-2
+            text-sm
+            text-slate-500
+
+            dark:text-slate-400
+          "
+        >
+          <p>
+            Showing{" "}
+            <span className="font-medium text-slate-700 dark:text-slate-200">
+              {filters.filteredVehicles.length}
+            </span>{" "}
+            of{" "}
+            <span className="font-medium text-slate-700 dark:text-slate-200">
+              {vehicles.length}
+            </span>{" "}
+            vehicle
+            {vehicles.length === 1 ? "" : "s"}
+          </p>
+
+          {(filters.search || filters.year || filters.month) && (
+            <span>Filters applied</span>
+          )}
         </div>
 
         <VehicleRecordsTable
@@ -103,7 +198,18 @@ export default function VehicleRecordsPage() {
         vehicle={view.openedVehicle}
         onClose={view.closeSidePanel}
         onEdit={view.editOpenedVehicle}
-        onDelete={deleteOpenedVehicle}
+        onDelete={requestDeleteOpenedVehicle}
+      />
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        title="Delete Vehicle Record"
+        description={`Are you sure you want to delete vehicle "${view.openedVehicle?.plate_no ?? ""}"?`}
+        confirmText="Delete Vehicle"
+        loading={deleteMutation.isPending}
+        loadingText="Deleting..."
+        onClose={closeDeleteDialog}
+        onConfirm={confirmDeleteVehicle}
       />
     </>
   );

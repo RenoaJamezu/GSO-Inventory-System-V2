@@ -1,14 +1,21 @@
-import { ConfirmDialog } from "@/components/dialog";
-import { Button } from "@/components/ui";
 import { useState } from "react";
-import { useParams, useLocation, Link } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
+
+import { ChevronRight, Plus } from "lucide-react";
+
+import { ConfirmDialog } from "@/components/dialog";
+import { Button, PageHeader } from "@/components/ui";
+
 import { useInventoryAccount } from "../../inventory-accounts";
+
 import AccountColumnDialog from "../components/AccountColumnDialog";
 import AccountColumnsTable from "../components/AccountColumnsTable";
+
 import {
-  useDeleteAccountColumn,
   useAccountColumns,
+  useDeleteAccountColumn,
 } from "../hooks/useAccountColumns";
+
 import type { AccountColumn } from "../types";
 
 export default function AccountColumnsPage() {
@@ -21,16 +28,16 @@ export default function AccountColumnsPage() {
   const workspace = pathname.startsWith("/par")
     ? {
         title: "PAR Inventory",
-        backLink: `/par`,
+        backLink: "/par",
       }
     : pathname.startsWith("/high-cost")
       ? {
           title: "ICS - High Cost",
-          backLink: `/high-cost`,
+          backLink: "/high-cost",
         }
       : {
           title: "ICS - Low Cost",
-          backLink: `/low-cost`,
+          backLink: "/low-cost",
         };
 
   const deleteMutation = useDeleteAccountColumn();
@@ -68,6 +75,10 @@ export default function AccountColumnsPage() {
   }
 
   function closeDelete() {
+    if (deleteMutation.isPending) {
+      return;
+    }
+
     setDeleteColumn(null);
   }
 
@@ -79,89 +90,130 @@ export default function AccountColumnsPage() {
       account_id: deleteColumn.account_id,
     });
 
-    closeDelete();
+    setDeleteColumn(null);
   }
 
   if (accountLoading || columnsLoading) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <p className="text-sm text-gray-500">Loading account columns...</p>
+      <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+        Loading account columns...
       </div>
     );
   }
 
-  return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-      {/* Breadcrumb */}
+  const accountTitle = account?.account_title ?? "Inventory Account";
 
-      <nav className="flex items-center gap-2 text-sm text-gray-500">
-        <Link to="/home" className="transition hover:text-emerald-600">
-          Home
+  return (
+    <div className="space-y-6">
+      {/* Breadcrumb */}
+      <nav
+        aria-label="Breadcrumb"
+        className="flex flex-wrap items-center gap-1.5 text-sm"
+      >
+        <Link
+          to="/dashboard"
+          className="
+            text-slate-500
+            transition-colors
+            hover:text-emerald-700
+            dark:text-slate-400
+            dark:hover:text-emerald-400
+          "
+        >
+          Dashboard
         </Link>
 
-        <span>/</span>
+        <ChevronRight
+          size={15}
+          className="text-slate-400 dark:text-slate-600"
+        />
 
         <Link
           to={workspace.backLink}
-          className="transition hover:text-emerald-600 capitalize"
+          className="
+            text-slate-500
+            transition-colors
+            hover:text-emerald-700
+            dark:text-slate-400
+            dark:hover:text-emerald-400
+          "
         >
           {workspace.title}
         </Link>
 
-        <span>/</span>
+        <ChevronRight
+          size={15}
+          className="text-slate-400 dark:text-slate-600"
+        />
 
         <Link
           to={`${workspace.backLink}/${id}/records`}
-          className="transition hover:text-emerald-600 capitalize"
+          className="
+            max-w-64 truncate
+            text-slate-500
+            transition-colors
+            hover:text-emerald-700
+            dark:text-slate-400
+            dark:hover:text-emerald-400
+          "
         >
-          {account?.account_title}
+          {accountTitle}
         </Link>
 
-        <span>/</span>
+        <ChevronRight
+          size={15}
+          className="text-slate-400 dark:text-slate-600"
+        />
 
-        <span className="font-medium text-gray-900">Columns</span>
+        <span className="font-medium text-slate-700 dark:text-slate-200">
+          Columns
+        </span>
       </nav>
 
-      {/* Header */}
+      <PageHeader
+        title="Column Configuration"
+        description={`Configure the fields used by inventory records under ${accountTitle}.`}
+        actions={
+          <Button onClick={openCreate} className="flex items-center gap-2">
+            <Plus size={17} />
+            Add Column
+          </Button>
+        }
+      />
 
-      <div className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Column Configuration
-          </h1>
+      <section
+        className="
+          overflow-hidden
+          rounded-lg border
+          border-slate-200
+          bg-white
 
-          <p className="mt-2 max-w-2xl text-sm text-gray-500">
-            Configure the fields that will appear on every inventory record
-            under{" "}
-            <span className="font-semibold text-gray-700">
-              {account?.account_title}
-            </span>
-            .
+          dark:border-slate-800
+          dark:bg-slate-900
+        "
+      >
+        <div
+          className="
+            border-b border-slate-200
+            px-5 py-4
+            dark:border-slate-800
+          "
+        >
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            Configured Columns
+          </h2>
+
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            These fields appear when creating, editing, viewing, importing, and
+            exporting inventory records.
           </p>
         </div>
 
-        <Button onClick={openCreate}>+ New Column</Button>
-      </div>
-
-      {/* Table Card */}
-
-      <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div className="border-b border-gray-300 px-6 py-4">
-          <h2 className="text-lg font-semibold">Configured Columns</h2>
-
-          <p className="mt-1 text-sm text-gray-500">
-            These fields will be displayed when creating or editing inventory
-            records.
-          </p>
-        </div>
-
-        <div className="p-6">
-          <AccountColumnsTable
-            columns={columns}
-            onEdit={openEdit}
-            onDelete={openDelete}
-          />
-        </div>
+        <AccountColumnsTable
+          columns={columns}
+          onEdit={openEdit}
+          onDelete={openDelete}
+        />
       </section>
 
       <AccountColumnDialog
@@ -172,10 +224,12 @@ export default function AccountColumnsPage() {
       />
 
       <ConfirmDialog
-        open={!!deleteColumn}
+        open={Boolean(deleteColumn)}
         title="Delete Column"
-        description={`Are you sure you want to delete "${deleteColumn?.label}"?\n\nExisting inventory records will retain their data, but this column will no longer be available when creating or editing records.`}
+        description={`Are you sure you want to delete "${deleteColumn?.label ?? ""}"?\n\nExisting inventory records will retain their stored data, but this field will no longer be available when creating or editing records.`}
+        confirmText="Delete Column"
         loading={deleteMutation.isPending}
+        loadingText="Deleting..."
         onClose={closeDelete}
         onConfirm={confirmDelete}
       />

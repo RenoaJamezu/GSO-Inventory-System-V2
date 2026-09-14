@@ -1,10 +1,12 @@
 import {
+  FormCheckbox,
   FormField,
   FormInput,
-  FormCheckbox,
   FormTextarea,
 } from "@/components/form";
+
 import type { AccountColumn } from "@/features/inventory/account-columns";
+
 import { type Control, Controller } from "react-hook-form";
 
 type Props = {
@@ -25,10 +27,11 @@ export default function DynamicField({ column, control }: Props) {
               return (
                 <FormInput
                   type="number"
+                  step="any"
                   placeholder={column.placeholder ?? ""}
                   value={(field.value as number | string) ?? ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
+                  onChange={(event) => {
+                    const value = event.target.value;
 
                     field.onChange(value === "" ? undefined : Number(value));
                   }}
@@ -39,7 +42,6 @@ export default function DynamicField({ column, control }: Props) {
               return (
                 <FormInput
                   type="date"
-                  placeholder={column.placeholder ?? ""}
                   value={(field.value as string) ?? ""}
                   onChange={field.onChange}
                 />
@@ -49,30 +51,47 @@ export default function DynamicField({ column, control }: Props) {
               return (
                 <FormCheckbox
                   checked={Boolean(field.value)}
-                  onChange={(e) => field.onChange(e.target.checked)}
-                  label=""
+                  onChange={(event) => field.onChange(event.target.checked)}
+                  label={column.placeholder || "Yes"}
+                  description={column.description ?? undefined}
                 />
               );
 
             case "textarea":
               return (
-                <FormTextarea
-                  rows={4}
-                  placeholder={column.placeholder ?? ""}
-                  value={(field.value as string) ?? ""}
-                  onChange={field.onChange}
-                />
+                <>
+                  <FormTextarea
+                    rows={4}
+                    placeholder={column.placeholder ?? ""}
+                    value={(field.value as string) ?? ""}
+                    onChange={field.onChange}
+                  />
+
+                  {column.description && (
+                    <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
+                      {column.description}
+                    </p>
+                  )}
+                </>
               );
 
             case "text":
             default:
               return (
-                <FormInput
-                  type="text"
-                  placeholder={column.placeholder ?? ""}
-                  value={(field.value as string) ?? ""}
-                  onChange={field.onChange}
-                />
+                <>
+                  <FormInput
+                    type="text"
+                    placeholder={column.placeholder ?? ""}
+                    value={(field.value as string) ?? ""}
+                    onChange={field.onChange}
+                  />
+
+                  {column.description && (
+                    <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
+                      {column.description}
+                    </p>
+                  )}
+                </>
               );
           }
         }}

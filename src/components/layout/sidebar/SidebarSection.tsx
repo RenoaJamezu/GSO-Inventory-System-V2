@@ -1,4 +1,5 @@
 import SidebarItem from "./SidebarItem";
+
 import type { SidebarSection as SidebarSectionType } from "./sidebar.config";
 
 type Props = {
@@ -8,31 +9,24 @@ type Props = {
 
 export default function SidebarSection({ section, collapsed }: Props) {
   return (
-    <div className="space-y-2">
-      {section.title && (
-        <h5
-          className={[
-            "overflow-hidden text-sm font-bold text-gray-500 transition-all duration-300",
-
-            collapsed ? "h-0 opacity-0" : "h-auto opacity-100",
-          ].join(" ")}
-        >
+    <section>
+      {section.title && !collapsed && (
+        <h2 className="mb-2 px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">
           {section.title}
-        </h5>
+        </h2>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-1">
         {section.items.map((item) => (
           <SidebarItem
             key={item.to}
             to={item.to}
             label={item.label}
             icon={item.icon}
-            indicatorColor={item.indicatorColor}
             collapsed={collapsed}
           />
         ))}
       </div>
-    </div>
+    </section>
   );
 }

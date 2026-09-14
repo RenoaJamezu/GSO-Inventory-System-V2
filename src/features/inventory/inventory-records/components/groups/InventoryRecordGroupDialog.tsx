@@ -1,17 +1,22 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+
 import {
   Dialog,
-  DialogHeader,
   DialogBody,
   DialogFooter,
+  DialogHeader,
 } from "@/components/dialog";
 
 import { FormField, FormInput, FormTextarea } from "@/components/form";
-import { zodResolver } from "@hookform/resolvers/zod";
 
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui";
+
 import { type GroupFormValues, groupSchema } from "../../schemas/groupSchema";
+
 import type { Group } from "../../types";
+
 import {
   useCreateGroup,
   useUpdateGroup,
@@ -24,7 +29,7 @@ type Props = {
   onClose: () => void;
 };
 
-export default function InventoryGroupDialog({
+export default function InventoryRecordGroupDialog({
   open,
   accountId,
   group,
@@ -39,9 +44,10 @@ export default function InventoryGroupDialog({
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<GroupFormValues>({
     resolver: zodResolver(groupSchema),
+
     defaultValues: {
       account_id: accountId,
       group_name: "",
@@ -49,6 +55,9 @@ export default function InventoryGroupDialog({
       sort_order: 0,
     },
   });
+
+  const loading =
+    isSubmitting || createMutation.isPending || updateMutation.isPending;
 
   useEffect(() => {
     if (!open) return;
@@ -85,35 +94,66 @@ export default function InventoryGroupDialog({
 
       onClose();
     } catch (error) {
-      console.error(error);
-      alert("Failed to save group.");
+      console.error("Failed saving inventory group", error);
     }
   }
 
   if (!open) return null;
 
   return (
-    <Dialog open={open} maxWidth="md" onClose={onClose}>
-      <DialogHeader title={isEdit ? "Edit Group" : "Add Group"} />
+    <Dialog open={open} maxWidth="md" onClose={loading ? undefined : onClose}>
+      <DialogHeader title={isEdit ? "Edit Group" : "Add Group"}>
+        <p className="mt-1 text-sm font-normal text-slate-500 dark:text-slate-400">
+          {isEdit
+            ? "Update how this inventory group is identified and ordered."
+            : "Create a group for organizing inventory records."}
+        </p>
+      </DialogHeader>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogBody>
           <div className="space-y-4">
             <FormField label="Group Name" required>
-              <FormInput {...register("group_name")} />
+              <FormInput
+                {...register("group_name")}
+                placeholder="Enter group name"
+              />
+
+              {errors.group_name && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.group_name.message}
+                </p>
+              )}
             </FormField>
 
             <FormField label="Description">
-              <FormTextarea rows={3} {...register("description")} />
+              <FormTextarea
+                rows={3}
+                {...register("description")}
+                placeholder="Optional group description"
+              />
+
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.description.message}
+                </p>
+              )}
             </FormField>
 
             <FormField label="Sort Order">
               <FormInput
                 type="number"
+                min="0"
                 {...register("sort_order", {
                   valueAsNumber: true,
                 })}
               />
+
+              {errors.sort_order && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.sort_order.message}
+                </p>
+              )}
             </FormField>
 
             <input
@@ -122,43 +162,22 @@ export default function InventoryGroupDialog({
                 valueAsNumber: true,
               })}
             />
-
-            {errors.group_name && (
-              <p className="text-sm text-red-500">
-                {errors.group_name.message}
-              </p>
-            )}
-
-            {errors.sort_order && (
-              <p className="text-sm text-red-500">
-                {errors.sort_order.message}
-              </p>
-            )}
           </div>
         </DialogBody>
 
         <DialogFooter>
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={onClose}
-            className="rounded border px-4 py-2"
+            disabled={loading}
           >
             Cancel
-          </button>
+          </Button>
 
-          <button
-            type="submit"
-            disabled={createMutation.isPending || updateMutation.isPending}
-            className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
-          >
-            {isEdit
-              ? updateMutation.isPending
-                ? "Saving..."
-                : "Save Changes"
-              : createMutation.isPending
-                ? "Creating..."
-                : "Create"}
-          </button>
+          <Button type="submit" loading={loading}>
+            {isEdit ? "Save Changes" : "Create Group"}
+          </Button>
         </DialogFooter>
       </form>
     </Dialog>

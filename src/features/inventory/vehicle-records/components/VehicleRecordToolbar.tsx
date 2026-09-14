@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Filter, Plus } from "lucide-react";
 
 import { Button, SearchField } from "@/components/ui";
 
@@ -10,15 +10,19 @@ import type { VehicleSortOption } from "../hooks/useVehicleRecordFilters";
 
 type Props = {
   search: string;
+
   onSearchChange: (value: string) => void;
 
   year: string;
+
   onYearChange: (value: string) => void;
 
   month: string;
+
   onMonthChange: (value: string) => void;
 
   sort: VehicleSortOption;
+
   onSortChange: (value: VehicleSortOption) => void;
 
   years: number[];
@@ -44,35 +48,77 @@ export default function VehicleRecordToolbar({
   onAdd,
 }: Props) {
   return (
-    <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+    <section
+      className="
+        rounded-lg border
+        border-slate-200
+        bg-white
+        p-4
+
+        dark:border-slate-800
+        dark:bg-slate-900
+      "
+    >
+      <div
+        className="
+          flex flex-col gap-4
+
+          xl:flex-row
+          xl:items-center
+          xl:justify-between
+        "
+      >
         <div className="w-full xl:max-w-md">
           <SearchField
             value={search}
             onChange={onSearchChange}
-            placeholder="Search vehicle records..."
+            placeholder="Search plate, model, office, driver..."
           />
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <FormSelect
-            value={year}
-            onChange={(event) => onYearChange(event.target.value)}
-            className="sm:w-36"
-          >
-            <option value="">All Years</option>
+        <div
+          className="
+            flex flex-col gap-2
 
-            {years.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </FormSelect>
+            sm:grid
+            sm:grid-cols-2
+
+            xl:flex
+            xl:flex-row
+            xl:items-center
+          "
+        >
+          <div className="relative">
+            <Filter
+              size={15}
+              className="
+                pointer-events-none
+                absolute left-3 top-1/2
+                z-10
+                -translate-y-1/2
+                text-slate-400
+              "
+            />
+
+            <FormSelect
+              value={year}
+              onChange={(event) => onYearChange(event.target.value)}
+              className="pl-9 xl:w-36"
+            >
+              <option value="">All Years</option>
+
+              {years.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </FormSelect>
+          </div>
 
           <FormSelect
             value={month}
             onChange={(event) => onMonthChange(event.target.value)}
-            className="sm:w-40"
+            className="xl:w-40"
           >
             <option value="">All Months</option>
 
@@ -88,7 +134,7 @@ export default function VehicleRecordToolbar({
             onChange={(event) =>
               onSortChange(event.target.value as VehicleSortOption)
             }
-            className="sm:w-56"
+            className="xl:w-56"
           >
             <option value="PLATE_ASC">Plate A-Z</option>
 
@@ -107,8 +153,11 @@ export default function VehicleRecordToolbar({
             <option value="COST_DESC">Cost: Highest</option>
           </FormSelect>
 
-          <Button onClick={onAdd}>
-            <Plus size={16} />
+          <Button
+            onClick={onAdd}
+            className="flex items-center justify-center gap-2"
+          >
+            <Plus size={17} />
             Add Vehicle
           </Button>
         </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FolderPlus } from "lucide-react";
 
 import {
   Dialog,
@@ -8,9 +9,12 @@ import {
 } from "@/components/dialog";
 
 import { Button } from "@/components/ui";
+
 import InventoryRecordGroupCard from "./InventoryRecordGroupCard";
-import InventoryGroupDialog from "./InventoryRecordGroupDialog";
+import InventoryRecordGroupDialog from "./InventoryRecordGroupDialog";
+
 import type { Group } from "../../types";
+
 import { useInventoryRecordGroups } from "../../hooks/useInventoryRecordGroups";
 
 type Props = {
@@ -19,7 +23,7 @@ type Props = {
   onClose: () => void;
 };
 
-export default function InventoryGroupManagementDialog({
+export default function InventoryRecordGroupManagementDialog({
   open,
   accountId,
   onClose,
@@ -50,26 +54,47 @@ export default function InventoryGroupManagementDialog({
   return (
     <>
       <Dialog open={open} maxWidth="lg" onClose={onClose}>
-        <DialogHeader title="Manage Groups" />
+        <DialogHeader title="Manage Groups">
+          <p className="mt-1 text-sm font-normal text-slate-500 dark:text-slate-400">
+            Organize inventory records into logical groups.
+          </p>
+        </DialogHeader>
 
         <DialogBody>
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Inventory Groups</h2>
+          <div className="space-y-5">
+            <div
+              className="
+                flex flex-col
+                gap-3
+                sm:flex-row
+                sm:items-center
+                sm:justify-between
+              "
+            >
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Inventory Groups
+                </h3>
 
-              <p className="text-sm text-gray-500">
-                Organize inventory records into groups.
-              </p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Groups help organize related records within this account.
+                </p>
+              </div>
+
+              <Button onClick={createGroup} className="flex items-center gap-2">
+                <FolderPlus size={16} />
+                Add Group
+              </Button>
             </div>
 
-            <Button onClick={createGroup}>Add Group</Button>
+            {isLoading ? (
+              <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+                Loading groups...
+              </div>
+            ) : (
+              <InventoryRecordGroupCard groups={groups} onEdit={editGroup} />
+            )}
           </div>
-
-          {isLoading ? (
-            <div className="py-12 text-center">Loading groups...</div>
-          ) : (
-            <InventoryRecordGroupCard groups={groups} onEdit={editGroup} />
-          )}
         </DialogBody>
 
         <DialogFooter>
@@ -79,7 +104,7 @@ export default function InventoryGroupManagementDialog({
         </DialogFooter>
       </Dialog>
 
-      <InventoryGroupDialog
+      <InventoryRecordGroupDialog
         open={dialogOpen}
         accountId={accountId}
         group={editingGroup}

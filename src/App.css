@@ -2,8 +2,6 @@
 @import "tw-animate-css";
 @import "@fontsource-variable/inter";
 
-@custom-variant dark (&:is(.dark *));
-
 /* ---------- PRINT SETTINGS ---------- */
 
 @page {

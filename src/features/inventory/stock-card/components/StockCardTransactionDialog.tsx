@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
+
 import { useForm } from "react-hook-form";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Trash2, X } from "lucide-react";
+
+import { AlertTriangle, Trash2 } from "lucide-react";
 
 import {
+  ConfirmDialog,
   Dialog,
   DialogBody,
   DialogFooter,
@@ -30,8 +34,11 @@ import type { StockCardTransaction } from "../types";
 type Props = {
   open: boolean;
   stockCardId: number;
+
   transaction?: StockCardTransaction | null;
+
   currentBalance: number;
+
   onClose: () => void;
 };
 
@@ -76,30 +83,46 @@ export default function StockCardTransactionDialog({
 
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   const {
     register,
     handleSubmit,
     reset,
     watch,
     setError,
+
     formState: { errors },
   } = useForm<StockCardTransactionFormValues>({
     resolver: zodResolver(stockCardTransactionSchema),
+
     defaultValues,
   });
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const transactionType = watch("transaction_type");
 
+  /*
+   * While editing an existing ISSUE,
+   * restore its original quantity to
+   * available stock before validating
+   * the new value.
+   */
   const availableStock =
     transaction?.transaction_type === "ISSUE"
       ? currentBalance + transaction.quantity
       : currentBalance;
 
+  const isPending =
+    createTransaction.isPending ||
+    updateTransaction.isPending ||
+    deleteTransaction.isPending;
+
   useEffect(() => {
     if (!open) return;
 
     setSubmitError(null);
+    setDeleteDialogOpen(false);
 
     if (transaction) {
       reset({
@@ -125,10 +148,12 @@ export default function StockCardTransactionDialog({
     reset(defaultValues);
   }, [open, transaction, reset]);
 
-  const isPending =
-    createTransaction.isPending ||
-    updateTransaction.isPending ||
-    deleteTransaction.isPending;
+  function handleClose() {
+    if (isPending) return;
+
+    setDeleteDialogOpen(false);
+    onClose();
+  }
 
   async function onSubmit(values: StockCardTransactionFormValues) {
     setSubmitError(null);
@@ -179,12 +204,23 @@ export default function StockCardTransactionDialog({
     }
   }
 
-  async function handleDelete() {
+  function requestDelete() {
     if (!transaction) return;
 
-    const confirmed = window.confirm("Delete this transaction?");
+    setSubmitError(null);
+    setDeleteDialogOpen(true);
+  }
 
-    if (!confirmed) return;
+  function closeDeleteDialog() {
+    if (deleteTransaction.isPending) {
+      return;
+    }
+
+    setDeleteDialogOpen(false);
+  }
+
+  async function confirmDelete() {
+    if (!transaction) return;
 
     setSubmitError(null);
 
@@ -194,173 +230,253 @@ export default function StockCardTransactionDialog({
         stockCardId,
       });
 
+      setDeleteDialogOpen(false);
+
       onClose();
     } catch (error) {
+      setDeleteDialogOpen(false);
+
       setSubmitError(getErrorMessage(error));
     }
   }
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogHeader
-        title={transaction ? "Edit Transaction" : "Add Transaction"}
+    <>
+      <Dialog
+        open={open}
+        maxWidth="lg"
+        onClose={isPending ? undefined : handleClose}
       >
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={isPending}
-          className="rounded-md p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
-          aria-label="Close"
+        <DialogHeader
+          title={transaction ? "Edit Transaction" : "Add Transaction"}
         >
-          <X className="h-5 w-5" />
-        </button>
-      </DialogHeader>
+          <p className="mt-1 text-sm font-normal text-slate-500 dark:text-slate-400">
+            {transaction
+              ? "Update this stock receipt or issuance."
+              : "Record a receipt or issuance for this stock item."}
+          </p>
+        </DialogHeader>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <DialogBody>
-          <div className="space-y-4">
-            {submitError && (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-                <p className="text-sm text-red-700">{submitError}</p>
-              </div>
-            )}
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <DialogBody>
+            <div className="space-y-6">
+              {submitError && (
+                <div
+                  className="
+                    flex gap-3
+                    rounded-md border
+                    border-red-200
+                    bg-red-50
+                    px-4 py-3
 
-            <FormField label="Date" required>
-              <FormInput {...register("transaction_date")} type="date" />
+                    dark:border-red-900
+                    dark:bg-red-950/30
+                  "
+                >
+                  <AlertTriangle
+                    size={18}
+                    className="mt-0.5 shrink-0 text-red-600 dark:text-red-400"
+                  />
 
-              {errors.transaction_date?.message && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.transaction_date.message}
-                </p>
+                  <div>
+                    <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                      Transaction could not be saved
+                    </p>
+
+                    <p className="mt-0.5 text-sm text-red-600 dark:text-red-400">
+                      {submitError}
+                    </p>
+                  </div>
+                </div>
               )}
-            </FormField>
 
-            <FormField label="Reference">
-              <FormInput
-                {...register("reference")}
-                placeholder="e.g. PO-001 or RIS-001"
-              />
+              <section className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    Transaction Information
+                  </h3>
 
-              {errors.reference?.message && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.reference.message}
-                </p>
-              )}
-            </FormField>
-
-            <FormField label="Transaction Type" required>
-              <FormSelect {...register("transaction_type")}>
-                <option value="RECEIPT">Receipt</option>
-
-                <option value="ISSUE">Issue</option>
-              </FormSelect>
-
-              {errors.transaction_type?.message && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.transaction_type.message}
-                </p>
-              )}
-            </FormField>
-
-            <FormField label="Quantity" required>
-              <FormInput
-                {...register("quantity")}
-                type="number"
-                min="0.01"
-                step="any"
-                placeholder="0"
-              />
-
-              {errors.quantity?.message && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.quantity.message}
-                </p>
-              )}
-            </FormField>
-
-            {transactionType === "ISSUE" && (
-              <>
-                <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-                  <p className="text-xs font-medium text-gray-500">
-                    Available Stock
-                  </p>
-
-                  <p className="mt-1 text-lg font-semibold text-gray-900">
-                    {availableStock}
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    Enter the date, reference and transaction type.
                   </p>
                 </div>
 
-                <FormField label="Office" required>
-                  <FormInput
-                    {...register("office")}
-                    placeholder="e.g. Mayor's Office"
-                  />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField label="Date" required>
+                    <FormInput {...register("transaction_date")} type="date" />
 
-                  {errors.office?.message && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.office.message}
+                    {errors.transaction_date?.message && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {errors.transaction_date.message}
+                      </p>
+                    )}
+                  </FormField>
+
+                  <FormField label="Reference">
+                    <FormInput
+                      {...register("reference")}
+                      placeholder="e.g. PO-001 or RIS-001"
+                    />
+
+                    {errors.reference?.message && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {errors.reference.message}
+                      </p>
+                    )}
+                  </FormField>
+                </div>
+
+                <FormField label="Transaction Type" required>
+                  <FormSelect {...register("transaction_type")}>
+                    <option value="RECEIPT">Receipt</option>
+
+                    <option value="ISSUE">Issue</option>
+                  </FormSelect>
+
+                  {errors.transaction_type?.message && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                      {errors.transaction_type.message}
                     </p>
                   )}
                 </FormField>
-              </>
-            )}
+              </section>
 
-            <FormField label="No. of Days to Consume">
-              <FormInput
-                {...register("days_to_consume")}
-                type="number"
-                min="0"
-                step="1"
-                placeholder="Optional"
-              />
+              <section className="space-y-4 border-t border-slate-200 pt-6 dark:border-slate-800">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    Quantity Details
+                  </h3>
 
-              {errors.days_to_consume?.message && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.days_to_consume.message}
-                </p>
-              )}
-            </FormField>
-          </div>
-        </DialogBody>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    Enter the quantity and any applicable issuance details.
+                  </p>
+                </div>
 
-        <DialogFooter>
-          <div className="flex w-full items-center justify-between gap-3">
-            <div>
-              {transaction && (
+                <FormField label="Quantity" required>
+                  <FormInput
+                    {...register("quantity")}
+                    type="number"
+                    min="0.01"
+                    step="any"
+                    placeholder="0"
+                  />
+
+                  {errors.quantity?.message && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                      {errors.quantity.message}
+                    </p>
+                  )}
+                </FormField>
+
+                {transactionType === "ISSUE" && (
+                  <>
+                    <div
+                      className="
+                        rounded-md
+                        border
+                        border-slate-200
+                        bg-slate-50
+                        px-4 py-3
+
+                        dark:border-slate-800
+                        dark:bg-slate-950/40
+                      "
+                    >
+                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                        Available Stock
+                      </p>
+
+                      <p className="mt-1 text-xl font-semibold tabular-nums text-slate-900 dark:text-slate-100">
+                        {availableStock}
+                      </p>
+                    </div>
+
+                    <FormField label="Office" required>
+                      <FormInput
+                        {...register("office")}
+                        placeholder="e.g. Mayor's Office"
+                      />
+
+                      {errors.office?.message && (
+                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                          {errors.office.message}
+                        </p>
+                      )}
+                    </FormField>
+                  </>
+                )}
+
+                <FormField label="No. of Days to Consume">
+                  <FormInput
+                    {...register("days_to_consume")}
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="Optional"
+                  />
+
+                  {errors.days_to_consume?.message && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                      {errors.days_to_consume.message}
+                    </p>
+                  )}
+                </FormField>
+              </section>
+            </div>
+          </DialogBody>
+
+          <DialogFooter>
+            <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                {transaction && (
+                  <Button
+                    type="button"
+                    variant="danger"
+                    onClick={requestDelete}
+                    disabled={isPending}
+                    className="flex items-center gap-2"
+                  >
+                    <Trash2 size={16} />
+                    Delete
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2">
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={handleDelete}
+                  onClick={handleClose}
                   disabled={isPending}
                 >
-                  <Trash2 className="h-4 w-4" />
-
-                  {deleteTransaction.isPending ? "Deleting..." : "Delete"}
+                  Cancel
                 </Button>
-              )}
-            </div>
 
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={onClose}
-                disabled={isPending}
-              >
-                Cancel
-              </Button>
-
-              <Button type="submit" disabled={isPending}>
-                {createTransaction.isPending || updateTransaction.isPending
-                  ? "Saving..."
-                  : transaction
-                    ? "Save Changes"
-                    : "Add Transaction"}
-              </Button>
+                <Button
+                  type="submit"
+                  loading={
+                    createTransaction.isPending || updateTransaction.isPending
+                  }
+                  disabled={deleteTransaction.isPending}
+                >
+                  {transaction ? "Save Changes" : "Add Transaction"}
+                </Button>
+              </div>
             </div>
-          </div>
-        </DialogFooter>
-      </form>
-    </Dialog>
+          </DialogFooter>
+        </form>
+      </Dialog>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        title="Delete Transaction"
+        description="Are you sure you want to delete this stock transaction? The stock card balance will be recalculated from the remaining transactions."
+        confirmText="Delete Transaction"
+        loading={deleteTransaction.isPending}
+        loadingText="Deleting..."
+        onClose={closeDeleteDialog}
+        onConfirm={confirmDelete}
+      />
+    </>
   );
 }

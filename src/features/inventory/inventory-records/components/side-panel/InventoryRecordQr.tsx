@@ -1,3 +1,5 @@
+import { QrCode } from "lucide-react";
+
 import InventoryRecordQrCard from "../InventoryRecordQrCard";
 
 type Props = {
@@ -7,18 +9,57 @@ type Props = {
 
 export default function InventoryRecordQr({ qrUuid, inventoryType }: Props) {
   return (
-    <section className="border-b px-6 py-6">
-      <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
-        QR Code
-      </h3>
+    <section
+      className="
+        border-b border-slate-200
+        px-6 py-6
+        dark:border-slate-800
+      "
+    >
+      <div className="mb-4 flex items-center gap-2">
+        <QrCode size={16} className="text-slate-500 dark:text-slate-400" />
 
-      <div className="flex justify-center">
-        <InventoryRecordQrCard qrUuid={qrUuid} inventoryType={inventoryType} />
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Property QR Label
+        </h3>
       </div>
 
-      <p className="mt-3 break-all text-center text-xs text-gray-500">
-        {qrUuid}
-      </p>
+      <div
+        className="
+          overflow-x-auto
+          rounded-lg border
+          border-slate-200
+          bg-slate-50
+          p-4
+
+          dark:border-slate-800
+          dark:bg-slate-950/50
+        "
+      >
+        <div className="flex min-w-max justify-center">
+          <InventoryRecordQrCard
+            qrUuid={qrUuid}
+            inventoryType={inventoryType}
+          />
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+          QR UUID
+        </p>
+
+        <p
+          className="
+            mt-1 break-all
+            font-mono text-xs
+            text-slate-700
+            dark:text-slate-300
+          "
+        >
+          {qrUuid}
+        </p>
+      </div>
     </section>
   );
 }

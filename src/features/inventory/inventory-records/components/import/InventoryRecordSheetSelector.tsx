@@ -1,33 +1,36 @@
 import * as XLSX from "xlsx";
 
+import { FormField, FormSelect } from "@/components/form";
+
 type Props = {
   workbook: XLSX.WorkBook | null;
   value: string;
   onChange: (sheetName: string) => void;
 };
 
-export default function InventoryRecordSheetSelector({ workbook, value, onChange }: Props) {
+export default function InventoryRecordSheetSelector({
+  workbook,
+  value,
+  onChange,
+}: Props) {
   if (!workbook) return null;
 
   return (
-    <div className="space-y-2">
-      <label className="block font-medium">Worksheet</label>
-
-      <select
+    <FormField label="Worksheet">
+      <FormSelect
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-gray-300 bg-white p-2.5 transition focus:border-blue-500 focus:outline-none shadow-sm"
+        onChange={(event) => onChange(event.target.value)}
       >
         {workbook.SheetNames.map((sheet) => (
           <option key={sheet} value={sheet}>
             {sheet}
           </option>
         ))}
-      </select>
+      </FormSelect>
 
-      <p className="text-xs text-gray-500">
-        Select the worksheet that contains the inventory records.
+      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        Select the worksheet containing the inventory records.
       </p>
-    </div>
+    </FormField>
   );
 }

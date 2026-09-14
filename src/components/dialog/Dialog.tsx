@@ -92,7 +92,7 @@ export default function Dialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/40 p-4"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/30 p-4 dark:bg-black/60"
       onClick={onClose}
     >
       <div className="flex min-h-full items-center justify-center">
@@ -102,7 +102,19 @@ export default function Dialog({
           aria-modal="true"
           tabIndex={-1}
           onClick={(e) => e.stopPropagation()}
-          className={`w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] overflow-hidden rounded-lg bg-white shadow-xl outline-none`}
+          className={`
+            flex h-[90vh] w-full flex-col overflow-hidden
+            rounded-lg
+            border border-slate-200
+            bg-white
+            shadow-xl
+            outline-none
+
+            dark:border-slate-800
+            dark:bg-slate-900
+
+            ${maxWidthClasses[maxWidth]}
+          `}
         >
           {children}
         </div>

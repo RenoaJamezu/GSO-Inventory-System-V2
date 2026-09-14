@@ -31,7 +31,26 @@ export default function Dropdown({ trigger, children }: Props) {
       </div>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
+        <div
+          className="
+            absolute
+            right-0
+            z-50
+            mt-2
+            w-60
+            overflow-hidden
+            rounded-md
+            border
+            border-slate-200
+            bg-white
+            py-1
+            shadow-lg
+
+            dark:border-slate-700
+            dark:bg-slate-900
+            dark:shadow-black/30
+          "
+        >
           {children}
         </div>
       )}

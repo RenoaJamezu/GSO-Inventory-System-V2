@@ -1,8 +1,11 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Pencil } from "lucide-react";
 
-import { Button, Card } from "@/components/ui";
+import { ChevronRight, Pencil, Plus } from "lucide-react";
+
+import { Button, Card, PageHeader } from "@/components/ui";
+
+import { FormSelect } from "@/components/form";
 
 import StockCardDialog from "../components/StockCardDialog";
 import StockCardList from "../components/StockCardList";
@@ -128,6 +131,7 @@ export default function StockCardPage() {
 
   function handleEditTransaction(transaction: StockCardTransaction) {
     setEditingTransaction(transaction);
+
     setTransactionDialogOpen(true);
   }
 
@@ -137,39 +141,51 @@ export default function StockCardPage() {
   }
 
   if (stockCards.isLoading) {
-    return <div className="p-6">Loading stock cards...</div>;
+    return (
+      <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+        Loading stock cards...
+      </div>
+    );
   }
 
   return (
     <>
-      <div className="flex flex-col gap-5">
+      <div className="space-y-6">
         {/* Breadcrumb */}
-
-        <nav className="flex items-center gap-2 text-sm text-gray-500">
+        <nav
+          aria-label="Breadcrumb"
+          className="flex items-center gap-1.5 text-sm"
+        >
           <Link
             to="/dashboard"
-            className="transition-colors hover:text-emerald-600"
+            className="
+              text-slate-500
+              transition-colors
+              hover:text-emerald-700
+              dark:text-slate-400
+              dark:hover:text-emerald-400
+            "
           >
-            Home
+            Dashboard
           </Link>
 
-          <span>/</span>
+          <ChevronRight
+            size={15}
+            className="text-slate-400 dark:text-slate-600"
+          />
 
-          <span className="font-medium text-gray-900">Stock Card</span>
+          <span className="font-medium text-slate-700 dark:text-slate-200">
+            Stock Card
+          </span>
         </nav>
 
-        <hr className="border-gray-200" />
+        <PageHeader
+          title="Stock Card"
+          description="Manage stock items, receipts, issuances, balances, and consumption records."
+        />
 
-        {/* Header */}
-
-        <header className="space-y-2">
-          <h2 className="text-4xl font-bold">Stock Card</h2>
-          <p className="text-gray-500">Manage stock card</p>
-        </header>
-
-        {/* Main item search / create */}
-
-        <Card>
+        {/* Search / create */}
+        <Card padding="none">
           <StockCardToolbar
             search={search}
             onSearchChange={setSearch}
@@ -177,21 +193,29 @@ export default function StockCardPage() {
           />
         </Card>
 
-        {/* Main content */}
-
-        <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
-          {/* Item List */}
-
+        {/* Workspace */}
+        <div className="grid gap-5 xl:grid-cols-[300px_minmax(0,1fr)]">
+          {/* Item list */}
           <Card padding="none">
-            <div className="border-b border-gray-200 px-4 py-3">
-              <h3 className="font-semibold text-gray-900">Items</h3>
+            <div
+              className="
+                border-b
+                border-slate-200
+                px-4 py-3
+                dark:border-slate-800
+              "
+            >
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Stock Items
+              </h2>
 
-              <p className="text-xs text-gray-500">
-                {filteredStockCards.length} item(s)
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                {filteredStockCards.length} item
+                {filteredStockCards.length !== 1 ? "s" : ""}
               </p>
             </div>
 
-            <div className="max-h-162.5 overflow-auto">
+            <div className="max-h-[40rem] overflow-y-auto">
               <StockCardList
                 stockCards={filteredStockCards}
                 selectedId={selectedId}
@@ -200,53 +224,64 @@ export default function StockCardPage() {
             </div>
           </Card>
 
-          {/* Stock Card */}
-
+          {/* Selected stock card */}
           <div className="min-w-0">
             {selectedStockCard ? (
-              <div className="space-y-3">
-                {/* Actions / Office Filter */}
+              <div className="space-y-4">
+                {/* Actions / filter */}
+                <Card padding="none">
+                  <div
+                    className="
+                      flex flex-col gap-3
+                      p-4
 
-                <Card>
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <select
-                      value={officeFilter}
-                      onChange={(event) => setOfficeFilter(event.target.value)}
-                      className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-colors focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 sm:max-w-xs"
-                    >
-                      <option value="ALL">All Offices</option>
-                      {offices.map((office) => (
-                        <option key={office} value={office}>
-                          {office}
-                        </option>
-                      ))}
-                    </select>
+                      md:flex-row
+                      md:items-center
+                      md:justify-between
+                    "
+                  >
+                    <div className="w-full md:max-w-xs">
+                      <FormSelect
+                        value={officeFilter}
+                        onChange={(event) =>
+                          setOfficeFilter(event.target.value)
+                        }
+                      >
+                        <option value="ALL">All Offices</option>
 
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        {offices.map((office) => (
+                          <option key={office} value={office}>
+                            {office}
+                          </option>
+                        ))}
+                      </FormSelect>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
                       <Button
                         onClick={handleAddTransaction}
-                        className="flex-1 sm:flex-initial"
+                        className="flex items-center gap-2"
                       >
+                        <Plus size={16} />
                         Add Transaction
                       </Button>
 
                       <Button
                         variant="secondary"
                         onClick={handleEdit}
-                        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5"
+                        className="flex items-center gap-2"
                       >
-                        <Pencil className="h-4 w-4" />
-                        <span>Edit Item</span>
+                        <Pencil size={16} />
+                        Edit Item
                       </Button>
                     </div>
                   </div>
                 </Card>
 
                 {/* Transactions */}
-
                 {transactions.isLoading ? (
                   <Card>
-                    <div className="py-12 text-center text-sm text-gray-500">
+                    <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
                       Loading transactions...
                     </div>
                   </Card>
@@ -261,12 +296,13 @@ export default function StockCardPage() {
             ) : (
               <Card>
                 <div className="py-16 text-center">
-                  <h3 className="font-semibold text-gray-900">
-                    Select an item
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    Select a stock item
                   </h3>
 
-                  <p className="mt-1 text-sm text-gray-500">
-                    Select an item to view its stock card.
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    Select an item from the list to view its stock card and
+                    transaction history.
                   </p>
                 </div>
               </Card>
@@ -275,15 +311,11 @@ export default function StockCardPage() {
         </div>
       </div>
 
-      {/* Stock Card Item Dialog */}
-
       <StockCardDialog
         open={dialogOpen}
         stockCard={editingStockCard}
         onClose={handleCloseDialog}
       />
-
-      {/* Transaction Dialog */}
 
       {selectedStockCard && (
         <StockCardTransactionDialog

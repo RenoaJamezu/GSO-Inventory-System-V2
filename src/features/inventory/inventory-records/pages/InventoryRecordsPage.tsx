@@ -1,10 +1,15 @@
 import { useRef } from "react";
-import { useInventoryRecordsPage } from "../hooks/useInventoryRecordsPage";
+import { Link, useLocation } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
+
+import { PageHeader } from "@/components/ui";
+
+import { useInventoryRecordsPage } from "../hooks/useInventoryRecordsPage";
+
 import InventoryRecordGroupManagementDialog from "../components/groups/InventoryRecordGroupManagementDialog";
 import InventoryRecordBulkPrint from "./InventoryRecordBulkPrint";
 import InventoryRecordExcelImportDialog from "../components/import/InventoryRecordExcelImportDialog";
-import { Link, useLocation } from "react-router-dom";
 import InventoryRecordBulkToolbar from "../components/InventoryRecordBulkToolbar";
 import InventoryRecordDialog from "../components/InventoryRecordDialog";
 import InventoryRecordStats from "../components/InventoryRecordStats";
@@ -69,8 +74,14 @@ export default function InventoryRecordsPage() {
   });
 
   if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+    return (
+      <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+        Loading inventory records...
+      </div>
+    );
   }
+
+  const accountTitle = account.data?.account_title ?? "Inventory Records";
 
   return (
     <>
@@ -81,44 +92,55 @@ export default function InventoryRecordsPage() {
         </div>
       </div>
 
-      <div className="space-y-4">
-        <header>
-          {/* Breadcrumb */}
-          <nav className="mb-4 flex items-center gap-2 text-sm text-gray-500">
-            <Link
-              to="/dashboard"
-              className="transition-colors hover:text-emerald-600"
-            >
-              Home
-            </Link>
+      <div className="space-y-6">
+        {/* Breadcrumb */}
+        <nav
+          aria-label="Breadcrumb"
+          className="flex flex-wrap items-center gap-1.5 text-sm"
+        >
+          <Link
+            to="/dashboard"
+            className="
+              text-slate-500 transition-colors
+              hover:text-emerald-700
+              dark:text-slate-400
+              dark:hover:text-emerald-400
+            "
+          >
+            Dashboard
+          </Link>
 
-            <span>/</span>
+          <ChevronRight
+            size={15}
+            className="text-slate-400 dark:text-slate-600"
+          />
 
-            <Link
-              to={workspace.backLink}
-              className="transition-colors hover:text-emerald-600"
-            >
-              {workspace.title}
-            </Link>
+          <Link
+            to={workspace.backLink}
+            className="
+              text-slate-500 transition-colors
+              hover:text-emerald-700
+              dark:text-slate-400
+              dark:hover:text-emerald-400
+            "
+          >
+            {workspace.title}
+          </Link>
 
-            <span>/</span>
+          <ChevronRight
+            size={15}
+            className="text-slate-400 dark:text-slate-600"
+          />
 
-            <span className="font-medium capitalize text-gray-900">
-              {account.data?.account_title}
-            </span>
-          </nav>
+          <span className="font-medium text-slate-700 dark:text-slate-200">
+            {accountTitle}
+          </span>
+        </nav>
 
-          {/* Title */}
-          <div>
-            <h1 className="text-3xl font-bold capitalize">
-              {account.data?.account_title}
-            </h1>
-
-            <p className="mt-1 text-sm text-gray-500">
-              {workspace.title} • Manage inventory records for this account.
-            </p>
-          </div>
-        </header>
+        <PageHeader
+          title={accountTitle}
+          description={`${workspace.title} • Manage inventory records for this account.`}
+        />
 
         <InventoryRecordStats
           totalRecords={filters.filteredRecords.length}
@@ -186,7 +208,7 @@ export default function InventoryRecordsPage() {
         open={view.sidePanelOpen}
         record={view.openedRecord}
         columns={columns.data ?? []}
-        accountTitle={account.data?.account_title ?? ""}
+        accountTitle={accountTitle}
         onClose={view.closeSidePanel}
         onEdit={view.editOpenedRecord}
         onPublicView={() => {

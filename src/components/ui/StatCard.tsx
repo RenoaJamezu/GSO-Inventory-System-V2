@@ -12,32 +12,19 @@ type StatCardProps = {
   route?: string;
 };
 
-const themes = {
-  emerald: {
-    card: "border-emerald-200 bg-emerald-50 hover:border-emerald-300",
-    icon: "bg-emerald-100 text-emerald-700",
-  },
+const themes: Record<ColorTheme, string> = {
+  emerald:
+    "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400",
 
-  blue: {
-    card: "border-blue-200 bg-blue-50 hover:border-blue-300",
-    icon: "bg-blue-100 text-blue-700",
-  },
+  blue: "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400",
 
-  orange: {
-    card: "border-orange-200 bg-orange-50 hover:border-orange-300",
-    icon: "bg-orange-100 text-orange-700",
-  },
+  orange: "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400",
 
-  purple: {
-    card: "border-purple-200 bg-purple-50 hover:border-purple-300",
-    icon: "bg-purple-100 text-purple-700",
-  },
+  purple:
+    "bg-violet-50 text-violet-700 dark:bg-violet-950/60 dark:text-violet-400",
 
-  gray: {
-    card: "border-gray-200 bg-gray-50 hover:border-gray-300",
-    icon: "bg-gray-200 text-gray-700",
-  },
-} satisfies Record<ColorTheme, Record<string, string>>;
+  gray: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
+};
 
 export default function StatCard({
   icon,
@@ -47,7 +34,6 @@ export default function StatCard({
   description,
   route,
 }: StatCardProps) {
-  const theme = themes[colorTheme];
   const navigate = useNavigate();
 
   return (
@@ -56,33 +42,41 @@ export default function StatCard({
         if (route) navigate(route);
       }}
       className={[
-        "rounded-xl border p-6 shadow-sm transition-all duration-200",
-        theme.card,
+        "rounded-lg border p-5",
+        "border-slate-200 bg-white",
+        "dark:border-slate-800 dark:bg-slate-900",
+        "transition-colors duration-150",
         route
-          ? "cursor-pointer hover:shadow-md"
-          : "cursor-default",
+          ? "cursor-pointer hover:border-emerald-300 hover:bg-emerald-50/20 dark:hover:border-emerald-800 dark:hover:bg-emerald-950/20"
+          : "",
       ].join(" ")}
     >
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm sm:text-lg font-semibold text-gray-600">{title}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+            {title}
+          </p>
+
+          <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
+            {value}
+          </p>
+
+          {description && (
+            <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+              {description}
+            </p>
+          )}
+        </div>
 
         <div
           className={[
-            "rounded-lg p-1 sm:p-2 shadow-sm transition-colors",
-            theme.icon,
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-md",
+            themes[colorTheme],
           ].join(" ")}
         >
           {icon}
         </div>
       </div>
-
-      <h2 className="text-xl sm:text-3xl font-bold tracking-tight text-gray-900">
-        {value}
-      </h2>
-
-      {description && (
-        <p className="mt-2 text-xs sm:text-sm text-gray-600">{description}</p>
-      )}
     </div>
   );
 }

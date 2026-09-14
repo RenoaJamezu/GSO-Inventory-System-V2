@@ -1,12 +1,12 @@
 import {
   Boxes,
+  Car,
   ChartColumnIncreasing,
   FileText,
   LayoutDashboard,
   Package,
-  SquareDashedText,
   Settings,
-  Car,
+  SquareDashedText,
 } from "lucide-react";
 
 import type { LucideIcon } from "lucide-react";
@@ -15,7 +15,6 @@ export type SidebarItem = {
   to: string;
   label: string;
   icon: LucideIcon;
-  indicatorColor?: string;
 };
 
 export type SidebarSection = {
@@ -25,6 +24,7 @@ export type SidebarSection = {
 
 export const sidebarSections: SidebarSection[] = [
   {
+    title: "Main",
     items: [
       {
         to: "/dashboard",
@@ -35,36 +35,28 @@ export const sidebarSections: SidebarSection[] = [
   },
 
   {
-    title: "Inventory",
-
+    title: "Property & Inventory",
     items: [
       {
         to: "/par",
         label: "PAR Inventory",
         icon: FileText,
-        indicatorColor: "bg-blue-500",
       },
-
       {
         to: "/high-cost",
         label: "High Cost Inventory",
         icon: Package,
-        indicatorColor: "bg-orange-500",
       },
-
       {
         to: "/low-cost",
         label: "Low Cost Inventory",
         icon: Boxes,
-        indicatorColor: "bg-purple-500",
       },
-
       {
         to: "/stock-card",
         label: "Stock Card",
         icon: SquareDashedText,
       },
-
       {
         to: "/vehicle-record",
         label: "Vehicle Records",
@@ -74,15 +66,13 @@ export const sidebarSections: SidebarSection[] = [
   },
 
   {
-    title: "Workspace",
-
+    title: "Administration",
     items: [
       {
         to: "/report",
         label: "Reports",
         icon: ChartColumnIncreasing,
       },
-
       {
         to: "/settings",
         label: "Settings",

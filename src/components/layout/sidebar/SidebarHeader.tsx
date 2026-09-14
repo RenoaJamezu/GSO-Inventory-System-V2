@@ -7,29 +7,65 @@ type Props = {
 
 export default function SidebarHeader({ collapsed, onToggle }: Props) {
   return (
-    <div className="flex items-center justify-between border-b border-gray-200 px-5 py-5">
+    <header className="border-b border-slate-200 dark:border-slate-800">
       <div
         className={[
-          "overflow-hidden transition-all duration-300",
-          collapsed ? "w-0 opacity-0" : "w-full opacity-100",
+          "flex min-h-[88px] items-center",
+          collapsed ? "justify-center px-3" : "gap-3 px-4",
         ].join(" ")}
       >
-        <h1 className="whitespace-nowrap text-lg font-bold text-green-700">
-          Municipality of Sibagat
-        </h1>
+        <img
+          src="/images/sibagat-logo.png"
+          alt="Municipality of Sibagat"
+          className="h-12 w-12 shrink-0 object-contain"
+        />
 
-        <p className="whitespace-nowrap text-sm text-gray-500">
-          General Services Office
-        </p>
+        {!collapsed && (
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Republic of the Philippines
+            </p>
+
+            <h1 className="truncate text-sm font-bold uppercase leading-tight text-emerald-800 dark:text-emerald-400">
+              Municipality of Sibagat
+            </h1>
+
+            <p className="mt-0.5 text-xs font-medium text-slate-600 dark:text-slate-400">
+              General Services Office
+            </p>
+          </div>
+        )}
       </div>
 
-      <button
-        type="button"
-        onClick={onToggle}
-        className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
+      <div
+        className={[
+          "flex border-t border-slate-100 px-3 py-2",
+          "dark:border-slate-800",
+          collapsed ? "justify-center" : "justify-end",
+        ].join(" ")}
       >
-        {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-      </button>
-    </div>
+        <button
+          type="button"
+          onClick={onToggle}
+          title={collapsed ? "Expand navigation" : "Collapse navigation"}
+          aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
+          className={[
+            "flex h-8 w-8 items-center justify-center",
+            "rounded-md text-slate-500",
+            "transition-colors",
+            "hover:bg-slate-100 hover:text-slate-900",
+            "dark:text-slate-400",
+            "dark:hover:bg-slate-800 dark:hover:text-white",
+            "focus:outline-none focus:ring-2 focus:ring-emerald-600/30",
+          ].join(" ")}
+        >
+          {collapsed ? (
+            <PanelLeftOpen size={18} />
+          ) : (
+            <PanelLeftClose size={18} />
+          )}
+        </button>
+      </div>
+    </header>
   );
 }

@@ -1,3 +1,5 @@
+import { X } from "lucide-react";
+
 import { Button } from "@/components/ui";
 
 import type { VehicleRecord } from "../../types";
@@ -22,31 +24,87 @@ export default function VehicleRecordSidePanel({
   onEdit,
   onDelete,
 }: Props) {
-  if (!open || !vehicle) return null;
+  if (!open || !vehicle) {
+    return null;
+  }
 
   return (
     <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} />
+      <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} />
 
-      {/* Panel */}
-      <aside className="fixed right-0 top-0 z-50 flex h-screen w-full max-w-lg flex-col border-l border-gray-200 bg-white shadow-2xl">
+      <aside
+        className="
+          fixed right-0 top-0 z-50
+          flex h-screen w-full max-w-lg flex-col
+          border-l border-slate-200
+          bg-white
+          shadow-xl
+
+          dark:border-slate-800
+          dark:bg-slate-900
+        "
+      >
         {/* Header */}
-        <div className="flex items-center justify-between border-b px-6 py-5">
+        <header
+          className="
+            flex items-start
+            justify-between
+            gap-4
+            border-b
+            border-slate-200
+            px-6 py-5
+
+            dark:border-slate-800
+          "
+        >
           <div className="min-w-0">
-            <h2 className="truncate text-2xl font-bold uppercase">
+            <p
+              className="
+                text-xs font-semibold
+                uppercase tracking-wide
+                text-emerald-700
+
+                dark:text-emerald-400
+              "
+            >
+              Vehicle Record
+            </p>
+
+            <h2
+              className="
+                mt-1 truncate
+                text-xl font-semibold
+                text-slate-900
+
+                dark:text-slate-100
+              "
+            >
               {vehicle.plate_no}
             </h2>
 
-            <p className="mt-1 truncate text-sm text-gray-500">
+            <p
+              className="
+                mt-1 truncate
+                text-sm
+                text-slate-500
+
+                dark:text-slate-400
+              "
+            >
               {vehicle.model}
             </p>
           </div>
 
-          <Button variant="ghost" onClick={onClose}>
-            ✕
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            aria-label="Close vehicle details"
+          >
+            <X size={18} />
           </Button>
-        </div>
+        </header>
 
         {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto">

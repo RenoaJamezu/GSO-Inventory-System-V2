@@ -1,30 +1,39 @@
 import {
   Dialog,
   DialogBody,
-  DialogHeader,
   DialogFooter,
+  DialogHeader,
 } from "@/components/dialog";
+
 import {
+  FormCheckbox,
   FormField,
+  FormInput,
   FormSelect,
   FormTextarea,
-  FormCheckbox,
-  FormInput,
 } from "@/components/form";
+
 import { Button } from "@/components/ui";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+
 import { CircleAlert, CircleDollarSign } from "lucide-react";
+
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+
 import { DATA_TYPES } from "../constants";
+
 import {
   useCreateAccountColumn,
   useUpdateAccountColumn,
 } from "../hooks/useAccountColumns";
+
 import {
-  type AccountColumnForm,
   accountColumnSchema,
+  type AccountColumnForm,
 } from "../schemas/accountColumn.schema";
+
 import type { AccountColumn, AccountColumnInput } from "../types";
 
 type Props = {
@@ -41,6 +50,7 @@ export default function AccountColumnDialog({
   onClose,
 }: Props) {
   const createMutation = useCreateAccountColumn();
+
   const updateMutation = useUpdateAccountColumn();
 
   const isEdit = Boolean(column);
@@ -52,6 +62,7 @@ export default function AccountColumnDialog({
     formState: { errors, isSubmitting },
   } = useForm<AccountColumnForm>({
     resolver: zodResolver(accountColumnSchema),
+
     defaultValues: {
       label: "",
       data_type: "text",
@@ -61,6 +72,9 @@ export default function AccountColumnDialog({
       is_amount_column: false,
     },
   });
+
+  const loading =
+    isSubmitting || createMutation.isPending || updateMutation.isPending;
 
   useEffect(() => {
     if (!open) return;
@@ -106,7 +120,7 @@ export default function AccountColumnDialog({
 
       onClose();
     } catch (error) {
-      console.error(error);
+      console.error("Failed saving account column", error);
 
       if (error instanceof Error) {
         alert(error.message);
@@ -118,28 +132,28 @@ export default function AccountColumnDialog({
   }
 
   return (
-    <Dialog open={open} maxWidth="lg" onClose={onClose}>
-      <DialogHeader title={isEdit ? "Edit Column" : "New Column"}>
-        <p className="mt-1 text-sm font-normal text-gray-500">
+    <Dialog open={open} maxWidth="lg" onClose={loading ? undefined : onClose}>
+      <DialogHeader title={isEdit ? "Edit Column" : "Add Column"}>
+        <p className="mt-1 text-sm font-normal text-slate-500 dark:text-slate-400">
           {isEdit
             ? "Update the configuration of this inventory field."
-            : "Create a new field that will appear on every inventory record."}
+            : "Create a field that will appear on inventory records."}
         </p>
       </DialogHeader>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogBody>
-          <div className="space-y-8">
-            {/* General */}
-
-            <section className="space-y-5">
+          <div className="space-y-6">
+            {/* General information */}
+            <section className="space-y-4">
               <div>
-                <h3 className="text-base font-semibold text-gray-900">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   General Information
                 </h3>
 
-                <p className="mt-1 text-sm text-gray-500">
-                  Configure how this field will appear on inventory records.
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Configure how this field appears when working with inventory
+                  records.
                 </p>
               </div>
 
@@ -150,7 +164,7 @@ export default function AccountColumnDialog({
                 />
 
                 {errors.label && (
-                  <p className="mt-1 text-sm text-red-500">
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                     {errors.label.message}
                   </p>
                 )}
@@ -183,19 +197,26 @@ export default function AccountColumnDialog({
             </section>
 
             {/* Options */}
-
-            <section className="space-y-4 border-t pt-6">
+            <section
+              className="
+                space-y-4
+                border-t
+                border-slate-200
+                pt-6
+                dark:border-slate-800
+              "
+            >
               <div>
-                <h3 className="text-base font-semibold text-gray-900">
-                  Options
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Field Options
                 </h3>
 
-                <p className="mt-1 text-sm text-gray-500">
-                  Configure how this field behaves.
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Configure validation and reporting behavior.
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 space-x-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <FormCheckbox
                   icon={<CircleAlert size={18} />}
                   label="Required Field"
@@ -206,7 +227,7 @@ export default function AccountColumnDialog({
                 <FormCheckbox
                   icon={<CircleDollarSign size={18} />}
                   label="Amount Column"
-                  description="Used for report totals and calculations. Only one amount column is allowed."
+                  description="Used for inventory totals and reports. Only one amount column can be active."
                   {...register("is_amount_column")}
                 />
               </div>
@@ -215,18 +236,16 @@ export default function AccountColumnDialog({
         </DialogBody>
 
         <DialogFooter>
-          <Button type="button" variant="secondary" onClick={onClose}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onClose}
+            disabled={loading}
+          >
             Cancel
           </Button>
 
-          <Button
-            type="submit"
-            loading={
-              isSubmitting ||
-              createMutation.isPending ||
-              updateMutation.isPending
-            }
-          >
+          <Button type="submit" loading={loading}>
             {isEdit ? "Save Changes" : "Create Column"}
           </Button>
         </DialogFooter>

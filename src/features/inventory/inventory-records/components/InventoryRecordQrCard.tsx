@@ -14,7 +14,7 @@ export default function InventoryRecordQrCard({ qrUuid, inventoryType }: Props) 
 
   return (
     <div
-      className="h-[5.55cm] w-[8cm] border-[3px] bg-white shadow print:shadow-none print:[-webkit-print-color-adjust:exact] print:[print-color-adjust:exact] font-times"
+      className="h-[5.55cm] w-[8cm] border-[3px] bg-white shadow print:shadow-none print:[-webkit-print-color-adjust:exact] print:[print-color-adjust:exact] font-times text-black"
       style={{
         borderColor: theme.color,
       }}

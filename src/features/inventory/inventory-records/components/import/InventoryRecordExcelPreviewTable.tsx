@@ -1,11 +1,21 @@
+import { Trash2 } from "lucide-react";
+
 import type { AccountColumn } from "@/features/inventory/account-columns";
+
 import type { Group, PreviewRow } from "../../types";
+
+import { Button } from "@/components/ui";
+
+import { FormSelect } from "@/components/form";
 
 type Props = {
   rows: PreviewRow[];
+
   setRows: React.Dispatch<React.SetStateAction<PreviewRow[]>>;
+
   columns: AccountColumn[];
   groups: Group[];
+
   mapping: Record<string, string>;
 };
 
@@ -17,15 +27,16 @@ export default function InventoryRecordExcelPreviewTable({
   mapping,
 }: Props) {
   function removeRow(id: string) {
-    setRows((prev) => prev.filter((row) => row.id !== id));
+    setRows((previous) => previous.filter((row) => row.id !== id));
   }
 
   function updateGroup(id: string, groupId: string) {
-    setRows((prev) =>
-      prev.map((row) =>
+    setRows((previous) =>
+      previous.map((row) =>
         row.id === id
           ? {
               ...row,
+
               group_id: groupId === "" ? null : Number(groupId),
             }
           : row,
@@ -41,31 +52,65 @@ export default function InventoryRecordExcelPreviewTable({
   );
 
   return (
-    <div className="rounded-xl border border-gray-100 shadow-sm bg-white overflow-auto max-h-102">
-      <table className="w-full table-fixed text-sm">
-        <thead className="sticky top-0 z-10 bg-gray-100">
-          <tr>
-            <th className="w-40 p-2 border border-gray-400">Group</th>
+    <div
+      className="
+        max-h-[28rem]
+        overflow-auto
+        rounded-lg border
+        border-slate-200
+        bg-white
 
-            {columns.map((col) => (
-              <th key={col.id} className="w-60 p-2 border border-gray-400 text-left">
-                {col.label}
+        dark:border-slate-800
+        dark:bg-slate-900
+      "
+    >
+      <table className="min-w-full text-sm">
+        <thead className="sticky top-0 z-10">
+          <tr
+            className="
+              border-b border-slate-200
+              bg-slate-50
+              text-xs font-semibold
+              uppercase tracking-wide
+              text-slate-500
+
+              dark:border-slate-800
+              dark:bg-slate-800
+              dark:text-slate-400
+            "
+          >
+            <th className="min-w-48 px-4 py-3 text-left">Group</th>
+
+            {columns.map((column) => (
+              <th
+                key={column.id}
+                className="min-w-48 whitespace-nowrap px-4 py-3 text-left"
+              >
+                {column.label}
               </th>
             ))}
 
-            <th className="w-28 p-2 border border-gray-400">Actions</th>
+            <th className="w-20 px-4 py-3 text-center">Action</th>
           </tr>
         </thead>
 
-        <tbody>
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
           {rows.map((row) => (
-            <tr key={row.id} className="hover:bg-gray-50">
-              {/* Group */}
-              <td className="p-2 border border-gray-400">
-                <select
+            <tr
+              key={row.id}
+              className="
+                bg-white
+                transition-colors
+                hover:bg-slate-50
+
+                dark:bg-slate-900
+                dark:hover:bg-slate-800/50
+              "
+            >
+              <td className="px-4 py-3 align-top">
+                <FormSelect
                   value={row.group_id ?? ""}
-                  onChange={(e) => updateGroup(row.id, e.target.value)}
-                  className="w-full rounded border border-gray-400 p-1"
+                  onChange={(event) => updateGroup(row.id, event.target.value)}
                 >
                   <option value="">No Group</option>
 
@@ -74,24 +119,43 @@ export default function InventoryRecordExcelPreviewTable({
                       {group.group_name}
                     </option>
                   ))}
-                </select>
+                </FormSelect>
               </td>
 
-              {/* Data */}
-              {columns.map((col) => (
-                <td key={col.id} className="p-2 border border-gray-400">
-                  {String(row.data[reverseMapping[col.field_key]] ?? "")}
-                </td>
-              ))}
+              {columns.map((column) => {
+                const excelColumn = reverseMapping[column.field_key];
 
-              {/* Actions */}
-              <td className="p-2 border border-gray-400 text-center">
-                <button
+                const value = excelColumn ? row.data[excelColumn] : "";
+
+                return (
+                  <td
+                    key={column.id}
+                    className="
+                        max-w-64
+                        px-4 py-3
+                        align-top
+                        text-slate-700
+                        dark:text-slate-300
+                      "
+                  >
+                    <div className="truncate" title={String(value ?? "")}>
+                      {String(value ?? "")}
+                    </div>
+                  </td>
+                );
+              })}
+
+              <td className="px-4 py-3 text-center align-top">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => removeRow(row.id)}
-                  className="text-red-600 hover:underline"
+                  aria-label="Remove record"
+                  className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                 >
-                  Remove
-                </button>
+                  <Trash2 size={16} />
+                </Button>
               </td>
             </tr>
           ))}
@@ -99,10 +163,10 @@ export default function InventoryRecordExcelPreviewTable({
           {rows.length === 0 && (
             <tr>
               <td
-                colSpan={columns.length + 3}
-                className="p-6 text-center text-gray-500"
+                colSpan={columns.length + 2}
+                className="px-6 py-12 text-center text-sm text-slate-500 dark:text-slate-400"
               >
-                No rows to preview
+                No records to preview.
               </td>
             </tr>
           )}

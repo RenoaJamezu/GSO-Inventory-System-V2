@@ -4,3 +4,5 @@
   --font-times: "Times New Roman", Times, serif;
   --font-poppins: "Poppins", sans-serif;
 }
+
+@custom-variant dark (&:where(.dark, .dark *));
