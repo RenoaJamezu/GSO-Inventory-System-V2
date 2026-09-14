@@ -69,7 +69,10 @@ export default function InventoryRecordDialog({
         </p>
       </DialogHeader>
 
-      <form onSubmit={onSubmit}>
+      <form
+        onSubmit={onSubmit}
+        className="flex min-h-0 flex-1 flex-col overflow-hidden"
+      >
         <DialogBody>
           <div className="space-y-6">
             {/* Classification */}
