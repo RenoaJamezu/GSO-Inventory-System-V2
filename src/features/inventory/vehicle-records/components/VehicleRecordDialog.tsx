@@ -12,7 +12,6 @@ import {
 } from "@/components/dialog";
 
 import { FormField, FormInput } from "@/components/form";
-
 import { Button } from "@/components/ui";
 
 import {
@@ -37,20 +36,56 @@ const emptyValues: VehicleRecordFormValues = {
   model: "",
   engine_no: "",
   chassis_no: "",
-
   plate_no: "",
   office: "",
   memorandum_receipt: "",
-
   driver: "",
   cellphone_no: "",
-
   expiration_date: "",
-
   property_no: "",
   date_acquired: "",
   cost: "",
 };
+
+function toNullableString(value: string): string | null {
+  const trimmed = value.trim();
+
+  return trimmed === "" ? null : trimmed;
+}
+
+function isPostgresDuplicateError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+
+  if ("code" in error && error.code === "23505") {
+    return true;
+  }
+
+  return false;
+}
+
+function getDuplicateMessage(error: unknown): string {
+  if (typeof error !== "object" || error === null) {
+    return "";
+  }
+
+  const parts: string[] = [];
+
+  if ("message" in error && typeof error.message === "string") {
+    parts.push(error.message);
+  }
+
+  if ("details" in error && typeof error.details === "string") {
+    parts.push(error.details);
+  }
+
+  if ("hint" in error && typeof error.hint === "string") {
+    parts.push(error.hint);
+  }
+
+  return parts.join(" ").toLowerCase();
+}
 
 export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
   const createMutation = useCreateVehicleRecord();
@@ -61,11 +96,17 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
     handleSubmit,
     reset,
     setError,
+    clearErrors,
 
     formState: { errors, isSubmitting },
   } = useForm<VehicleRecordFormValues>({
     resolver: zodResolver(vehicleRecordSchema),
+
     defaultValues: emptyValues,
+
+    // Validate again as soon as the user changes a field.
+    mode: "onChange",
+    reValidateMode: "onChange",
   });
 
   const isEditing = Boolean(vehicle);
@@ -73,17 +114,12 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
   const loading =
     isSubmitting || createMutation.isPending || updateMutation.isPending;
 
-  /*
-   * Initialize the form when the dialog opens or when
-   * the selected vehicle changes.
-   *
-   * We intentionally depend on vehicle?.id instead of the
-   * entire vehicle object to avoid unnecessary form resets.
-   */
   useEffect(() => {
     if (!open) {
       return;
     }
+
+    clearErrors();
 
     if (!vehicle) {
       reset(emptyValues);
@@ -115,17 +151,22 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
 
       cost: vehicle.cost !== null ? String(vehicle.cost) : "",
     });
-  }, [open, vehicle?.id, reset]);
+  }, [open, vehicle, reset, clearErrors]);
 
   function handleClose() {
-    if (loading) {
-      return;
-    }
+    if (loading) return;
 
+    clearErrors();
     onClose();
   }
 
   async function onSubmit(values: VehicleRecordFormValues) {
+    /*
+     * Clear any previous server-side errors before
+     * attempting another submission.
+     */
+    clearErrors("root");
+
     const payload: VehicleRecordInput = {
       model: values.model.trim(),
 
@@ -162,12 +203,9 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
         await createMutation.mutateAsync(payload);
       }
 
-      /*
-       * Do not reset here.
-       *
-       * Closing the dialog changes the view state. The form
-       * will be initialized the next time it opens.
-       */
+      reset(emptyValues);
+      clearErrors();
+
       onClose();
     } catch (error) {
       if (isPostgresDuplicateError(error)) {
@@ -175,6 +213,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
 
         if (message.includes("plate")) {
           setError("plate_no", {
+            type: "server",
             message: "This plate number already exists.",
           });
 
@@ -183,6 +222,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
 
         if (message.includes("engine")) {
           setError("engine_no", {
+            type: "server",
             message: "This engine number already exists.",
           });
 
@@ -191,6 +231,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
 
         if (message.includes("chassis")) {
           setError("chassis_no", {
+            type: "server",
             message: "This chassis number already exists.",
           });
 
@@ -198,7 +239,10 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
         }
       }
 
+      console.error("Failed saving vehicle record:", error);
+
       setError("root", {
+        type: "server",
         message: "Unable to save vehicle record. Please try again.",
       });
     }
@@ -213,227 +257,280 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
       <DialogHeader title={isEditing ? "Edit Vehicle" : "Add Vehicle"}>
         <p className="mt-1 text-sm font-normal text-slate-500 dark:text-slate-400">
           {isEditing
-            ? "Update the municipal vehicle record and assignment information."
-            : "Create a municipal vehicle record with identification, assignment, and property details."}
+            ? "Update the information for this vehicle record."
+            : "Enter the information for the new vehicle record."}
         </p>
       </DialogHeader>
 
       <form
         onSubmit={handleSubmit(onSubmit)}
+        noValidate
         className="flex min-h-0 flex-1 flex-col overflow-hidden"
       >
         <DialogBody>
-          <div className="space-y-7">
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Vehicle Identification
+              </h3>
+
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Basic identifying information for the municipal vehicle.
+              </p>
+            </div>
+            {/* MODEL */}
+            <FormField label="Model" required>
+              <FormInput
+                {...register("model", {
+                  onChange: () => {
+                    clearErrors("model");
+                    clearErrors("root");
+                  },
+                })}
+                placeholder="e.g. Toyota Hilux"
+                autoComplete="off"
+              />
+
+              {errors.model && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.model.message}
+                </p>
+              )}
+            </FormField>
+
+            {/* PLATE NUMBER */}
+            <FormField label="Plate No." required>
+              <FormInput
+                {...register("plate_no", {
+                  onChange: () => {
+                    clearErrors("plate_no");
+                    clearErrors("root");
+                  },
+                })}
+                placeholder="e.g. ABC-1234"
+                autoComplete="off"
+                className="uppercase"
+              />
+
+              {errors.plate_no && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.plate_no.message}
+                </p>
+              )}
+            </FormField>
+
+            {/* ENGINE NUMBER */}
+            <FormField label="Engine No.">
+              <FormInput
+                {...register("engine_no", {
+                  onChange: () => {
+                    clearErrors("engine_no");
+                    clearErrors("root");
+                  },
+                })}
+                placeholder="Enter engine number"
+                autoComplete="off"
+              />
+
+              {errors.engine_no && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.engine_no.message}
+                </p>
+              )}
+            </FormField>
+
+            {/* CHASSIS NUMBER */}
+            <FormField label="Chassis No.">
+              <FormInput
+                {...register("chassis_no", {
+                  onChange: () => {
+                    clearErrors("chassis_no");
+                    clearErrors("root");
+                  },
+                })}
+                placeholder="Enter chassis number"
+                autoComplete="off"
+              />
+
+              {errors.chassis_no && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.chassis_no.message}
+                </p>
+              )}
+            </FormField>
+
+            <div
+              className="
+                space-y-4
+                border-t
+                border-slate-200
+                pt-6
+
+                dark:border-slate-800
+              "
+            />
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Assignment Information
+              </h3>
+
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Record the office, accountable document, driver, and contact details.
+              </p>
+            </div>
+
+            {/* OFFICE */}
+            <FormField label="Office">
+              <FormInput
+                {...register("office")}
+                placeholder="Enter assigned office"
+              />
+
+              {errors.office && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.office.message}
+                </p>
+              )}
+            </FormField>
+
+            {/* MEMORANDUM RECEIPT */}
+            <FormField label="Memorandum Receipt">
+              <FormInput
+                {...register("memorandum_receipt")}
+                placeholder="Enter memorandum receipt"
+              />
+
+              {errors.memorandum_receipt && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.memorandum_receipt.message}
+                </p>
+              )}
+            </FormField>
+
+            {/* DRIVER */}
+            <FormField label="Driver">
+              <FormInput
+                {...register("driver")}
+                placeholder="Enter driver's name"
+              />
+
+              {errors.driver && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.driver.message}
+                </p>
+              )}
+            </FormField>
+
+            {/* CELLPHONE */}
+            <FormField label="Cellphone No.">
+              <FormInput
+                {...register("cellphone_no")}
+                placeholder="e.g. 09171234567"
+                inputMode="tel"
+              />
+
+              {errors.cellphone_no && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.cellphone_no.message}
+                </p>
+              )}
+            </FormField>
+
+            <div
+              className="
+                space-y-4
+                border-t
+                border-slate-200
+                pt-6
+
+                dark:border-slate-800
+              "
+            />
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Property and Registration
+              </h3>
+
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Acquisition, property, cost and registration information.
+              </p>
+            </div>
+
+            {/* PROPERTY NUMBER */}
+            <FormField label="Property No.">
+              <FormInput
+                {...register("property_no")}
+                placeholder="Enter property number"
+              />
+
+              {errors.property_no && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.property_no.message}
+                </p>
+              )}
+            </FormField>
+
+            {/* DATE ACQUIRED */}
+            <FormField label="Date Acquired">
+              <FormInput {...register("date_acquired")} type="date" />
+
+              {errors.date_acquired && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.date_acquired.message}
+                </p>
+              )}
+            </FormField>
+
+            {/* COST */}
+            <FormField label="Cost">
+              <FormInput
+                {...register("cost")}
+                type="number"
+                min="0"
+                step="0.01"
+                inputMode="decimal"
+                placeholder="0.00"
+              />
+
+              {errors.cost && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.cost.message}
+                </p>
+              )}
+            </FormField>
+
+            {/* EXPIRATION */}
+            <FormField label="Expiration Date">
+              <FormInput {...register("expiration_date")} type="date" />
+
+              {errors.expiration_date && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.expiration_date.message}
+                </p>
+              )}
+            </FormField>
+
+            {/* SERVER ERROR */}
             {errors.root?.message && (
               <div
                 className="
-                  flex gap-3
-                  rounded-md border
-                  border-red-200
+                  flex items-start gap-2
+                  rounded-md
+                  border border-red-200
                   bg-red-50
-                  px-4 py-3
+                  p-3
+                  text-sm text-red-700
 
-                  dark:border-red-900
+                  dark:border-red-900/60
                   dark:bg-red-950/30
+                  dark:text-red-400
                 "
               >
-                <AlertTriangle
-                  size={18}
-                  className="
-                    mt-0.5
-                    shrink-0
-                    text-red-600
-                    dark:text-red-400
-                  "
-                />
+                <AlertTriangle size={17} className="mt-0.5 shrink-0" />
 
-                <div>
-                  <p className="text-sm font-medium text-red-700 dark:text-red-300">
-                    Unable to save vehicle
-                  </p>
-
-                  <p className="mt-0.5 text-sm text-red-600 dark:text-red-400">
-                    {errors.root.message}
-                  </p>
-                </div>
+                <p>{errors.root.message}</p>
               </div>
             )}
-
-            {/* Vehicle identification */}
-            <section className="space-y-4">
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  Vehicle Identification
-                </h3>
-
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  Basic identifying information for the municipal vehicle.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <FormField label="Model" required>
-                  <FormInput
-                    {...register("model")}
-                    placeholder="e.g. Toyota Hilux"
-                  />
-
-                  {errors.model?.message && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.model.message}
-                    </p>
-                  )}
-                </FormField>
-
-                <FormField label="Plate No." required>
-                  <FormInput
-                    {...register("plate_no")}
-                    placeholder="e.g. ABC-1234"
-                    className="uppercase"
-                  />
-
-                  {errors.plate_no?.message && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.plate_no.message}
-                    </p>
-                  )}
-                </FormField>
-
-                <FormField label="Engine No.">
-                  <FormInput
-                    {...register("engine_no")}
-                    placeholder="Engine number"
-                  />
-
-                  {errors.engine_no?.message && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.engine_no.message}
-                    </p>
-                  )}
-                </FormField>
-
-                <FormField label="Chassis No.">
-                  <FormInput
-                    {...register("chassis_no")}
-                    placeholder="Chassis number"
-                  />
-
-                  {errors.chassis_no?.message && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.chassis_no.message}
-                    </p>
-                  )}
-                </FormField>
-              </div>
-            </section>
-
-            {/* Assignment */}
-            <section
-              className="
-                space-y-4
-                border-t
-                border-slate-200
-                pt-6
-
-                dark:border-slate-800
-              "
-            >
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  Assignment Information
-                </h3>
-
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  Record the office, accountable document, driver, and contact
-                  details.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <FormField label="Office">
-                  <FormInput
-                    {...register("office")}
-                    placeholder="Assigned office"
-                  />
-                </FormField>
-
-                <FormField label="M.R. / Memorandum Receipt">
-                  <FormInput
-                    {...register("memorandum_receipt")}
-                    placeholder="Memorandum receipt"
-                  />
-                </FormField>
-
-                <FormField label="Driver">
-                  <FormInput
-                    {...register("driver")}
-                    placeholder="Driver name"
-                  />
-                </FormField>
-
-                <FormField label="Cellphone No.">
-                  <FormInput
-                    {...register("cellphone_no")}
-                    placeholder="e.g. 09XX XXX XXXX"
-                  />
-                </FormField>
-              </div>
-            </section>
-
-            {/* Property */}
-            <section
-              className="
-                space-y-4
-                border-t
-                border-slate-200
-                pt-6
-
-                dark:border-slate-800
-              "
-            >
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  Property and Registration
-                </h3>
-
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  Acquisition, property, cost and registration information.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <FormField label="Property No.">
-                  <FormInput
-                    {...register("property_no")}
-                    placeholder="Property number"
-                  />
-                </FormField>
-
-                <FormField label="Date Acquired">
-                  <FormInput type="date" {...register("date_acquired")} />
-                </FormField>
-
-                <FormField label="Cost">
-                  <FormInput
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    {...register("cost")}
-                    placeholder="0.00"
-                  />
-
-                  {errors.cost?.message && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.cost.message}
-                    </p>
-                  )}
-                </FormField>
-
-                <FormField label="Expiration Date">
-                  <FormInput type="date" {...register("expiration_date")} />
-                </FormField>
-              </div>
-            </section>
           </div>
         </DialogBody>
 
@@ -447,38 +544,17 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
             Cancel
           </Button>
 
-          <Button type="submit" loading={loading}>
-            {isEditing ? "Save Changes" : "Add Vehicle"}
+          <Button type="submit" disabled={loading}>
+            {loading
+              ? isEditing
+                ? "Saving..."
+                : "Adding..."
+              : isEditing
+                ? "Save Changes"
+                : "Add Vehicle"}
           </Button>
         </DialogFooter>
       </form>
     </Dialog>
   );
-}
-
-function toNullableString(value: string): string | null {
-  const trimmed = value.trim();
-
-  return trimmed === "" ? null : trimmed;
-}
-
-function isPostgresDuplicateError(error: unknown) {
-  if (typeof error !== "object" || error === null) {
-    return false;
-  }
-
-  return "code" in error && error.code === "23505";
-}
-
-function getDuplicateMessage(error: unknown) {
-  if (
-    typeof error !== "object" ||
-    error === null ||
-    !("message" in error) ||
-    typeof error.message !== "string"
-  ) {
-    return "";
-  }
-
-  return error.message.toLowerCase();
 }
