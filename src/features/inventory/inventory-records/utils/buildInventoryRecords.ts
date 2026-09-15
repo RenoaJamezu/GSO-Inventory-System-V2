@@ -1,8 +1,4 @@
-import type {
-  InventoryRecordInput,
-  InventoryType,
-  PreviewRow,
-} from "@/features/inventory/inventory-records";
+import type { InventoryRecordInput, InventoryType, PreviewRow } from "../types";
 import { normalizeCellValue } from "./normalizeCellValue";
 import type { AccountColumn } from "@/features/inventory/account-columns";
 

@@ -1,5 +1,8 @@
 export const accountColumnKeys = {
-  all: (accountId: number) => ["account_columns", accountId] as const,
+  root: ["account-columns"] as const,
 
-  detail: (id: number) => ["account_columns", id] as const,
+  lists: () => [...accountColumnKeys.root, "list"] as const,
+
+  list: (accountId: number) =>
+    [...accountColumnKeys.lists(), accountId] as const,
 };

@@ -1,36 +1,35 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { InventoryRecordInput, InventoryType } from "../types";
 import {
-  getInventoryRecords,
-  getInventoryRecord,
-  createInventoryRecord,
-  updateInventoryRecord,
-  deleteInventoryRecord,
-  getInventoryRecordByUuid,
+  bulkAssignGroup,
   bulkCreateInventoryRecords,
   bulkDeleteInventoryRecords,
-  bulkAssignGroup,
+  createInventoryRecord,
+  deleteInventoryRecord,
+  getInventoryRecord,
+  getInventoryRecordByUuid,
+  getInventoryRecords,
+  updateInventoryRecord,
 } from "../api/inventoryRecords.api";
+import { inventoryRecordKeys } from "../queryKeys";
+import type { InventoryRecordInput, InventoryType } from "../types";
 
 export function useInventoryRecords(
   accountId: number,
   inventoryType: InventoryType,
 ) {
   return useQuery({
-    queryKey: ["inventory-records", accountId, inventoryType],
-    queryFn: async () => {
-      return getInventoryRecords(accountId, inventoryType);
-    },
-    enabled: !!accountId,
+    queryKey: inventoryRecordKeys.list(accountId, inventoryType),
+    queryFn: () => getInventoryRecords(accountId, inventoryType),
+    enabled: accountId > 0,
   });
 }
 
 export function useInventoryRecord(id: number) {
   return useQuery({
-    queryKey: ["inventory-record", id],
+    queryKey: inventoryRecordKeys.detail(id),
     queryFn: () => getInventoryRecord(id),
-    enabled: !!id,
+    enabled: id > 0,
   });
 }
 
@@ -40,13 +39,12 @@ export function useCreateInventoryRecord() {
   return useMutation({
     mutationFn: createInventoryRecord,
 
-    onSuccess(variables) {
+    onSuccess: (record) => {
       queryClient.invalidateQueries({
-        queryKey: [
-          "inventory-records",
-          variables.account_id,
-          variables.inventory_type,
-        ],
+        queryKey: inventoryRecordKeys.list(
+          record.account_id,
+          record.inventory_type,
+        ),
       });
 
       queryClient.invalidateQueries({
@@ -68,13 +66,20 @@ export function useUpdateInventoryRecord() {
       values: Partial<InventoryRecordInput>;
     }) => updateInventoryRecord(id, values),
 
-    onSuccess(data) {
+    onSuccess: (record) => {
       queryClient.invalidateQueries({
-        queryKey: ["inventory-records", data.account_id, data.inventory_type],
+        queryKey: inventoryRecordKeys.list(
+          record.account_id,
+          record.inventory_type,
+        ),
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["inventory-record", data.id],
+        queryKey: inventoryRecordKeys.detail(record.id),
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: inventoryRecordKeys.uuid(record.qr_uuid),
       });
 
       queryClient.invalidateQueries({
@@ -98,17 +103,16 @@ export function useDeleteInventoryRecord() {
       return record;
     },
 
-    onSuccess(record) {
+    onSuccess: (record) => {
       queryClient.invalidateQueries({
-        queryKey: [
-          "inventory-records",
+        queryKey: inventoryRecordKeys.list(
           record.account_id,
           record.inventory_type,
-        ],
+        ),
       });
 
-      queryClient.invalidateQueries({
-        queryKey: ["inventory-record", record.id],
+      queryClient.removeQueries({
+        queryKey: inventoryRecordKeys.detail(record.id),
       });
 
       queryClient.invalidateQueries({
@@ -120,9 +124,9 @@ export function useDeleteInventoryRecord() {
 
 export function useInventoryRecordByUuid(uuid: string) {
   return useQuery({
-    queryKey: ["inventory-record-uuid", uuid],
+    queryKey: inventoryRecordKeys.uuid(uuid),
     queryFn: () => getInventoryRecordByUuid(uuid),
-    enabled: !!uuid,
+    enabled: Boolean(uuid),
   });
 }
 
@@ -132,15 +136,22 @@ export function useBulkInsertInventoryRecords() {
   return useMutation({
     mutationFn: bulkCreateInventoryRecords,
 
-    onSuccess(data) {
-      if (!data.length) return;
+    onSuccess: (records) => {
+      const affectedLists = new Set(
+        records.map(
+          (record) => `${record.account_id}:${record.inventory_type}`,
+        ),
+      );
 
-      queryClient.invalidateQueries({
-        queryKey: [
-          "inventory-records",
-          data[0].account_id,
-          data[0].inventory_type,
-        ],
+      affectedLists.forEach((key) => {
+        const [accountId, inventoryType] = key.split(":");
+
+        queryClient.invalidateQueries({
+          queryKey: inventoryRecordKeys.list(
+            Number(accountId),
+            inventoryType as InventoryType,
+          ),
+        });
       });
 
       queryClient.invalidateQueries({
@@ -156,9 +167,9 @@ export function useBulkDeleteInventoryRecords() {
   return useMutation({
     mutationFn: bulkDeleteInventoryRecords,
 
-    onSuccess() {
+    onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["inventory-records"],
+        queryKey: inventoryRecordKeys.lists(),
       });
 
       queryClient.invalidateQueries({
@@ -175,9 +186,9 @@ export function useBulkAssignGroup() {
     mutationFn: ({ ids, groupId }: { ids: number[]; groupId: number | null }) =>
       bulkAssignGroup(ids, groupId),
 
-    onSuccess() {
+    onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["inventory-records"],
+        queryKey: inventoryRecordKeys.lists(),
       });
     },
   });

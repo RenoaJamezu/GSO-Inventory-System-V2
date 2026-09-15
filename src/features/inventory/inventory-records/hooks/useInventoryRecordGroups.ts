@@ -1,20 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { GroupInput } from "../types";
+
 import {
   createGroup,
   deleteGroup,
   getGroups,
   updateGroup,
 } from "../api/inventoryRecordGroups.api";
-
-const GROUPS_QUERY_KEY = "groups";
-const GROUP_QUERY_KEY = "group";
+import { inventoryRecordGroupKeys, inventoryRecordKeys } from "../queryKeys";
+import type { GroupInput } from "../types";
 
 export function useInventoryRecordGroups(accountId: number) {
   return useQuery({
-    queryKey: [GROUPS_QUERY_KEY, "account", accountId],
+    queryKey: inventoryRecordGroupKeys.list(accountId),
     queryFn: () => getGroups(accountId),
-    enabled: !!accountId,
+    enabled: accountId > 0,
   });
 }
 
@@ -26,7 +25,7 @@ export function useCreateGroup() {
 
     onSuccess: (group) => {
       queryClient.invalidateQueries({
-        queryKey: [GROUPS_QUERY_KEY, "account", group.account_id],
+        queryKey: inventoryRecordGroupKeys.list(group.account_id),
       });
     },
   });
@@ -41,11 +40,11 @@ export function useUpdateGroup() {
 
     onSuccess: (group) => {
       queryClient.invalidateQueries({
-        queryKey: [GROUPS_QUERY_KEY, "account", group.account_id],
+        queryKey: inventoryRecordGroupKeys.list(group.account_id),
       });
 
       queryClient.invalidateQueries({
-        queryKey: [GROUP_QUERY_KEY, group.id],
+        queryKey: inventoryRecordGroupKeys.detail(group.id),
       });
     },
   });
@@ -57,20 +56,21 @@ export function useDeleteGroup() {
   return useMutation({
     mutationFn: async (group: { id: number; account_id: number }) => {
       await deleteGroup(group.id);
+
       return group;
     },
 
     onSuccess: (group) => {
       queryClient.invalidateQueries({
-        queryKey: [GROUPS_QUERY_KEY, "account", group.account_id],
+        queryKey: inventoryRecordGroupKeys.list(group.account_id),
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["inventory-records", group.account_id],
+        queryKey: inventoryRecordKeys.accountLists(group.account_id),
       });
 
       queryClient.removeQueries({
-        queryKey: [GROUP_QUERY_KEY, group.id],
+        queryKey: inventoryRecordGroupKeys.detail(group.id),
       });
     },
   });

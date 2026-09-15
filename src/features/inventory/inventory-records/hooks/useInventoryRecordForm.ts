@@ -12,7 +12,7 @@ import {
 import {
   createInventoryRecordSchema,
   type InventoryRecordFormValues,
-} from "../schemas/InventoryRecordSchema";
+} from "../schemas/inventoryRecord.schema";
 
 import type { InventoryRecord, InventoryType } from "../types";
 import { useInventoryRecordGroups } from "./useInventoryRecordGroups";

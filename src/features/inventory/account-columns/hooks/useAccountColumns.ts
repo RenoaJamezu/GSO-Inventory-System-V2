@@ -1,16 +1,17 @@
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import {
-  getAccountColumns,
   createAccountColumn,
-  updateAccountColumn,
   deleteAccountColumn,
+  getAccountColumns,
+  updateAccountColumn,
 } from "../api/accountColumns.api";
 import { accountColumnKeys } from "../queryKeys";
 import type { AccountColumnInput } from "../types";
 
 export function useAccountColumns(accountId: number) {
   return useQuery({
-    queryKey: accountColumnKeys.all(accountId),
+    queryKey: accountColumnKeys.list(accountId),
     queryFn: () => getAccountColumns(accountId),
     enabled: accountId > 0,
   });
@@ -24,7 +25,7 @@ export function useCreateAccountColumn() {
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: accountColumnKeys.all(variables.account_id),
+        queryKey: accountColumnKeys.list(variables.account_id),
       });
     },
   });
@@ -39,7 +40,7 @@ export function useUpdateAccountColumn() {
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: accountColumnKeys.all(variables.values.account_id),
+        queryKey: accountColumnKeys.list(variables.values.account_id),
       });
     },
   });
@@ -53,7 +54,7 @@ export function useDeleteAccountColumn() {
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: accountColumnKeys.all(variables.account_id),
+        queryKey: accountColumnKeys.list(variables.account_id),
       });
     },
   });

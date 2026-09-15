@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import type { InventoryType } from "@/features/inventory/inventory-records";
+
 import {
   createInventoryAccount,
   deleteInventoryAccount,
@@ -7,25 +9,18 @@ import {
   getInventoryAccounts,
   updateInventoryAccount,
 } from "../api/inventoryAccounts.api";
-import { inventoryAccountKeys } from "../queryKeys";
+import {
+  inventoryAccountKeys,
+  type InventoryAccountFilters,
+} from "../queryKeys";
 import type { InventoryAccountInput } from "../types";
 
 export function useInventoryAccounts(
   inventoryType: InventoryType,
-  filters?: {
-    is_par_visible?: boolean;
-    is_high_cost_visible?: boolean;
-    is_low_cost_visible?: boolean;
-  },
+  filters?: InventoryAccountFilters,
 ) {
   return useQuery({
-    queryKey: [
-      "inventory-accounts",
-      inventoryType,
-      filters?.is_par_visible,
-      filters?.is_high_cost_visible,
-      filters?.is_low_cost_visible,
-    ],
+    queryKey: inventoryAccountKeys.list(inventoryType, filters),
     queryFn: () => getInventoryAccounts(inventoryType, filters),
   });
 }
@@ -44,10 +39,9 @@ export function useCreateInventoryAccount() {
   return useMutation({
     mutationFn: createInventoryAccount,
 
-    onSuccess() {
+    onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: inventoryAccountKeys.all,
-        exact: false,
+        queryKey: inventoryAccountKeys.lists(),
       });
 
       queryClient.invalidateQueries({
@@ -69,10 +63,13 @@ export function useUpdateInventoryAccount() {
       values: InventoryAccountInput;
     }) => updateInventoryAccount(id, values),
 
-    onSuccess() {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: inventoryAccountKeys.all,
-        exact: false,
+        queryKey: inventoryAccountKeys.lists(),
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: inventoryAccountKeys.detail(variables.id),
       });
 
       queryClient.invalidateQueries({
@@ -88,10 +85,13 @@ export function useDeleteInventoryAccount() {
   return useMutation({
     mutationFn: deleteInventoryAccount,
 
-    onSuccess() {
+    onSuccess: (_, id) => {
       queryClient.invalidateQueries({
-        queryKey: inventoryAccountKeys.all,
-        exact: false,
+        queryKey: inventoryAccountKeys.lists(),
+      });
+
+      queryClient.removeQueries({
+        queryKey: inventoryAccountKeys.detail(id),
       });
 
       queryClient.invalidateQueries({
