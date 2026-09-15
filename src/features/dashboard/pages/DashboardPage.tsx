@@ -4,6 +4,8 @@ import { PageHeader, StatCard } from "@/components/ui";
 
 import { formatCurrency } from "@/lib/utils/format";
 
+import ActivitySection from "../components/activity/ActivitySection";
+
 import { useDashboard } from "../hooks/useDashboard";
 
 export default function DashboardPage() {
@@ -68,6 +70,8 @@ export default function DashboardPage() {
           />
         </div>
       </section>
+
+      <ActivitySection />
     </div>
   );
 }
