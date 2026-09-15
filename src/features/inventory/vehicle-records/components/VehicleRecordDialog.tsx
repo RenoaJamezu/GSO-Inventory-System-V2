@@ -54,7 +54,6 @@ const emptyValues: VehicleRecordFormValues = {
 
 export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
   const createMutation = useCreateVehicleRecord();
-
   const updateMutation = useUpdateVehicleRecord();
 
   const {
@@ -62,22 +61,11 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
     handleSubmit,
     reset,
     setError,
-    watch,
 
     formState: { errors, isSubmitting },
   } = useForm<VehicleRecordFormValues>({
     resolver: zodResolver(vehicleRecordSchema),
-
     defaultValues: emptyValues,
-  });
-
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const watchedModel = watch("model");
-  const watchedPlateNo = watch("plate_no");
-
-  console.log("VEHICLE FORM STATE:", {
-    model: watchedModel,
-    plate_no: watchedPlateNo,
   });
 
   const isEditing = Boolean(vehicle);
@@ -85,6 +73,13 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
   const loading =
     isSubmitting || createMutation.isPending || updateMutation.isPending;
 
+  /*
+   * Initialize the form when the dialog opens or when
+   * the selected vehicle changes.
+   *
+   * We intentionally depend on vehicle?.id instead of the
+   * entire vehicle object to avoid unnecessary form resets.
+   */
   useEffect(() => {
     if (!open) {
       return;
@@ -120,10 +115,12 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
 
       cost: vehicle.cost !== null ? String(vehicle.cost) : "",
     });
-  }, [open, vehicle, reset]);
+  }, [open, vehicle?.id, reset]);
 
   function handleClose() {
-    if (loading) return;
+    if (loading) {
+      return;
+    }
 
     onClose();
   }
@@ -165,8 +162,12 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
         await createMutation.mutateAsync(payload);
       }
 
-      reset(emptyValues);
-
+      /*
+       * Do not reset here.
+       *
+       * Closing the dialog changes the view state. The form
+       * will be initialized the next time it opens.
+       */
       onClose();
     } catch (error) {
       if (isPostgresDuplicateError(error)) {
