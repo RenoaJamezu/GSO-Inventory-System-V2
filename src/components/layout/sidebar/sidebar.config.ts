@@ -9,23 +9,11 @@ import {
   SquareDashedText,
 } from "lucide-react";
 
-import type { LucideIcon } from "lucide-react";
+import { PERMISSIONS } from "@/features/auth";
 
-import { PERMISSIONS, type Permission } from "@/features/auth";
+import type { SidebarSectionConfig } from "./types";
 
-export type SidebarItem = {
-  to: string;
-  label: string;
-  icon: LucideIcon;
-  permission?: Permission;
-};
-
-export type SidebarSection = {
-  title?: string;
-  items: SidebarItem[];
-};
-
-export const sidebarSections: SidebarSection[] = [
+export const sidebarSections: SidebarSectionConfig[] = [
   {
     title: "Main",
     items: [
@@ -37,7 +25,6 @@ export const sidebarSections: SidebarSection[] = [
       },
     ],
   },
-
   {
     title: "Property & Inventory",
     items: [
@@ -73,7 +60,6 @@ export const sidebarSections: SidebarSection[] = [
       },
     ],
   },
-
   {
     title: "Administration",
     items: [

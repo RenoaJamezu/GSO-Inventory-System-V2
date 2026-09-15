@@ -2,14 +2,17 @@ import { usePermissions } from "@/features/auth";
 
 import SidebarItem from "./SidebarItem";
 
-import type { SidebarSection as SidebarSectionType } from "./sidebar.config";
+import type { SidebarSectionConfig } from "./types";
 
-type Props = {
-  section: SidebarSectionType;
+export type SidebarSectionProps = {
+  section: SidebarSectionConfig;
   collapsed: boolean;
 };
 
-export default function SidebarSection({ section, collapsed }: Props) {
+export default function SidebarSection({
+  section,
+  collapsed,
+}: SidebarSectionProps) {
   const { can } = usePermissions();
 
   const visibleItems = section.items.filter(

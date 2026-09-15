@@ -2,12 +2,15 @@ import { LogOut } from "lucide-react";
 
 import { ThemeToggle } from "@/components/ui";
 
-type Props = {
+export type SidebarFooterProps = {
   collapsed: boolean;
   onLogout: () => void;
 };
 
-export default function SidebarFooter({ collapsed, onLogout }: Props) {
+export default function SidebarFooter({
+  collapsed,
+  onLogout,
+}: SidebarFooterProps) {
   return (
     <footer className="border-t border-slate-200 p-3 dark:border-slate-800">
       {!collapsed && (
@@ -23,12 +26,13 @@ export default function SidebarFooter({ collapsed, onLogout }: Props) {
       )}
 
       <div className="space-y-1">
-        <ThemeToggle collapsed={collapsed} />
+        <ThemeToggle showLabel={!collapsed} />
 
         <button
           type="button"
           onClick={onLogout}
           title={collapsed ? "Sign Out" : undefined}
+          aria-label={collapsed ? "Sign Out" : undefined}
           className={[
             "flex min-h-11 w-full items-center rounded-md px-3 py-2.5",
             "text-sm font-medium",
@@ -37,10 +41,14 @@ export default function SidebarFooter({ collapsed, onLogout }: Props) {
             "dark:text-slate-300",
             "dark:hover:bg-red-950/40",
             "dark:hover:text-red-400",
+            "focus-visible:outline-none",
+            "focus-visible:ring-2",
+            "focus-visible:ring-inset",
+            "focus-visible:ring-red-600/30",
             collapsed ? "justify-center" : "gap-3",
           ].join(" ")}
         >
-          <LogOut size={19} strokeWidth={1.8} />
+          <LogOut size={19} strokeWidth={1.8} aria-hidden="true" />
 
           {!collapsed && <span>Sign Out</span>}
         </button>

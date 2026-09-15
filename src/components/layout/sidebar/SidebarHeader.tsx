@@ -1,16 +1,21 @@
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
-type Props = {
+export type SidebarHeaderProps = {
   collapsed: boolean;
   onToggle: () => void;
 };
 
-export default function SidebarHeader({ collapsed, onToggle }: Props) {
+export default function SidebarHeader({
+  collapsed,
+  onToggle,
+}: SidebarHeaderProps) {
+  const toggleLabel = collapsed ? "Expand navigation" : "Collapse navigation";
+
   return (
     <header className="border-b border-slate-200 dark:border-slate-800">
       <div
         className={[
-          "flex min-h-[88px] items-center",
+          "flex min-h-22 items-center",
           collapsed ? "justify-center px-3" : "gap-3 px-4",
         ].join(" ")}
       >
@@ -26,9 +31,9 @@ export default function SidebarHeader({ collapsed, onToggle }: Props) {
               Republic of the Philippines
             </p>
 
-            <h1 className="truncate text-sm font-bold uppercase leading-tight text-emerald-800 dark:text-emerald-400">
+            <p className="truncate text-sm font-bold uppercase leading-tight text-emerald-800 dark:text-emerald-400">
               Municipality of Sibagat
-            </h1>
+            </p>
 
             <p className="mt-0.5 text-xs font-medium text-slate-600 dark:text-slate-400">
               General Services Office
@@ -47,8 +52,9 @@ export default function SidebarHeader({ collapsed, onToggle }: Props) {
         <button
           type="button"
           onClick={onToggle}
-          title={collapsed ? "Expand navigation" : "Collapse navigation"}
-          aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
+          title={toggleLabel}
+          aria-label={toggleLabel}
+          aria-expanded={!collapsed}
           className={[
             "flex h-8 w-8 items-center justify-center",
             "rounded-md text-slate-500",
@@ -56,13 +62,15 @@ export default function SidebarHeader({ collapsed, onToggle }: Props) {
             "hover:bg-slate-100 hover:text-slate-900",
             "dark:text-slate-400",
             "dark:hover:bg-slate-800 dark:hover:text-white",
-            "focus:outline-none focus:ring-2 focus:ring-emerald-600/30",
+            "focus-visible:outline-none",
+            "focus-visible:ring-2",
+            "focus-visible:ring-emerald-600/30",
           ].join(" ")}
         >
           {collapsed ? (
-            <PanelLeftOpen size={18} />
+            <PanelLeftOpen size={18} aria-hidden="true" />
           ) : (
-            <PanelLeftClose size={18} />
+            <PanelLeftClose size={18} aria-hidden="true" />
           )}
         </button>
       </div>

@@ -1,13 +1,15 @@
 import type { LucideIcon } from "lucide-react";
 
-export type SidebarItem = {
-  label: string;
+import type { Permission } from "@/features/auth";
+
+export type SidebarItemConfig = {
   to: string;
+  label: string;
   icon: LucideIcon;
-  dotColor?: string;
+  permission?: Permission;
 };
 
-export type SidebarSection = {
-  title: string;
-  items: SidebarItem[];
+export type SidebarSectionConfig = {
+  title?: string;
+  items: SidebarItemConfig[];
 };
