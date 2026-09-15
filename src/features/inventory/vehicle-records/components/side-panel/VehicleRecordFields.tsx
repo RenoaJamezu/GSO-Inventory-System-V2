@@ -92,6 +92,7 @@ function Section({ title, children }: SectionProps) {
           divide-slate-100
 
           dark:divide-slate-800
+          font-bold
         "
       >
         {children}
@@ -104,7 +105,7 @@ export default function VehicleRecordFields({ vehicle }: Props) {
   const expirationStatus = getVehicleExpirationStatus(vehicle.expiration_date);
 
   return (
-    <>
+    <div className="uppercase">
       <Section title="Vehicle Information">
         <VehicleField label="Model">{vehicle.model || "—"}</VehicleField>
 
@@ -156,7 +157,7 @@ export default function VehicleRecordFields({ vehicle }: Props) {
           <ExpirationStatus status={expirationStatus} />
         </VehicleField>
       </Section>
-    </>
+    </div>
   );
 }
 

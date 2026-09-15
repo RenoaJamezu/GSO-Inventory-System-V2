@@ -77,6 +77,7 @@ export default function VehicleRecordSidePanel({
                 text-slate-900
 
                 dark:text-slate-100
+                uppercase
               "
             >
               {vehicle.plate_no}
@@ -89,6 +90,7 @@ export default function VehicleRecordSidePanel({
                 text-slate-500
 
                 dark:text-slate-400
+                uppercase
               "
             >
               {vehicle.model}

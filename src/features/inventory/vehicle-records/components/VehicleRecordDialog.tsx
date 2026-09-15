@@ -210,6 +210,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                 <FormField label="Model" required>
                   <FormInput
                     placeholder="e.g. Toyota Hilux"
+                    className="uppercase"
                     {...register("model")}
                   />
 
@@ -237,6 +238,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                 <FormField label="Engine No.">
                   <FormInput
                     placeholder="Enter engine number"
+                    className="uppercase"
                     {...register("engine_no")}
                   />
 
@@ -250,6 +252,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                 <FormField label="Chassis No.">
                   <FormInput
                     placeholder="Enter chassis number"
+                    className="uppercase"
                     {...register("chassis_no")}
                   />
 
@@ -288,6 +291,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                 <FormField label="Office">
                   <FormInput
                     placeholder="Enter assigned office"
+                    className="uppercase"
                     {...register("office")}
                   />
 
@@ -301,6 +305,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                 <FormField label="Memorandum Receipt">
                   <FormInput
                     placeholder="Enter memorandum receipt"
+                    className="uppercase"
                     {...register("memorandum_receipt")}
                   />
 
@@ -314,6 +319,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                 <FormField label="Driver">
                   <FormInput
                     placeholder="Enter driver's name"
+                    className="uppercase"
                     {...register("driver")}
                   />
 
@@ -327,6 +333,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                 <FormField label="Cellphone No.">
                   <FormInput
                     placeholder="e.g. 09171234567"
+                    className="uppercase"
                     inputMode="tel"
                     {...register("cellphone_no")}
                   />
@@ -365,6 +372,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                 <FormField label="Property No.">
                   <FormInput
                     placeholder="Enter property number"
+                    className="uppercase"
                     {...register("property_no")}
                   />
 
@@ -376,7 +384,11 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                 </FormField>
 
                 <FormField label="Date Acquired">
-                  <FormInput type="date" {...register("date_acquired")} />
+                  <FormInput
+                    type="date"
+                    className="uppercase"
+                    {...register("date_acquired")}
+                  />
 
                   {errors.date_acquired && (
                     <p className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -392,6 +404,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                     step="0.01"
                     inputMode="decimal"
                     placeholder="0.00"
+                    className="uppercase"
                     {...register("cost")}
                   />
 
@@ -403,7 +416,11 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                 </FormField>
 
                 <FormField label="Expiration Date">
-                  <FormInput type="date" {...register("expiration_date")} />
+                  <FormInput
+                    type="date"
+                    className="uppercase"
+                    {...register("expiration_date")}
+                  />
 
                   {errors.expiration_date && (
                     <p className="mt-1 text-sm text-red-600 dark:text-red-400">

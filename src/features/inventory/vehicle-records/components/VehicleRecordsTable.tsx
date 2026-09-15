@@ -126,6 +126,7 @@ export default function VehicleRecordsTable({
 
                         dark:bg-slate-900
                         dark:hover:bg-slate-800/50
+                        uppercase
                       "
                   >
                     <td className="whitespace-nowrap px-4 py-3.5">
