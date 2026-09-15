@@ -1,46 +1,61 @@
 import { Moon, Sun } from "lucide-react";
+import type { ButtonHTMLAttributes } from "react";
 
 import { useTheme } from "@/hooks/useTheme";
 
-type Props = {
-  collapsed?: boolean;
+export type ThemeToggleProps = Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "type" | "onClick" | "children"
+> & {
+  showLabel?: boolean;
 };
 
-export default function ThemeToggle({ collapsed = false }: Props) {
+export default function ThemeToggle({
+  showLabel = false,
+  className = "",
+  ...props
+}: ThemeToggleProps) {
   const { theme, toggleTheme } = useTheme();
 
-  const dark = theme === "dark";
+  const isDark = theme === "dark";
+
+  const label = isDark ? "Switch to light mode" : "Switch to dark mode";
 
   return (
     <button
+      {...props}
       type="button"
       onClick={toggleTheme}
-      title={
-        collapsed
-          ? dark
-            ? "Switch to light mode"
-            : "Switch to dark mode"
-          : undefined
-      }
-      aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={label}
+      title={!showLabel ? label : undefined}
       className={[
-        "flex min-h-11 w-full items-center rounded-md px-3 py-2.5",
+        "inline-flex min-h-10 items-center justify-center",
+        "rounded-md",
         "text-sm font-medium",
-        "text-slate-600 transition-colors",
+        "text-slate-600",
+        "transition-colors duration-150",
         "hover:bg-slate-100 hover:text-slate-900",
+        "focus-visible:outline-none",
+        "focus-visible:ring-2",
+        "focus-visible:ring-emerald-600",
+        "focus-visible:ring-offset-2",
         "dark:text-slate-300",
         "dark:hover:bg-slate-800",
         "dark:hover:text-white",
-        collapsed ? "justify-center" : "gap-3",
-      ].join(" ")}
+        "dark:focus-visible:ring-emerald-500",
+        showLabel ? "gap-2 px-3 py-2" : "h-10 w-10",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
-      {dark ? (
-        <Sun size={19} strokeWidth={1.8} />
+      {isDark ? (
+        <Sun size={18} strokeWidth={1.8} aria-hidden="true" />
       ) : (
-        <Moon size={19} strokeWidth={1.8} />
+        <Moon size={18} strokeWidth={1.8} aria-hidden="true" />
       )}
 
-      {!collapsed && <span>{dark ? "Light Mode" : "Dark Mode"}</span>}
+      {showLabel && <span>{isDark ? "Light Mode" : "Dark Mode"}</span>}
     </button>
   );
 }

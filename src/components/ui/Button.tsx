@@ -1,47 +1,57 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type ButtonVariant =
-  | "primary"
-  | "secondary"
-  | "danger"
-  | "success"
-  | "warning"
-  | "ghost";
+export type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
 
-type ButtonSize = "sm" | "md" | "lg";
+export type ButtonSize = "sm" | "md" | "lg";
 
-type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
+export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
-  fullWidth?: boolean;
+  loadingText?: string;
   children: ReactNode;
 };
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary:
-    "bg-emerald-700 text-white hover:bg-emerald-800 focus:ring-emerald-600 " +
-    "dark:bg-emerald-600 dark:hover:bg-emerald-500 dark:focus:ring-emerald-500",
+  primary: [
+    "bg-emerald-700 text-white",
+    "hover:bg-emerald-800",
+    "focus-visible:ring-emerald-600",
+    "dark:bg-emerald-600",
+    "dark:hover:bg-emerald-500",
+    "dark:focus-visible:ring-emerald-500",
+  ].join(" "),
 
-  secondary:
-    "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus:ring-slate-400 " +
-    "dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:focus:ring-slate-600",
+  secondary: [
+    "border border-slate-300",
+    "bg-white text-slate-700",
+    "hover:bg-slate-50",
+    "focus-visible:ring-slate-400",
+    "dark:border-slate-700",
+    "dark:bg-slate-900",
+    "dark:text-slate-200",
+    "dark:hover:bg-slate-800",
+    "dark:focus-visible:ring-slate-600",
+  ].join(" "),
 
-  danger:
-    "bg-red-700 text-white hover:bg-red-800 focus:ring-red-600 " +
-    "dark:bg-red-700 dark:hover:bg-red-600",
+  danger: [
+    "bg-red-700 text-white",
+    "hover:bg-red-800",
+    "focus-visible:ring-red-600",
+    "dark:bg-red-700",
+    "dark:hover:bg-red-600",
+  ].join(" "),
 
-  success:
-    "bg-emerald-700 text-white hover:bg-emerald-800 focus:ring-emerald-600 " +
-    "dark:bg-emerald-600 dark:hover:bg-emerald-500",
-
-  warning:
-    "bg-amber-600 text-white hover:bg-amber-700 focus:ring-amber-500 " +
-    "dark:bg-amber-600 dark:hover:bg-amber-500",
-
-  ghost:
-    "text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus:ring-slate-300 " +
-    "dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white dark:focus:ring-slate-700",
+  ghost: [
+    "text-slate-600",
+    "hover:bg-slate-100",
+    "hover:text-slate-900",
+    "focus-visible:ring-slate-300",
+    "dark:text-slate-300",
+    "dark:hover:bg-slate-800",
+    "dark:hover:text-white",
+    "dark:focus-visible:ring-slate-700",
+  ].join(" "),
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -51,33 +61,41 @@ const sizeClasses: Record<ButtonSize, string> = {
 };
 
 export default function Button({
+  type = "button",
   variant = "primary",
   size = "md",
   loading = false,
-  fullWidth = false,
+  loadingText = "Loading...",
   disabled,
   className = "",
   children,
   ...props
-}: Props) {
+}: ButtonProps) {
+  const isDisabled = disabled || loading;
+
   return (
     <button
       {...props}
-      disabled={disabled || loading}
+      type={type}
+      disabled={isDisabled}
+      aria-busy={loading || undefined}
       className={[
-        "inline-flex items-center justify-center gap-2 rounded-md font-medium",
+        "inline-flex items-center justify-center gap-2",
+        "rounded-md font-medium",
         "transition-colors duration-150",
-        "focus:outline-none focus:ring-2 focus:ring-offset-2",
-        "disabled:cursor-not-allowed disabled:opacity-50",
+        "focus-visible:outline-none",
+        "focus-visible:ring-2",
+        "focus-visible:ring-offset-2",
+        "disabled:cursor-not-allowed",
+        "disabled:opacity-50",
         variantClasses[variant],
         sizeClasses[size],
-        fullWidth && "w-full",
         className,
       ]
         .filter(Boolean)
         .join(" ")}
     >
-      {loading ? "Loading..." : children}
+      {loading ? loadingText : children}
     </button>
   );
 }

@@ -1,59 +1,73 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 
-type Props = {
-  trigger: ReactNode;
+import { DropdownContext, type DropdownContextValue } from "./DropdownContext";
+
+export type DropdownProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
   children: ReactNode;
 };
 
-export default function Dropdown({ trigger, children }: Props) {
-  const [open, setOpen] = useState(false);
+export default function Dropdown({
+  children,
+  className = "",
+  ...props
+}: DropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
 
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+  const close = useCallback(() => {
+    setIsOpen(false);
   }, []);
 
+  const toggle = useCallback(() => {
+    setIsOpen((current) => !current);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
+        close();
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        close();
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [close, isOpen]);
+
+  const contextValue = useMemo<DropdownContextValue>(
+    () => ({
+      isOpen,
+      setIsOpen,
+      toggle,
+      close,
+    }),
+    [close, isOpen, toggle],
+  );
+
   return (
-    <div ref={ref} className="relative" onClick={(e) => e.stopPropagation()}>
-      <div className="cursor-pointer" onClick={() => setOpen((prev) => !prev)}>
-        {trigger}
+    <DropdownContext.Provider value={contextValue}>
+      <div
+        {...props}
+        ref={rootRef}
+        className={["relative inline-block", className]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        {children}
       </div>
-
-      {open && (
-        <div
-          className="
-            absolute
-            right-0
-            z-50
-            mt-2
-            w-60
-            overflow-hidden
-            rounded-md
-            border
-            border-slate-200
-            bg-white
-            py-1
-            shadow-lg
-
-            dark:border-slate-700
-            dark:bg-slate-900
-            dark:shadow-black/30
-          "
-        >
-          {children}
-        </div>
-      )}
-    </div>
+    </DropdownContext.Provider>
   );
 }
