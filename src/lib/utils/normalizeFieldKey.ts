@@ -1,4 +1,4 @@
-export function normalizeFieldKey(label: string) {
+export function normalizeFieldKey(label: string): string {
   return label
     .trim()
     .toLowerCase()
