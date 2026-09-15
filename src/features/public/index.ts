@@ -1,3 +1,3 @@
-export * from "./hooks/usePublicRecord";
+export { usePublicInventoryRecord } from "./hooks/usePublicRecord";
 
-export * from "./types";
+export type { PublicInventoryRecord } from "./types";

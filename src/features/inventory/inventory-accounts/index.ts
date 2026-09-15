@@ -1,3 +1,13 @@
-export * from "./hooks/useInventoryAccounts"
+export {
+  useCreateInventoryAccount,
+  useDeleteInventoryAccount,
+  useInventoryAccount,
+  useInventoryAccounts,
+  useUpdateInventoryAccount,
+} from "./hooks/useInventoryAccounts";
 
-export * from "./types";
+export type {
+  InventoryAccount,
+  InventoryAccountInput,
+  WorkspaceType,
+} from "./types";
