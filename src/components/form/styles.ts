@@ -1,4 +1,4 @@
-export const inputClass = [
+export const formControlClass = [
   "w-full",
   "min-h-10",
   "rounded-md",
@@ -8,7 +8,7 @@ export const inputClass = [
   "px-3",
   "py-2",
   "text-sm",
-  "text-black",
+  "text-slate-900",
   "outline-none",
   "transition-colors",
   "placeholder:text-slate-400",

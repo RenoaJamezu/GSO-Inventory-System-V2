@@ -1,9 +1,17 @@
 import type { InputHTMLAttributes } from "react";
 
-import { inputClass } from "./styles";
+import { formControlClass } from "./styles";
 
-type Props = InputHTMLAttributes<HTMLInputElement>;
+export type FormInputProps = InputHTMLAttributes<HTMLInputElement>;
 
-export default function FormInput({ className = "", ...props }: Props) {
-  return <input {...props} className={`${className} ${inputClass}`} />;
+export default function FormInput({
+  className = "",
+  ...props
+}: FormInputProps) {
+  return (
+    <input
+      {...props}
+      className={[formControlClass, className].filter(Boolean).join(" ")}
+    />
+  );
 }

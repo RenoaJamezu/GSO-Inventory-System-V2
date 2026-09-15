@@ -1,14 +1,17 @@
 import type { TextareaHTMLAttributes } from "react";
 
-import { inputClass } from "./styles";
+import { formControlClass } from "./styles";
 
-type Props = TextareaHTMLAttributes<HTMLTextAreaElement>;
+export type FormTextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement>;
 
-export default function FormTextarea({ className = "", ...props }: Props) {
+export default function FormTextarea({
+  className = "",
+  ...props
+}: FormTextareaProps) {
   return (
     <textarea
       {...props}
-      className={`${inputClass} min-h-24 resize-y ${className}`}
+      className={[formControlClass, "resize-y", className].filter(Boolean).join(" ")}
     />
   );
 }

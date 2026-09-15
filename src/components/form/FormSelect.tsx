@@ -1,9 +1,17 @@
 import type { SelectHTMLAttributes } from "react";
 
-import { inputClass } from "./styles";
+import { formControlClass } from "./styles";
 
-type Props = SelectHTMLAttributes<HTMLSelectElement>;
+export type FormSelectProps = SelectHTMLAttributes<HTMLSelectElement>;
 
-export default function FormSelect({ className = "", ...props }: Props) {
-  return <select {...props} className={`${inputClass} ${className}`} />;
+export default function FormSelect({
+  className = "",
+  ...props
+}: FormSelectProps) {
+  return (
+    <select
+      {...props}
+      className={[formControlClass, className].filter(Boolean).join(" ")}
+    />
+  );
 }
