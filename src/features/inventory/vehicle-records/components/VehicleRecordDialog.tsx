@@ -177,7 +177,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
   return (
     <Dialog
       open={open}
-      maxWidth="lg"
+      maxWidth="sm"
       onClose={loading ? undefined : handleClose}
     >
       <DialogHeader title={isEdit ? "Edit Vehicle" : "Add Vehicle"}>
@@ -206,7 +206,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                 </p>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4">
                 <FormField label="Model" required>
                   <FormInput
                     placeholder="e.g. Toyota Hilux"
@@ -284,7 +284,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                 </p>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4">
                 <FormField label="Office">
                   <FormInput
                     placeholder="Enter assigned office"
@@ -361,7 +361,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                 </p>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4">
                 <FormField label="Property No.">
                   <FormInput
                     placeholder="Enter property number"
