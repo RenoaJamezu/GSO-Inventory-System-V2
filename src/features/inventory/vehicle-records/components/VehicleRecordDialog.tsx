@@ -62,12 +62,22 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
     handleSubmit,
     reset,
     setError,
+    watch,
 
     formState: { errors, isSubmitting },
   } = useForm<VehicleRecordFormValues>({
     resolver: zodResolver(vehicleRecordSchema),
 
     defaultValues: emptyValues,
+  });
+
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const watchedModel = watch("model");
+  const watchedPlateNo = watch("plate_no");
+
+  console.log("VEHICLE FORM STATE:", {
+    model: watchedModel,
+    plate_no: watchedPlateNo,
   });
 
   const isEditing = Boolean(vehicle);
