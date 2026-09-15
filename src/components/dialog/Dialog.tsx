@@ -1,40 +1,60 @@
-import { useEffect, useRef, type ReactNode } from "react";
-import { maxWidthClasses } from "./constants";
+import {
+  useEffect,
+  useRef,
+  type HTMLAttributes,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 
-type DialogProps = {
+import { dialogMaxWidthClasses, type DialogMaxWidth } from "./constants";
+
+export type DialogProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
   open: boolean;
   children: ReactNode;
-  maxWidth?: "sm" | "md" | "lg" | "xl";
+  maxWidth?: DialogMaxWidth;
   onClose?: () => void;
 };
 
-const FOCUSABLE_SELECTOR = `
-  a[href],
-  button:not([disabled]),
-  textarea:not([disabled]),
-  input:not([disabled]),
-  select:not([disabled]),
-  [tabindex]:not([tabindex="-1"])
-`;
+const FOCUSABLE_SELECTOR = [
+  "a[href]",
+  "button:not([disabled])",
+  "textarea:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
 
 export default function Dialog({
   open,
   children,
   maxWidth = "md",
   onClose,
+  className = "",
+  ...props
 }: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
 
-    previousFocusRef.current = document.activeElement as HTMLElement;
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
 
     const dialog = dialogRef.current;
 
     if (!dialog) return;
+
+    const previousOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
 
     const focusable = dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
 
@@ -44,77 +64,98 @@ export default function Dialog({
       dialog.focus();
     }
 
-    function handleKeyDown(event: KeyboardEvent) {
-      if (!dialogRef.current) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const currentDialog = dialogRef.current;
+
+      if (!currentDialog) return;
 
       if (event.key === "Escape") {
+        if (!onCloseRef.current) return;
+
         event.preventDefault();
-        onClose?.();
+        onCloseRef.current();
         return;
       }
 
       if (event.key !== "Tab") return;
 
-      const focusable =
-        dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      const currentFocusable =
+        currentDialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
 
-      if (!focusable.length) {
+      if (currentFocusable.length === 0) {
         event.preventDefault();
+        currentDialog.focus();
         return;
       }
 
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
+      const first = currentFocusable[0];
+      const last = currentFocusable[currentFocusable.length - 1];
 
-      if (event.shiftKey) {
-        if (document.activeElement === first) {
-          event.preventDefault();
-          last.focus();
-        }
-      } else {
-        if (document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+        return;
       }
-    }
+
+      if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
 
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
 
+      document.body.style.overflow = previousOverflow;
+
       previousFocusRef.current?.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
+  const handleBackdropClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) {
+      onClose?.();
+    }
+  };
+
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/30 p-4 dark:bg-black/60"
-      onClick={onClose}
+      className="
+        fixed inset-0 z-50
+        overflow-y-auto
+        bg-black/30 p-4
+        dark:bg-black/60
+      "
     >
-      <div className="flex min-h-full items-center justify-center">
+      <div
+        className="
+          flex min-h-full
+          items-center justify-center
+        "
+        onClick={handleBackdropClick}
+      >
         <div
+          {...props}
           ref={dialogRef}
           role="dialog"
           aria-modal="true"
           tabIndex={-1}
-          onClick={(e) => e.stopPropagation()}
-          className={`
-            flex h-[90vh] w-full flex-col overflow-hidden
-            rounded-lg
-            border border-slate-200
-            bg-white
-            shadow-xl
-            outline-none
-
-            dark:border-slate-800
-            dark:bg-slate-900
-
-            ${maxWidthClasses[maxWidth]}
-          `}
+          className={[
+            "flex h-[90vh] w-full flex-col",
+            "overflow-hidden rounded-lg border",
+            "border-slate-200 bg-white",
+            "shadow-xl outline-none",
+            "dark:border-slate-800",
+            "dark:bg-slate-900",
+            dialogMaxWidthClasses[maxWidth],
+            className,
+          ]
+            .filter(Boolean)
+            .join(" ")}
         >
           {children}
         </div>

@@ -1,13 +1,22 @@
-import type { ReactNode } from "react";
+import type { HTMLAttributes } from "react";
 
-type Props = {
-  children: ReactNode;
-};
+export type DialogBodyProps = HTMLAttributes<HTMLDivElement>;
 
-export default function DialogBody({ children }: Props) {
+export default function DialogBody({
+  className = "",
+  ...props
+}: DialogBodyProps) {
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
-      {children}
-    </div>
+    <div
+      {...props}
+      className={[
+        "min-h-0 flex-1 overflow-y-auto",
+        "px-5 py-5",
+        "sm:px-6",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    />
   );
 }

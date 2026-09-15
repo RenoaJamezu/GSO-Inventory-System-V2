@@ -1,18 +1,22 @@
-import { Button } from "@/components/ui";
+import type { ReactNode } from "react";
+
+import { Button, type ButtonVariant } from "@/components/ui";
 
 import { Dialog, DialogBody, DialogFooter, DialogHeader } from ".";
 
-type ConfirmDialogProps = {
+export type ConfirmDialogProps = {
   open: boolean;
 
-  title?: string;
-  description: string;
+  title?: ReactNode;
+  description: ReactNode;
 
-  confirmText?: string;
-  cancelText?: string;
+  confirmText?: ReactNode;
+  cancelText?: ReactNode;
+
+  confirmVariant?: ButtonVariant;
 
   loading?: boolean;
-  loadingText?: string;
+  loadingText?: ReactNode;
 
   onConfirm: () => void;
   onClose: () => void;
@@ -20,11 +24,13 @@ type ConfirmDialogProps = {
 
 export default function ConfirmDialog({
   open,
+
   title = "Confirm",
   description,
 
   confirmText = "Delete",
   cancelText = "Cancel",
+  confirmVariant = "danger",
 
   loading = false,
   loadingText = "Processing...",
@@ -37,28 +43,34 @@ export default function ConfirmDialog({
       <DialogHeader title={title} />
 
       <DialogBody>
-        <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">
+        <div
+          className="
+            whitespace-pre-line
+            text-sm leading-6
+            text-slate-600
+            dark:text-slate-400
+          "
+        >
           {description}
-        </p>
+        </div>
       </DialogBody>
 
       <DialogFooter>
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={onClose}
-          disabled={loading}
-        >
+        <Button variant="secondary" onClick={onClose} disabled={loading}>
           {cancelText}
         </Button>
 
         <Button
-          type="button"
-          variant="danger"
+          variant={confirmVariant}
           onClick={onConfirm}
-          disabled={loading}
+          loading={loading}
+          loadingText={
+            typeof loadingText === "string" ? loadingText : undefined
+          }
         >
-          {loading ? loadingText : confirmText}
+          {loading && typeof loadingText !== "string"
+            ? loadingText
+            : confirmText}
         </Button>
       </DialogFooter>
     </Dialog>
