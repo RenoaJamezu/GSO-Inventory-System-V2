@@ -7,6 +7,7 @@ export { default as PageHeader } from "./PageHeader";
 export { default as SearchField } from "./SearchField";
 export { default as StatCard } from "./StatCard";
 export { default as ThemeToggle } from "./ThemeToggle";
+export { default as PageToolbar } from "./PageToolbar";
 
 export type { BadgeProps, BadgeVariant } from "./Badge";
 
@@ -32,3 +33,5 @@ export type { SearchFieldProps } from "./SearchField";
 export type { StatCardProps, StatCardTone } from "./StatCard";
 
 export type { ThemeToggleProps } from "./ThemeToggle";
+
+export type { PageToolbarProps } from "./PageToolbar";
