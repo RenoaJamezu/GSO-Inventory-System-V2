@@ -7,6 +7,7 @@ export { AuthProvider } from "./context/AuthContext";
 
 export { default as ProtectedRoute } from "./components/ProtectedRoute";
 export { default as GuestRoute } from "./components/GuestRoute";
+export { default as RequirePermission } from "./components/RequirePermission";
 
 export * from "./permissions";
 export * from "./constants";

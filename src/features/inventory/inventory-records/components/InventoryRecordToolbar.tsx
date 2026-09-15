@@ -16,6 +16,8 @@ import {
   DropdownItem,
 } from "@/components/ui/dropdown";
 
+import { PERMISSIONS, usePermissions } from "@/features/auth";
+
 type Props = {
   search: string;
   onSearchChange: (value: string) => void;
@@ -41,6 +43,16 @@ export default function InventoryRecordToolbar({
   onManageColumns,
   onManageGroups,
 }: Props) {
+  const { can } = usePermissions();
+
+  const canCreate = can(PERMISSIONS.INVENTORY_CREATE);
+  const canImport = can(PERMISSIONS.INVENTORY_IMPORT);
+  const canExport = can(PERMISSIONS.INVENTORY_EXPORT);
+
+  const canManageColumns = can(PERMISSIONS.INVENTORY_MANAGE_COLUMNS);
+
+  const canManageGroups = can(PERMISSIONS.INVENTORY_MANAGE_GROUPS);
+
   return (
     <section
       className="
@@ -64,10 +76,12 @@ export default function InventoryRecordToolbar({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button onClick={onAddRecord} className="flex items-center gap-2">
-          <CirclePlus size={17} />
-          Add Record
-        </Button>
+        {canCreate && (
+          <Button onClick={onAddRecord} className="flex items-center gap-2">
+            <CirclePlus size={17} />
+            Add Record
+          </Button>
+        )}
 
         <Dropdown
           trigger={
@@ -77,32 +91,42 @@ export default function InventoryRecordToolbar({
             </Button>
           }
         >
-          <DropdownItem onClick={onImportExcel}>
-            <Upload size={16} />
-            Import Excel
-          </DropdownItem>
+          {canImport && (
+            <>
+              <DropdownItem onClick={onImportExcel}>
+                <Upload size={16} />
+                Import Excel
+              </DropdownItem>
 
-          <DropdownItem onClick={onDownloadTemplate}>
-            <FileDown size={16} />
-            Download Template
-          </DropdownItem>
+              <DropdownItem onClick={onDownloadTemplate}>
+                <FileDown size={16} />
+                Download Template
+              </DropdownItem>
+            </>
+          )}
 
-          <DropdownItem onClick={onExportExcel}>
-            <Download size={16} />
-            Export Excel
-          </DropdownItem>
+          {canExport && (
+            <DropdownItem onClick={onExportExcel}>
+              <Download size={16} />
+              Export Excel
+            </DropdownItem>
+          )}
 
-          <DropdownDivider />
+          {(canManageColumns || canManageGroups) && <DropdownDivider />}
 
-          <DropdownItem onClick={onManageColumns}>
-            <Columns3 size={16} />
-            Manage Columns
-          </DropdownItem>
+          {canManageColumns && (
+            <DropdownItem onClick={onManageColumns}>
+              <Columns3 size={16} />
+              Manage Columns
+            </DropdownItem>
+          )}
 
-          <DropdownItem onClick={onManageGroups}>
-            <FolderCog size={16} />
-            Manage Groups
-          </DropdownItem>
+          {canManageGroups && (
+            <DropdownItem onClick={onManageGroups}>
+              <FolderCog size={16} />
+              Manage Groups
+            </DropdownItem>
+          )}
         </Dropdown>
       </div>
     </section>

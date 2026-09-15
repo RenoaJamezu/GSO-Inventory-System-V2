@@ -20,6 +20,7 @@ import VehicleRecordsTable from "../components/VehicleRecordsTable";
 import VehicleRecordToolbar from "../components/VehicleRecordToolbar";
 
 import VehicleRecordSidePanel from "../components/side-panel/VehicleRecordSidePanel";
+import { PERMISSIONS, usePermissions } from "@/features/auth";
 
 export default function VehicleRecordsPage() {
   const vehiclesQuery = useVehicleRecords();
@@ -36,7 +37,13 @@ export default function VehicleRecordsPage() {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
+  const { can } = usePermissions();
+
+  const canDelete = can(PERMISSIONS.VEHICLE_DELETE);
+
   function requestDeleteOpenedVehicle() {
+    if (!canDelete) return;
+
     if (!view.openedVehicle) {
       return;
     }
@@ -53,6 +60,8 @@ export default function VehicleRecordsPage() {
   }
 
   async function confirmDeleteVehicle() {
+    if (!canDelete) return;
+
     if (!view.openedVehicle) {
       return;
     }
@@ -65,7 +74,6 @@ export default function VehicleRecordsPage() {
       await deleteMutation.mutateAsync(view.openedVehicle.id);
 
       setDeleteDialogOpen(false);
-
       view.removeOpenedVehicle();
     } catch (error) {
       console.error("Failed deleting vehicle record", error);
@@ -201,16 +209,18 @@ export default function VehicleRecordsPage() {
         onDelete={requestDeleteOpenedVehicle}
       />
 
-      <ConfirmDialog
-        open={deleteDialogOpen}
-        title="Delete Vehicle Record"
-        description={`Are you sure you want to delete vehicle "${view.openedVehicle?.plate_no ?? ""}"?`}
-        confirmText="Delete Vehicle"
-        loading={deleteMutation.isPending}
-        loadingText="Deleting..."
-        onClose={closeDeleteDialog}
-        onConfirm={confirmDeleteVehicle}
-      />
+      {canDelete && (
+        <ConfirmDialog
+          open={deleteDialogOpen}
+          title="Delete Vehicle Record"
+          description={`Are you sure you want to delete vehicle "${view.openedVehicle?.plate_no ?? ""}"?`}
+          confirmText="Delete Vehicle"
+          loading={deleteMutation.isPending}
+          loadingText="Deleting..."
+          onClose={closeDeleteDialog}
+          onConfirm={confirmDeleteVehicle}
+        />
+      )}
     </>
   );
 }

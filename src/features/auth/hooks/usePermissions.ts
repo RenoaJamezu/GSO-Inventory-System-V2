@@ -1,20 +1,26 @@
+import {
+  hasPermission,
+  isAdmin,
+  isStaff,
+  type Permission,
+} from "../permissions";
+
 import { useCurrentUser } from "./useCurrentUser";
-import { isAdmin, isStaff, isViewer } from "../permissions";
 
 export function usePermissions() {
-  const { data: user } = useCurrentUser();
+  const { data: user, isLoading } = useCurrentUser();
+
+  function can(permission: Permission) {
+    return hasPermission(user, permission);
+  }
 
   return {
     user,
+    isLoading,
+
     isAdmin: isAdmin(user),
     isStaff: isStaff(user),
-    isViewer: isViewer(user),
-    canCreate: isAdmin(user) || isStaff(user),
-    canEdit: isAdmin(user) || isStaff(user),
-    canDelete: isAdmin(user),
-    canManageColumns: isAdmin(user),
-    canManageGroups: isAdmin(user),
-    canImportExcel: isAdmin(user) || isStaff(user),
-    canPrint: true,
+
+    can,
   };
 }

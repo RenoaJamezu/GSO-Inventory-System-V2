@@ -30,6 +30,7 @@ import {
 } from "../schemas/stockCardTransaction.schema";
 
 import type { StockCardTransaction } from "../types";
+import { PERMISSIONS, usePermissions } from "@/features/auth";
 
 type Props = {
   open: boolean;
@@ -118,6 +119,10 @@ export default function StockCardTransactionDialog({
     updateTransaction.isPending ||
     deleteTransaction.isPending;
 
+  const { can } = usePermissions();
+
+  const canDelete = can(PERMISSIONS.STOCK_CARD_DELETE);
+
   useEffect(() => {
     if (!open) return;
 
@@ -205,6 +210,7 @@ export default function StockCardTransactionDialog({
   }
 
   function requestDelete() {
+    if (!canDelete) return;
     if (!transaction) return;
 
     setSubmitError(null);
@@ -220,6 +226,7 @@ export default function StockCardTransactionDialog({
   }
 
   async function confirmDelete() {
+    if (!canDelete) return;
     if (!transaction) return;
 
     setSubmitError(null);
@@ -231,11 +238,9 @@ export default function StockCardTransactionDialog({
       });
 
       setDeleteDialogOpen(false);
-
       onClose();
     } catch (error) {
       setDeleteDialogOpen(false);
-
       setSubmitError(getErrorMessage(error));
     }
   }
@@ -431,7 +436,7 @@ export default function StockCardTransactionDialog({
           <DialogFooter>
             <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                {transaction && (
+                {transaction && canDelete && (
                   <Button
                     type="button"
                     variant="danger"
@@ -470,16 +475,18 @@ export default function StockCardTransactionDialog({
         </form>
       </Dialog>
 
-      <ConfirmDialog
-        open={deleteDialogOpen}
-        title="Delete Transaction"
-        description="Are you sure you want to delete this stock transaction? The stock card balance will be recalculated from the remaining transactions."
-        confirmText="Delete Transaction"
-        loading={deleteTransaction.isPending}
-        loadingText="Deleting..."
-        onClose={closeDeleteDialog}
-        onConfirm={confirmDelete}
-      />
+      {canDelete && (
+        <ConfirmDialog
+          open={deleteDialogOpen}
+          title="Delete Transaction"
+          description="Are you sure you want to delete this stock transaction? The stock card balance will be recalculated from the remaining transactions."
+          confirmText="Delete Transaction"
+          loading={deleteTransaction.isPending}
+          loadingText="Deleting..."
+          onClose={closeDeleteDialog}
+          onConfirm={confirmDelete}
+        />
+      )}
     </>
   );
 }

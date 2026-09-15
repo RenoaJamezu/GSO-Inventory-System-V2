@@ -13,6 +13,7 @@ import { formatCurrency, formatNumber } from "@/lib/utils/format";
 import { useDeleteInventoryAccount } from "../hooks/useInventoryAccounts";
 
 import type { InventoryAccount } from "../types";
+import { PERMISSIONS, usePermissions } from "@/features/auth";
 
 type InventoryAccountsTableProps = {
   accounts: InventoryAccount[];
@@ -26,6 +27,10 @@ export default function InventoryAccountsTable({
   onEdit,
 }: InventoryAccountsTableProps) {
   const navigate = useNavigate();
+
+  const { can } = usePermissions();
+
+  const canManageAccounts = can(PERMISSIONS.INVENTORY_MANAGE_ACCOUNTS);
 
   const deleteMutation = useDeleteInventoryAccount();
 
@@ -54,11 +59,11 @@ export default function InventoryAccountsTable({
   }
 
   async function confirmDelete() {
+    if (!canManageAccounts) return;
     if (!accountToDelete) return;
 
     try {
       await deleteMutation.mutateAsync(accountToDelete.id);
-
       setAccountToDelete(null);
     } catch (error) {
       console.error("Failed deleting inventory account", error);
@@ -98,9 +103,11 @@ export default function InventoryAccountsTable({
                 Variance
               </th>
 
-              <th className="w-16 px-4 py-3">
-                <span className="sr-only">Actions</span>
-              </th>
+              {canManageAccounts && (
+                <th className="w-16 px-4 py-3">
+                  <span className="sr-only">Actions</span>
+                </th>
+              )}
             </tr>
           </thead>
 
@@ -108,7 +115,7 @@ export default function InventoryAccountsTable({
             {accounts.length === 0 ? (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={canManageAccounts ? 6 : 5}
                   className="px-6 py-14 text-center text-sm text-slate-500 dark:text-slate-400"
                 >
                   No inventory accounts found.
@@ -151,36 +158,38 @@ export default function InventoryAccountsTable({
                     {formatNumber(account.variance)}
                   </td>
 
-                  <td
-                    className="px-3 py-2"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <Dropdown
-                      trigger={
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          aria-label={`Actions for ${account.account_title}`}
-                        >
-                          <Ellipsis size={18} />
-                        </Button>
-                      }
+                  {canManageAccounts && (
+                    <td
+                      className="px-3 py-2"
+                      onClick={(event) => event.stopPropagation()}
                     >
-                      <DropdownItem onClick={() => onEdit(account)}>
-                        <Pencil size={16} />
-                        Edit Account
-                      </DropdownItem>
-
-                      <DropdownItem
-                        danger
-                        onClick={() => requestDelete(account)}
+                      <Dropdown
+                        trigger={
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            aria-label={`Actions for ${account.account_title}`}
+                          >
+                            <Ellipsis size={18} />
+                          </Button>
+                        }
                       >
-                        <Trash2 size={16} />
-                        Delete Account
-                      </DropdownItem>
-                    </Dropdown>
-                  </td>
+                        <DropdownItem onClick={() => onEdit(account)}>
+                          <Pencil size={16} />
+                          Edit Account
+                        </DropdownItem>
+
+                        <DropdownItem
+                          danger
+                          onClick={() => requestDelete(account)}
+                        >
+                          <Trash2 size={16} />
+                          Delete Account
+                        </DropdownItem>
+                      </Dropdown>
+                    </td>
+                  )}
                 </tr>
               ))
             )}
@@ -188,16 +197,18 @@ export default function InventoryAccountsTable({
         </table>
       </div>
 
-      <ConfirmDialog
-        open={Boolean(accountToDelete)}
-        title="Delete Account"
-        description={`Are you sure you want to delete "${accountToDelete?.account_title ?? ""}"?\n\nThis account will be removed from the inventory workspace.`}
-        confirmText="Delete Account"
-        loading={deleteMutation.isPending}
-        loadingText="Deleting..."
-        onClose={closeDeleteDialog}
-        onConfirm={confirmDelete}
-      />
+      {canManageAccounts && (
+        <ConfirmDialog
+          open={Boolean(accountToDelete)}
+          title="Delete Account"
+          description={`Are you sure you want to delete "${accountToDelete?.account_title ?? ""}"?\n\nThis account will be removed from the inventory workspace.`}
+          confirmText="Delete Account"
+          loading={deleteMutation.isPending}
+          loadingText="Deleting..."
+          onClose={closeDeleteDialog}
+          onConfirm={confirmDelete}
+        />
+      )}
     </>
   );
 }

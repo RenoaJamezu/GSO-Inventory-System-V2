@@ -1,8 +1,9 @@
 import { CirclePlus, Download, Wrench } from "lucide-react";
 
 import { Button, SearchField } from "@/components/ui";
-
 import { Dropdown, DropdownItem } from "@/components/ui/dropdown";
+
+import { PERMISSIONS, usePermissions } from "@/features/auth";
 
 type Props = {
   search: string;
@@ -19,10 +20,12 @@ export default function InventoryAccountToolbar({
   search,
   onSearchChange,
   onAddAccount,
-  // onAddRecord,
-  // onGeneratePPESummary,
   onExportExcel,
 }: Props) {
+  const { can } = usePermissions();
+
+  const canManageAccounts = can(PERMISSIONS.INVENTORY_MANAGE_ACCOUNTS);
+
   return (
     <div
       className="
@@ -42,10 +45,12 @@ export default function InventoryAccountToolbar({
       />
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button onClick={onAddAccount} className="flex items-center gap-2">
-          <CirclePlus size={17} />
-          Add Account
-        </Button>
+        {canManageAccounts && (
+          <Button onClick={onAddAccount} className="flex items-center gap-2">
+            <CirclePlus size={17} />
+            Add Account
+          </Button>
+        )}
 
         <Dropdown
           trigger={

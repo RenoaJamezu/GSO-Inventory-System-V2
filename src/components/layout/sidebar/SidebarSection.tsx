@@ -1,3 +1,5 @@
+import { usePermissions } from "@/features/auth";
+
 import SidebarItem from "./SidebarItem";
 
 import type { SidebarSection as SidebarSectionType } from "./sidebar.config";
@@ -8,6 +10,16 @@ type Props = {
 };
 
 export default function SidebarSection({ section, collapsed }: Props) {
+  const { can } = usePermissions();
+
+  const visibleItems = section.items.filter(
+    (item) => !item.permission || can(item.permission),
+  );
+
+  if (visibleItems.length === 0) {
+    return null;
+  }
+
   return (
     <section>
       {section.title && !collapsed && (
@@ -17,7 +29,7 @@ export default function SidebarSection({ section, collapsed }: Props) {
       )}
 
       <div className="space-y-1">
-        {section.items.map((item) => (
+        {visibleItems.map((item) => (
           <SidebarItem
             key={item.to}
             to={item.to}

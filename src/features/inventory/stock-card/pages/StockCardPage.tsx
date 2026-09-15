@@ -19,6 +19,7 @@ import { useStockCardTransactions } from "../hooks/useStockCardTransactions";
 import { buildStockCardRows } from "../utils/buildStockCardRows";
 
 import type { StockCard, StockCardTransaction } from "../types";
+import { PERMISSIONS, usePermissions } from "@/features/auth";
 
 export default function StockCardPage() {
   const stockCards = useStockCards();
@@ -97,16 +98,24 @@ export default function StockCardPage() {
     );
   }, [transactionRows, officeFilter]);
 
+  const { can } = usePermissions();
+
+  const canCreate = can(PERMISSIONS.STOCK_CARD_CREATE);
+
+  const canUpdate = can(PERMISSIONS.STOCK_CARD_UPDATE);
+
   function handleCreate() {
+    if (!canCreate) return;
+
     setEditingStockCard(null);
     setDialogOpen(true);
   }
 
   function handleEdit() {
+    if (!canUpdate) return;
     if (!selectedStockCard) return;
 
     setEditingStockCard(selectedStockCard);
-
     setDialogOpen(true);
   }
 
@@ -125,13 +134,16 @@ export default function StockCardPage() {
   }
 
   function handleAddTransaction() {
+    if (!canCreate) return;
+
     setEditingTransaction(null);
     setTransactionDialogOpen(true);
   }
 
   function handleEditTransaction(transaction: StockCardTransaction) {
-    setEditingTransaction(transaction);
+    if (!canUpdate) return;
 
+    setEditingTransaction(transaction);
     setTransactionDialogOpen(true);
   }
 
@@ -258,22 +270,26 @@ export default function StockCardPage() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
-                      <Button
-                        onClick={handleAddTransaction}
-                        className="flex items-center gap-2"
-                      >
-                        <Plus size={16} />
-                        Add Transaction
-                      </Button>
+                      {canCreate && (
+                        <Button
+                          onClick={handleAddTransaction}
+                          className="flex items-center gap-2"
+                        >
+                          <Plus size={16} />
+                          Add Transaction
+                        </Button>
+                      )}
 
-                      <Button
-                        variant="secondary"
-                        onClick={handleEdit}
-                        className="flex items-center gap-2"
-                      >
-                        <Pencil size={16} />
-                        Edit Item
-                      </Button>
+                      {canUpdate && (
+                        <Button
+                          variant="secondary"
+                          onClick={handleEdit}
+                          className="flex items-center gap-2"
+                        >
+                          <Pencil size={16} />
+                          Edit Item
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </Card>

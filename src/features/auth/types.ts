@@ -1,4 +1,4 @@
-export type UserRole = "ADMIN" | "STAFF" | "VIEWER";
+export type UserRole = "ADMIN" | "STAFF";
 
 export type UserOffice = "GSO";
 

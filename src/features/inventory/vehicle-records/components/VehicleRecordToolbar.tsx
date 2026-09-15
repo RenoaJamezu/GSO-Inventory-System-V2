@@ -7,6 +7,7 @@ import { FormSelect } from "@/components/form";
 import { VEHICLE_EXPIRATION_MONTHS } from "../constants";
 
 import type { VehicleSortOption } from "../hooks/useVehicleRecordFilters";
+import { PERMISSIONS, usePermissions } from "@/features/auth";
 
 type Props = {
   search: string;
@@ -47,6 +48,10 @@ export default function VehicleRecordToolbar({
 
   onAdd,
 }: Props) {
+  const { can } = usePermissions();
+
+  const canCreate = can(PERMISSIONS.VEHICLE_CREATE);
+
   return (
     <section
       className="
@@ -153,13 +158,15 @@ export default function VehicleRecordToolbar({
             <option value="COST_DESC">Cost: Highest</option>
           </FormSelect>
 
-          <Button
-            onClick={onAdd}
-            className="flex items-center justify-center gap-2"
-          >
-            <Plus size={17} />
-            Add Vehicle
-          </Button>
+          {canCreate && (
+            <Button
+              onClick={onAdd}
+              className="flex items-center justify-center gap-2"
+            >
+              <Plus size={17} />
+              Add Vehicle
+            </Button>
+          )}
         </div>
       </div>
     </section>

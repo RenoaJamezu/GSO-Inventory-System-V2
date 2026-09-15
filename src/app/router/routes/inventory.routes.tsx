@@ -2,7 +2,7 @@
 import { lazy } from "react";
 import { Route } from "react-router-dom";
 
-import { ProtectedRoute } from "@/features/auth";
+import { PERMISSIONS, ProtectedRoute, RequirePermission } from "@/features/auth";
 import AppLayout from "@/components/layout/AppLayout";
 
 const DashboardPage = lazy(
@@ -10,7 +10,8 @@ const DashboardPage = lazy(
 );
 
 const InventoryWorkspacePage = lazy(
-  () => import("@/features/inventory/inventory-accounts/pages/InventoryWorkspacePage"),
+  () =>
+    import("@/features/inventory/inventory-accounts/pages/InventoryWorkspacePage"),
 );
 
 const AccountColumnsPage = lazy(
@@ -18,7 +19,8 @@ const AccountColumnsPage = lazy(
 );
 
 const InventoryRecordsPage = lazy(
-  () => import("@/features/inventory/inventory-records/pages/InventoryRecordsPage"),
+  () =>
+    import("@/features/inventory/inventory-records/pages/InventoryRecordsPage"),
 );
 
 export const inventoryRoutes = [
@@ -51,19 +53,27 @@ export const inventoryRoutes = [
 
       {/* Account Column Page */}
       <Route
-        path="/par/:accountId/columns"
-        element={<AccountColumnsPage />}
-      />
+        element={
+          <RequirePermission
+            permission={PERMISSIONS.INVENTORY_MANAGE_COLUMNS}
+          />
+        }
+      >
+        <Route
+          path="/par/:accountId/columns"
+          element={<AccountColumnsPage />}
+        />
 
-      <Route
-        path="/high-cost/:accountId/columns"
-        element={<AccountColumnsPage />}
-      />
+        <Route
+          path="/high-cost/:accountId/columns"
+          element={<AccountColumnsPage />}
+        />
 
-      <Route
-        path="/low-cost/:accountId/columns"
-        element={<AccountColumnsPage />}
-      />
+        <Route
+          path="/low-cost/:accountId/columns"
+          element={<AccountColumnsPage />}
+        />
+      </Route>
     </Route>
   </Route>,
 ];

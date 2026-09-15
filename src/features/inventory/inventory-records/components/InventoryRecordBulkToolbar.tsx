@@ -4,6 +4,7 @@ import { FormSelect } from "@/components/form";
 import { Button } from "@/components/ui";
 
 import type { Group } from "../types";
+import { PERMISSIONS, usePermissions } from "@/features/auth";
 
 type Props = {
   selectedCount: number;
@@ -29,6 +30,11 @@ export default function InventoryRecordBulkToolbar({
   onDelete,
 }: Props) {
   if (!selectedCount) return null;
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { can } = usePermissions();
+
+  const canDelete = can(PERMISSIONS.INVENTORY_DELETE);
 
   return (
     <section
@@ -85,14 +91,16 @@ export default function InventoryRecordBulkToolbar({
             Print QR
           </Button>
 
-          <Button
-            variant="danger"
-            onClick={onDelete}
-            className="flex items-center gap-2"
-          >
-            <Trash2 size={16} />
-            Delete
-          </Button>
+          {canDelete && (
+            <Button
+              variant="danger"
+              onClick={onDelete}
+              className="flex items-center gap-2"
+            >
+              <Trash2 size={16} />
+              Delete
+            </Button>
+          )}
         </div>
       </div>
     </section>

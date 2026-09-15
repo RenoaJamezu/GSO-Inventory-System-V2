@@ -2,6 +2,8 @@ import { ExternalLink, Pencil, Printer, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui";
 
+import { PERMISSIONS, usePermissions } from "@/features/auth";
+
 type Props = {
   onEdit: () => void;
   onPrintQr: () => void;
@@ -15,6 +17,14 @@ export default function InventoryRecordActions({
   onPublicView,
   onDelete,
 }: Props) {
+  const { can } = usePermissions();
+
+  const canEdit = can(PERMISSIONS.INVENTORY_UPDATE);
+
+  const canDelete = can(PERMISSIONS.INVENTORY_DELETE);
+
+  const canPrint = can(PERMISSIONS.INVENTORY_PRINT);
+
   return (
     <section
       className="
@@ -28,14 +38,16 @@ export default function InventoryRecordActions({
       </h3>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <Button
-          variant="secondary"
-          onClick={onPrintQr}
-          className="flex items-center justify-center gap-2"
-        >
-          <Printer size={16} />
-          Print QR
-        </Button>
+        {canPrint && (
+          <Button
+            variant="secondary"
+            onClick={onPrintQr}
+            className="flex items-center justify-center gap-2"
+          >
+            <Printer size={16} />
+            Print QR
+          </Button>
+        )}
 
         <Button
           variant="secondary"
@@ -46,22 +58,26 @@ export default function InventoryRecordActions({
           Public View
         </Button>
 
-        <Button
-          onClick={onEdit}
-          className="flex items-center justify-center gap-2"
-        >
-          <Pencil size={16} />
-          Edit Record
-        </Button>
+        {canEdit && (
+          <Button
+            onClick={onEdit}
+            className="flex items-center justify-center gap-2"
+          >
+            <Pencil size={16} />
+            Edit Record
+          </Button>
+        )}
 
-        <Button
-          variant="danger"
-          onClick={onDelete}
-          className="flex items-center justify-center gap-2"
-        >
-          <Trash2 size={16} />
-          Delete Record
-        </Button>
+        {canDelete && (
+          <Button
+            variant="danger"
+            onClick={onDelete}
+            className="flex items-center justify-center gap-2"
+          >
+            <Trash2 size={16} />
+            Delete Record
+          </Button>
+        )}
       </div>
     </section>
   );

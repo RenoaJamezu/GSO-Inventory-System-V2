@@ -10,6 +10,7 @@ import {
   getVehicleExpirationStatus,
   getVehicleExpirationStatusLabel,
 } from "../utils/getVehicleExpirationStatus";
+import { PERMISSIONS, usePermissions } from "@/features/auth";
 
 type Props = {
   vehicles: VehicleRecord[];
@@ -24,6 +25,9 @@ export default function VehicleRecordsTable({
   onOpenVehicle,
   onEditVehicle,
 }: Props) {
+  const { can } = usePermissions();
+
+  const canEdit = can(PERMISSIONS.VEHICLE_UPDATE);
   return (
     <div
       className="
@@ -77,9 +81,11 @@ export default function VehicleRecordsTable({
 
               <th className="whitespace-nowrap px-4 py-3 text-right">Cost</th>
 
-              <th className="w-16 px-3 py-3">
-                <span className="sr-only">Actions</span>
-              </th>
+              {canEdit && (
+                <th className="w-16 px-3 py-3">
+                  <span className="sr-only">Actions</span>
+                </th>
+              )}
             </tr>
           </thead>
 
@@ -87,7 +93,7 @@ export default function VehicleRecordsTable({
             {vehicles.length === 0 ? (
               <tr>
                 <td
-                  colSpan={9}
+                  colSpan={canEdit ? 9 : 8}
                   className="
                     px-6 py-16
                     text-center
@@ -156,20 +162,22 @@ export default function VehicleRecordsTable({
                       {formatCost(vehicle.cost)}
                     </td>
 
-                    <td
-                      className="px-3 py-2 text-center"
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEditVehicle(vehicle)}
-                        aria-label={`Edit vehicle ${vehicle.plate_no}`}
+                    {canEdit && (
+                      <td
+                        className="px-3 py-2 text-center"
+                        onClick={(event) => event.stopPropagation()}
                       >
-                        <Pencil size={16} />
-                      </Button>
-                    </td>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEditVehicle(vehicle)}
+                          aria-label={`Edit vehicle ${vehicle.plate_no}`}
+                        >
+                          <Pencil size={16} />
+                        </Button>
+                      </td>
+                    )}
                   </tr>
                 );
               })
