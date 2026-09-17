@@ -19,14 +19,7 @@ export const vehicleRecordSchema = z.object({
   property_no: z.string(),
   date_acquired: z.string(),
 
-  cost: z
-    .string()
-    .refine(
-      (value) =>
-        value.trim() === "" ||
-        (!Number.isNaN(Number(value)) && Number(value) >= 0),
-      "Cost must be 0 or greater.",
-    ),
+  cost: z.number().min(0, "Cost must be 0 or greater.").nullable(),
 });
 
 export type VehicleRecordFormValues = z.infer<typeof vehicleRecordSchema>;

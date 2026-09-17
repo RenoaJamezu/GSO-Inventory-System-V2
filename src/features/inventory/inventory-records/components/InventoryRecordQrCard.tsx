@@ -1,30 +1,39 @@
 import QRCode from "react-qr-code";
 
 import { getTheme } from "../constants";
+import type { InventoryType } from "../types";
 
 type Props = {
   qrUuid: string;
-  inventoryType: string;  
+  inventoryType: InventoryType;
 };
 
-export default function InventoryRecordQrCard({ qrUuid, inventoryType }: Props) {
-  const qrUrl = `${window.location.origin}/public/${qrUuid}`;
-
+export default function InventoryRecordQrCard({
+  qrUuid,
+  inventoryType,
+}: Props) {
+  const qrUrl = `${window.location.origin}/public/${encodeURIComponent(qrUuid)}`;
   const theme = getTheme(inventoryType);
 
   return (
     <div
-      className="h-[5.55cm] w-[8cm] border-[3px] bg-white shadow print:shadow-none print:[-webkit-print-color-adjust:exact] print:[print-color-adjust:exact] font-times text-black"
-      style={{
-        borderColor: theme.color,
-      }}
+      className="
+        h-[5.55cm] w-[8cm]
+        border-[3px]
+        bg-white
+        font-times text-black
+        shadow
+        print:shadow-none
+        print:[-webkit-print-color-adjust:exact]
+        print:[print-color-adjust:exact]
+      "
+      style={{ borderColor: theme.color }}
     >
-      {/* Header */}
       <div className="px-2 pt-2">
         <div className="flex items-center">
           <img
             src="/images/sibagat-logo.png"
-            alt="Municipality Logo"
+            alt="Municipality of Sibagat logo"
             className="h-12 w-12 object-contain"
           />
 
@@ -40,7 +49,7 @@ export default function InventoryRecordQrCard({ qrUuid, inventoryType }: Props) 
 
           <img
             src="/images/gso-logo.png"
-            alt="GSO Logo"
+            alt="General Services Office logo"
             className="h-12 w-12 object-contain"
           />
         </div>
@@ -48,21 +57,22 @@ export default function InventoryRecordQrCard({ qrUuid, inventoryType }: Props) 
         <p className="text-center text-[9px]">GENERAL SERVICES OFFICE</p>
       </div>
 
-      {/* Divider */}
       <div
-        className="h-3 print:[-webkit-print-color-adjust:exact] print:[print-color-adjust:exact]"
-        style={{
-          backgroundColor: theme.color,
-        }}
+        className="
+          h-3
+          print:[-webkit-print-color-adjust:exact]
+          print:[print-color-adjust:exact]
+        "
+        style={{ backgroundColor: theme.color }}
       />
 
-      {/* Body */}
       <div className="grid grid-cols-2 gap-2 p-1 px-3">
         <div className="mb-3 flex flex-col justify-center gap-4">
           <div className="text-center">
             <img
               src="/images/mayor-signature.png"
               alt=""
+              aria-hidden="true"
               className="mx-auto h-5 scale-150"
             />
 
@@ -75,6 +85,7 @@ export default function InventoryRecordQrCard({ qrUuid, inventoryType }: Props) 
             <img
               src="/images/supply-signature.png"
               alt=""
+              aria-hidden="true"
               className="mx-auto h-5 scale-175"
             />
 
@@ -85,14 +96,17 @@ export default function InventoryRecordQrCard({ qrUuid, inventoryType }: Props) 
         </div>
 
         <div className="flex flex-col items-center justify-end">
-          <QRCode value={qrUrl} size={80} />
+          <QRCode
+            value={qrUrl}
+            size={80}
+            aria-label="QR code for public inventory record"
+          />
+
           <p className="text-[6px] font-medium">Scan to view</p>
         </div>
       </div>
 
-      {/* Divider */}
-
-      <div className="flex-1 px-0.5 leading-tight text-[6px]">
+      <div className="flex-1 px-0.5 text-[6px] leading-tight">
         <p className="font-medium">Note: PLEASE DO NOT REMOVE</p>
 
         <p className="font-medium">

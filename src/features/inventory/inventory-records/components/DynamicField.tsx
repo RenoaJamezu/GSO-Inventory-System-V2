@@ -1,40 +1,61 @@
+import { type Control, Controller } from "react-hook-form";
+
+import type { AccountColumn } from "@/features/inventory/account-columns";
 import {
   FormCheckbox,
   FormField,
   FormInput,
+  FormNumberInput,
   FormTextarea,
 } from "@/components/form";
-
-import type { AccountColumn } from "@/features/inventory/account-columns";
-
-import { type Control, Controller } from "react-hook-form";
 
 type Props = {
   column: AccountColumn;
   control: Control<Record<string, unknown>>;
+  error?: string;
 };
 
-export default function DynamicField({ column, control }: Props) {
+export default function DynamicField({ column, control, error }: Props) {
   return (
-    <FormField label={column.label} required={column.is_required}>
+    <FormField label={column.label} required={column.is_required} error={error}>
       <Controller
         name={column.field_key}
         control={control}
-        defaultValue={getDefaultValue(column.data_type)}
         render={({ field }) => {
           switch (column.data_type) {
             case "number":
+              if (column.is_amount_column) {
+                return (
+                  <FormNumberInput
+                    value={
+                      typeof field.value === "number" ? field.value : undefined
+                    }
+                    placeholder={column.placeholder ?? ""}
+                    useGrouping
+                    maximumFractionDigits={2}
+                    onValueChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
+                );
+              }
+
               return (
                 <FormInput
                   type="number"
                   step="any"
                   placeholder={column.placeholder ?? ""}
-                  value={(field.value as number | string) ?? ""}
+                  value={
+                    typeof field.value === "number" ||
+                    typeof field.value === "string"
+                      ? field.value
+                      : ""
+                  }
                   onChange={(event) => {
                     const value = event.target.value;
 
                     field.onChange(value === "" ? undefined : Number(value));
                   }}
+                  onBlur={field.onBlur}
                 />
               );
 
@@ -42,16 +63,18 @@ export default function DynamicField({ column, control }: Props) {
               return (
                 <FormInput
                   type="date"
-                  value={(field.value as string) ?? ""}
+                  value={typeof field.value === "string" ? field.value : ""}
                   onChange={field.onChange}
+                  onBlur={field.onBlur}
                 />
               );
 
             case "boolean":
               return (
                 <FormCheckbox
-                  checked={Boolean(field.value)}
+                  checked={field.value === true}
                   onChange={(event) => field.onChange(event.target.checked)}
+                  onBlur={field.onBlur}
                   label={column.placeholder || "Yes"}
                   description={column.description ?? undefined}
                 />
@@ -63,8 +86,9 @@ export default function DynamicField({ column, control }: Props) {
                   <FormTextarea
                     rows={4}
                     placeholder={column.placeholder ?? ""}
-                    value={(field.value as string) ?? ""}
+                    value={typeof field.value === "string" ? field.value : ""}
                     onChange={field.onChange}
+                    onBlur={field.onBlur}
                   />
 
                   {column.description && (
@@ -82,8 +106,9 @@ export default function DynamicField({ column, control }: Props) {
                   <FormInput
                     type="text"
                     placeholder={column.placeholder ?? ""}
-                    value={(field.value as string) ?? ""}
+                    value={typeof field.value === "string" ? field.value : ""}
                     onChange={field.onChange}
+                    onBlur={field.onBlur}
                   />
 
                   {column.description && (
@@ -98,17 +123,4 @@ export default function DynamicField({ column, control }: Props) {
       />
     </FormField>
   );
-}
-
-function getDefaultValue(type: string) {
-  switch (type) {
-    case "number":
-      return undefined;
-
-    case "boolean":
-      return false;
-
-    default:
-      return "";
-  }
 }

@@ -19,14 +19,12 @@ export default function InventoryRecordSheetSelector({
     <FormField label="Worksheet">
       <FormSelect
         value={value}
-        onChange={(event) => onChange(event.target.value)}
-      >
-        {workbook.SheetNames.map((sheet) => (
-          <option key={sheet} value={sheet}>
-            {sheet}
-          </option>
-        ))}
-      </FormSelect>
+        options={workbook.SheetNames.map((sheetName) => ({
+          value: sheetName,
+          label: sheetName,
+        }))}
+        onChange={onChange}
+      />
 
       <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
         Select the worksheet containing the inventory records.

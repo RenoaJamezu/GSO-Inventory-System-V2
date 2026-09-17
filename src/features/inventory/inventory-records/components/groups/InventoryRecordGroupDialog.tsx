@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 import {
   Dialog,
@@ -8,15 +8,11 @@ import {
   DialogFooter,
   DialogHeader,
 } from "@/components/dialog";
-
 import { FormField, FormInput, FormTextarea } from "@/components/form";
-
 import { Button } from "@/components/ui";
 
 import { type GroupFormValues, groupSchema } from "../../schemas/groupSchema";
-
 import type { Group } from "../../types";
-
 import {
   useCreateGroup,
   useUpdateGroup,
@@ -38,21 +34,20 @@ export default function InventoryRecordGroupDialog({
   const createMutation = useCreateGroup();
   const updateMutation = useUpdateGroup();
 
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const isEdit = Boolean(group);
 
   const {
-    register,
+    control,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<GroupFormValues>({
     resolver: zodResolver(groupSchema),
-
     defaultValues: {
-      account_id: accountId,
       group_name: "",
       description: "",
-      sort_order: 0,
     },
   });
 
@@ -60,52 +55,74 @@ export default function InventoryRecordGroupDialog({
     isSubmitting || createMutation.isPending || updateMutation.isPending;
 
   useEffect(() => {
-    if (!open) return;
-
-    if (group) {
-      reset({
-        account_id: group.account_id,
-        group_name: group.group_name,
-        description: group.description ?? "",
-        sort_order: group.sort_order,
-      });
-
+    if (!open) {
       return;
     }
 
     reset({
-      account_id: accountId,
-      group_name: "",
-      description: "",
-      sort_order: 0,
+      group_name: group?.group_name ?? "",
+      description: group?.description ?? "",
     });
-  }, [open, group, accountId, reset]);
+  }, [open, group, reset]);
+
+  function handleClose() {
+    if (loading) {
+      return;
+    }
+
+    setSubmitError(null);
+    onClose();
+  }
 
   async function onSubmit(values: GroupFormValues) {
+    setSubmitError(null);
+
     try {
-      if (isEdit && group) {
+      if (group) {
         await updateMutation.mutateAsync({
           id: group.id,
-          values,
+          account_id: accountId,
+          values: {
+            group_name: values.group_name,
+            description: values.description,
+          },
         });
       } else {
-        await createMutation.mutateAsync(values);
+        await createMutation.mutateAsync({
+          account_id: accountId,
+          group_name: values.group_name,
+          description: values.description,
+          sort_order: 0,
+        });
       }
 
+      setSubmitError(null);
       onClose();
     } catch (error) {
       console.error("Failed saving inventory group", error);
+
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Failed to save inventory group.",
+      );
     }
   }
 
-  if (!open) return null;
+  if (!open) {
+    return null;
+  }
 
   return (
-    <Dialog open={open} maxWidth="md" onClose={loading ? undefined : onClose}>
+    <Dialog
+      open={open}
+      maxWidth="md"
+      onClose={loading ? undefined : handleClose}
+    >
       <DialogHeader title={isEdit ? "Edit Group" : "Add Group"}>
         <p className="mt-1 text-sm font-normal text-slate-500 dark:text-slate-400">
           {isEdit
-            ? "Update how this inventory group is identified and ordered."
+            ? "Update this inventory group's information."
             : "Create a group for organizing inventory records."}
         </p>
       </DialogHeader>
@@ -115,55 +132,56 @@ export default function InventoryRecordGroupDialog({
         className="flex min-h-0 flex-1 flex-col overflow-hidden"
       >
         <DialogBody>
+          {submitError && (
+            <div
+              role="alert"
+              className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300"
+            >
+              {submitError}
+            </div>
+          )}
+
           <div className="space-y-4">
-            <FormField label="Group Name" required>
-              <FormInput
-                {...register("group_name")}
-                placeholder="Enter group name"
-              />
-
-              {errors.group_name && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.group_name.message}
-                </p>
+            <Controller
+              name="group_name"
+              control={control}
+              render={({ field }) => (
+                <FormField
+                  label="Group Name"
+                  required
+                  error={errors.group_name?.message}
+                >
+                  <FormInput
+                    name={field.name}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    placeholder="Enter group name"
+                    disabled={loading}
+                  />
+                </FormField>
               )}
-            </FormField>
+            />
 
-            <FormField label="Description">
-              <FormTextarea
-                rows={3}
-                {...register("description")}
-                placeholder="Optional group description"
-              />
-
-              {errors.description && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.description.message}
-                </p>
+            <Controller
+              name="description"
+              control={control}
+              render={({ field }) => (
+                <FormField
+                  label="Description"
+                  error={errors.description?.message}
+                >
+                  <FormTextarea
+                    name={field.name}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    rows={3}
+                    placeholder="Optional group description"
+                    disabled={loading}
+                  />
+                </FormField>
               )}
-            </FormField>
-
-            <FormField label="Sort Order">
-              <FormInput
-                type="number"
-                min="0"
-                {...register("sort_order", {
-                  valueAsNumber: true,
-                })}
-              />
-
-              {errors.sort_order && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.sort_order.message}
-                </p>
-              )}
-            </FormField>
-
-            <input
-              type="hidden"
-              {...register("account_id", {
-                valueAsNumber: true,
-              })}
             />
           </div>
         </DialogBody>
@@ -172,7 +190,7 @@ export default function InventoryRecordGroupDialog({
           <Button
             type="button"
             variant="secondary"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={loading}
           >
             Cancel

@@ -1,18 +1,14 @@
 import { CirclePlus, Download, Wrench } from "lucide-react";
 
 import { Button, SearchField } from "@/components/ui";
-import { Dropdown, DropdownItem } from "@/components/ui/dropdown";
+import { Dropdown } from "@/components/ui/dropdown";
 
 import { PERMISSIONS, usePermissions } from "@/features/auth";
 
 type Props = {
   search: string;
   onSearchChange: (value: string) => void;
-
   onAddAccount: () => void;
-  onAddRecord: () => void;
-
-  onGeneratePPESummary: () => void;
   onExportExcel: () => void;
 };
 
@@ -33,38 +29,68 @@ export default function InventoryAccountToolbar({
         border-b border-slate-200
         p-4
         dark:border-slate-800
-        sm:flex-row
-        sm:items-center
-        sm:justify-between
+
+        lg:flex-row
+        lg:items-center
+        lg:justify-between
       "
     >
-      <SearchField
-        value={search}
-        onChange={onSearchChange}
-        placeholder="Search account titles..."
-      />
+      <div className="w-full lg:max-w-xl">
+        <SearchField
+          value={search}
+          onChange={onSearchChange}
+          placeholder="Search account titles..."
+        />
+      </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div
+        className="
+          flex flex-col gap-2
+
+          sm:flex-row
+          sm:items-center
+
+          lg:shrink-0
+        "
+      >
+        <Dropdown>
+          <Dropdown.Trigger>
+            <Button
+              variant="secondary"
+              className="
+                flex w-full
+                items-center justify-center gap-2
+                whitespace-nowrap
+                sm:w-auto
+              "
+            >
+              <Wrench size={16} />
+              Tools
+            </Button>
+          </Dropdown.Trigger>
+
+          <Dropdown.Content>
+            <Dropdown.Item onClick={onExportExcel}>
+              <Download size={16} />
+              Export All
+            </Dropdown.Item>
+          </Dropdown.Content>
+        </Dropdown>
+
         {canManageAccounts && (
-          <Button onClick={onAddAccount} className="flex items-center gap-2">
+          <Button
+            onClick={onAddAccount}
+            className="
+              flex w-full
+              items-center justify-center gap-2
+              whitespace-nowrap
+              sm:w-auto
+            "
+          >
             <CirclePlus size={17} />
             Add Account
           </Button>
         )}
-
-        <Dropdown
-          trigger={
-            <Button variant="secondary" className="flex items-center gap-2">
-              <Wrench size={16} />
-              Tools
-            </Button>
-          }
-        >
-          <DropdownItem onClick={onExportExcel}>
-            <Download size={16} />
-            Export Excel
-          </DropdownItem>
-        </Dropdown>
       </div>
     </div>
   );

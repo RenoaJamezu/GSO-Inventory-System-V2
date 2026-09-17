@@ -1,10 +1,6 @@
 import type { InventoryType } from "@/features/inventory/inventory-records";
 
-export type InventoryAccountFilters = {
-  is_par_visible?: boolean;
-  is_high_cost_visible?: boolean;
-  is_low_cost_visible?: boolean;
-};
+import type { InventoryAccountFilters } from "./types";
 
 export const inventoryAccountKeys = {
   root: ["inventory-accounts"] as const,

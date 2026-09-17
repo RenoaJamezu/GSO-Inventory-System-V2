@@ -1,12 +1,61 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
+
+import { exportAllInventory } from "../../export";
 import type { InventoryAccount } from "../types";
-import { exportWorkspace } from "../../export";
+import {
+  getInventoryWorkspace,
+  isAccountVisibleInWorkspace,
+} from "../utils/getInventoryWorkspace";
+
+import { useInventoryAccounts } from "./useInventoryAccounts";
+
+const EMPTY_ACCOUNTS: InventoryAccount[] = [];
 
 export function useInventoryAccountsPage() {
+  const { pathname } = useLocation();
+
+  const workspace = getInventoryWorkspace(pathname);
+  const inventoryType = workspace?.inventoryType ?? "PAR";
+
+  const accountsQuery = useInventoryAccounts(inventoryType);
+  const accounts = accountsQuery.data ?? EMPTY_ACCOUNTS;
+
+  const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState<number | null>(
     null,
   );
+
+  const workspaceAccounts = useMemo(() => {
+    if (!workspace) {
+      return [];
+    }
+
+    return accounts.filter((account) =>
+      isAccountVisibleInWorkspace(account, workspace),
+    );
+  }, [accounts, workspace]);
+
+  const filteredAccounts = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+
+    if (!normalizedSearch) {
+      return workspaceAccounts;
+    }
+
+    return workspaceAccounts.filter((account) =>
+      account.account_title.toLowerCase().includes(normalizedSearch),
+    );
+  }, [search, workspaceAccounts]);
+
+  const selectedAccount = useMemo(() => {
+    if (selectedAccountId === null) {
+      return null;
+    }
+
+    return accounts.find((account) => account.id === selectedAccountId) ?? null;
+  }, [accounts, selectedAccountId]);
 
   function createAccount() {
     setSelectedAccountId(null);
@@ -23,24 +72,30 @@ export function useInventoryAccountsPage() {
     setSelectedAccountId(null);
   }
 
-  async function exportExcel(
-    workspace: { title: string },
-    filteredAccounts: InventoryAccount[],
-  ) {
-    await exportWorkspace({
-      title: workspace.title,
+  async function exportExcel() {
+    if (!workspace) {
+      return;
+    }
+
+    await exportAllInventory({
+      inventoryType,
       filename: `${workspace.title}.xlsx`,
-      accounts: filteredAccounts,
+      accounts: workspaceAccounts,
     });
   }
 
   return {
+    workspace,
+    inventoryType,
+    filteredAccounts,
+    selectedAccount,
+    search,
+    setSearch,
     dialogOpen,
-    selectedAccountId,
+    accountsQuery,
     createAccount,
     editAccount,
     closeAccountDialog,
-
     exportExcel,
   };
 }

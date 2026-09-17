@@ -1,32 +1,42 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useAccountColumns } from "@/features/inventory/account-columns";
-
-import {
-  useCreateInventoryRecord,
-  useUpdateInventoryRecord,
-} from "./useInventoryRecords";
 
 import {
   createInventoryRecordSchema,
   type InventoryRecordFormValues,
 } from "../schemas/inventoryRecord.schema";
-
 import type { InventoryRecord, InventoryType } from "../types";
+
 import { useInventoryRecordGroups } from "./useInventoryRecordGroups";
+import {
+  useCreateInventoryRecord,
+  useUpdateInventoryRecord,
+} from "./useInventoryRecords";
 
 type Props = {
-  open: boolean;
   accountId: number;
   inventoryType: InventoryType;
   record?: InventoryRecord | null;
   onSuccess: () => void;
 };
 
+function getDefaultValue(dataType: string): unknown {
+  switch (dataType) {
+    case "number":
+      return undefined;
+
+    case "boolean":
+      return false;
+
+    default:
+      return "";
+  }
+}
+
 export function useInventoryRecordForm({
-  open,
   accountId,
   inventoryType,
   record,
@@ -41,80 +51,87 @@ export function useInventoryRecordForm({
   const updateMutation = useUpdateInventoryRecord();
 
   const isEdit = Boolean(record);
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
-  const [groupId, setGroupId] = useState<number | null>(null);
+  const [groupId, setGroupId] = useState<number | null>(
+    record?.group_id ?? null,
+  );
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { control, reset, handleSubmit } = useForm<InventoryRecordFormValues>({
+  const {
+    control,
+    reset,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<InventoryRecordFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {},
   });
 
   useEffect(() => {
-    if (!open) return;
-
-    if (!columns.length) return;
-
-    if (record) {
-      reset(
-        Object.fromEntries(
-          columns.map((column) => [
-            column.field_key,
-            record.data?.[column.field_key] ?? "",
-          ]),
-        ),
-      );
-
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setGroupId(record.group_id);
-
+    if (!columns.length) {
       return;
     }
 
-    const values: Record<string, unknown> = {};
+    const values = Object.fromEntries(
+      columns.map((column) => {
+        const storedValue = record?.data?.[column.field_key];
 
-    columns.forEach((column) => {
-      values[column.field_key] = column.data_type === "boolean" ? false : "";
-    });
+        return [
+          column.field_key,
+          storedValue ?? getDefaultValue(column.data_type),
+        ];
+      }),
+    );
 
     reset(values);
-    setGroupId(null);
-  }, [open, columns, record, reset]);
+  }, [columns, record, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
-    if (isEdit && record) {
-      await updateMutation.mutateAsync({
-        id: record.id,
-        values: {
+    setSubmitError(null);
+
+    try {
+      if (record) {
+        await updateMutation.mutateAsync({
+          id: record.id,
+          account_id: accountId,
+          inventory_type: inventoryType,
+          values: {
+            group_id: groupId,
+            data: values,
+          },
+        });
+      } else {
+        await createMutation.mutateAsync({
+          account_id: accountId,
+          inventory_type: inventoryType,
           group_id: groupId,
           data: values,
-        },
-      });
-    } else {
-      await createMutation.mutateAsync({
-        account_id: accountId,
-        inventory_type: inventoryType,
-        group_id: groupId,
-        data: values,
-      });
-    }
+        });
+      }
 
-    reset();
-    setGroupId(null);
-    await onSuccess();
+      await onSuccess();
+    } catch (error) {
+      console.error("Failed saving inventory record", error);
+
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Failed to save inventory record.",
+      );
+    }
   });
 
   return {
     columns,
     groups,
-
     control,
-
+    errors,
     groupId,
     setGroupId,
-
     onSubmit,
-
     isEdit,
-    isSubmitting: createMutation.isPending || updateMutation.isPending,
+    isSubmitting,
+    submitError,
   };
 }

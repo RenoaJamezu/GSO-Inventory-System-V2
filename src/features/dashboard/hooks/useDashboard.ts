@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { getDashboardSummary } from "../api/dashboard.api";
+import { dashboardKeys } from "../queryKeys";
 
 export function useDashboard() {
   return useQuery({
-    queryKey: ["dashboard-summary"],
+    queryKey: dashboardKeys.summary(),
     queryFn: getDashboardSummary,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 }

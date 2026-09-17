@@ -5,13 +5,12 @@ import type { AccountColumn } from "@/features/inventory/account-columns";
 import { Button } from "@/components/ui";
 import { FormSelect } from "@/components/form";
 
-import { normalize } from "../../utils/normalize";
+import { createAutoMapping } from "../../utils/createAutoMapping";
 
 type Props = {
   excelColumns: string[];
   systemColumns: AccountColumn[];
   mapping: Record<string, string>;
-
   setMapping: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 };
 
@@ -21,32 +20,23 @@ export default function InventoryRecordColumnMapper({
   mapping,
   setMapping,
 }: Props) {
-  function autoMap() {
-    const auto: Record<string, string> = {};
-
-    const used = new Set<string>();
-
-    excelColumns.forEach((excelCol) => {
-      const matched = systemColumns.find(
-        (column) =>
-          normalize(column.label) === normalize(excelCol) &&
-          !used.has(column.field_key),
-      );
-
-      if (matched) {
-        auto[excelCol] = matched.field_key;
-
-        used.add(matched.field_key);
-      }
-    });
-
-    setMapping(auto);
+  function handleAutoMap() {
+    setMapping(createAutoMapping(excelColumns, systemColumns));
   }
 
+  const mappedFields = new Set(Object.values(mapping).filter(Boolean));
+
   const unmappedRequired = systemColumns.filter(
-    (column) =>
-      column.is_required && !Object.values(mapping).includes(column.field_key),
+    (column) => column.is_required && !mappedFields.has(column.field_key),
   );
+
+  const sortedSystemColumns = [...systemColumns].sort((a, b) => {
+    if (a.display_order !== b.display_order) {
+      return a.display_order - b.display_order;
+    }
+
+    return a.id - b.id;
+  });
 
   return (
     <div className="space-y-4">
@@ -54,7 +44,7 @@ export default function InventoryRecordColumnMapper({
         <Button
           type="button"
           variant="secondary"
-          onClick={autoMap}
+          onClick={handleAutoMap}
           className="flex items-center gap-2"
         >
           <WandSparkles size={16} />
@@ -115,19 +105,19 @@ export default function InventoryRecordColumnMapper({
         </div>
 
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
-          {excelColumns.map((excelCol) => (
+          {excelColumns.map((excelColumn) => (
             <div
-              key={excelCol}
+              key={excelColumn}
               className="
-                  grid gap-2
-                  bg-white px-4 py-3
+                grid gap-2
+                bg-white px-4 py-3
 
-                  dark:bg-slate-900
+                dark:bg-slate-900
 
-                  sm:grid-cols-2
-                  sm:items-center
-                  sm:gap-4
-                "
+                sm:grid-cols-2
+                sm:items-center
+                sm:gap-4
+              "
             >
               <div>
                 <p className="text-xs font-medium text-slate-500 dark:text-slate-400 sm:hidden">
@@ -135,7 +125,7 @@ export default function InventoryRecordColumnMapper({
                 </p>
 
                 <p className="mt-0.5 text-sm font-medium text-slate-800 dark:text-slate-200">
-                  {excelCol}
+                  {excelColumn}
                 </p>
               </div>
 
@@ -145,39 +135,36 @@ export default function InventoryRecordColumnMapper({
                 </p>
 
                 <FormSelect
-                  value={mapping[excelCol] ?? ""}
-                  onChange={(event) =>
+                  value={mapping[excelColumn] ?? ""}
+                  options={[
+                    {
+                      value: "",
+                      label: "Ignore Column",
+                    },
+
+                    ...sortedSystemColumns.map((column) => {
+                      const currentField = mapping[excelColumn];
+
+                      const alreadyMapped =
+                        mappedFields.has(column.field_key) &&
+                        currentField !== column.field_key;
+
+                      return {
+                        value: column.field_key,
+                        label: alreadyMapped
+                          ? `${column.label} (Already mapped)`
+                          : column.label,
+                        disabled: alreadyMapped,
+                      };
+                    }),
+                  ]}
+                  onChange={(value) =>
                     setMapping((previous) => ({
                       ...previous,
-
-                      [excelCol]: event.target.value,
+                      [excelColumn]: value,
                     }))
                   }
-                >
-                  <option value="">Ignore Column</option>
-
-                  {systemColumns
-                    .slice()
-                    .sort((a, b) => a.display_order - b.display_order)
-                    .map((column) => {
-                      const alreadyMapped = Object.entries(mapping).some(
-                        ([mappedExcelColumn, mappedField]) =>
-                          mappedExcelColumn !== excelCol &&
-                          mappedField === column.field_key,
-                      );
-
-                      return (
-                        <option
-                          key={column.id}
-                          value={column.field_key}
-                          disabled={alreadyMapped}
-                        >
-                          {column.label}
-                          {alreadyMapped ? " (Already mapped)" : ""}
-                        </option>
-                      );
-                    })}
-                </FormSelect>
+                />
               </div>
             </div>
           ))}

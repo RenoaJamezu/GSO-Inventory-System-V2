@@ -6,13 +6,19 @@ export function normalizeCellValue(value: unknown, dataType: string): unknown {
   switch (dataType) {
     case "number":
     case "amount": {
-      if (typeof value === "number") return value;
+      if (typeof value === "number") {
+        return Number.isFinite(value) ? value : "";
+      }
 
       const cleaned = String(value).replace(/₱/g, "").replace(/,/g, "").trim();
 
+      if (!cleaned) {
+        return "";
+      }
+
       const parsed = Number(cleaned);
 
-      return Number.isNaN(parsed) ? "" : parsed;
+      return Number.isFinite(parsed) ? parsed : "";
     }
 
     case "boolean": {
@@ -33,9 +39,8 @@ export function normalizeCellValue(value: unknown, dataType: string): unknown {
       return "";
     }
 
-    case "date": {
+    case "date":
       return String(value).trim();
-    }
 
     default:
       return String(value).trim();

@@ -1,7 +1,6 @@
 import {
   Boxes,
   Car,
-  ChartColumnIncreasing,
   FileText,
   LayoutDashboard,
   Package,
@@ -63,12 +62,6 @@ export const sidebarSections: SidebarSectionConfig[] = [
   {
     title: "Administration",
     items: [
-      {
-        to: "/report",
-        label: "Reports",
-        icon: ChartColumnIncreasing,
-        permission: PERMISSIONS.REPORTS_VIEW,
-      },
       {
         to: "/settings",
         label: "Settings",

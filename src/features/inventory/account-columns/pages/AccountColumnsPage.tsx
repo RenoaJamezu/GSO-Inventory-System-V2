@@ -1,58 +1,49 @@
+import { ChevronRight, Plus } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-
-import { ChevronRight, Plus } from "lucide-react";
 
 import { ConfirmDialog } from "@/components/dialog";
 import { Button, PageHeader } from "@/components/ui";
 
 import { useInventoryAccount } from "../../inventory-accounts";
-
+import { useInventoryTableLayout } from "../../inventory-records/hooks/useInventoryTableLayout";
+import { HeaderGroupManager } from "../../table-merges";
 import AccountColumnDialog from "../components/AccountColumnDialog";
 import AccountColumnsTable from "../components/AccountColumnsTable";
-
 import {
   useAccountColumns,
   useDeleteAccountColumn,
+  useReorderAccountColumns,
 } from "../hooks/useAccountColumns";
-
 import type { AccountColumn } from "../types";
+import { getInventoryWorkspace } from "../../inventory-accounts/utils/getInventoryWorkspace";
 
 export default function AccountColumnsPage() {
   const { accountId } = useParams();
-
-  const id = Number(accountId);
-
   const { pathname } = useLocation();
 
-  const workspace = pathname.startsWith("/par")
-    ? {
-        title: "PAR Inventory",
-        backLink: "/par",
-      }
-    : pathname.startsWith("/high-cost")
-      ? {
-          title: "ICS - High Cost",
-          backLink: "/high-cost",
-        }
-      : {
-          title: "ICS - Low Cost",
-          backLink: "/low-cost",
-        };
+  const id = Number(accountId);
+  const workspace = getInventoryWorkspace(pathname);
 
   const deleteMutation = useDeleteAccountColumn();
+  const reorderMutation = useReorderAccountColumns();
 
-  const { data: account, isLoading: accountLoading } = useInventoryAccount(id);
+  const accountQuery = useInventoryAccount(id);
+  const columnsQuery = useAccountColumns(id);
 
-  const { data: columns = [], isLoading: columnsLoading } =
-    useAccountColumns(id);
+  const account = accountQuery.data;
+  const columns = columnsQuery.data ?? [];
+
+  const columnLayout = useInventoryTableLayout({
+    columns,
+    records: [],
+    groups: [],
+  });
 
   const [dialogOpen, setDialogOpen] = useState(false);
-
   const [selectedColumn, setSelectedColumn] = useState<AccountColumn | null>(
     null,
   );
-
   const [deleteColumn, setDeleteColumn] = useState<AccountColumn | null>(null);
 
   function openCreate() {
@@ -83,17 +74,45 @@ export default function AccountColumnsPage() {
   }
 
   async function confirmDelete() {
-    if (!deleteColumn) return;
+    if (!deleteColumn) {
+      return;
+    }
 
-    await deleteMutation.mutateAsync({
-      id: deleteColumn.id,
-      account_id: deleteColumn.account_id,
-    });
+    try {
+      await deleteMutation.mutateAsync({
+        id: deleteColumn.id,
+        account_id: deleteColumn.account_id,
+      });
 
-    setDeleteColumn(null);
+      setDeleteColumn(null);
+    } catch (error) {
+      console.error("Failed deleting account column", error);
+    }
   }
 
-  if (accountLoading || columnsLoading) {
+  function handleReorder(reorderedColumns: AccountColumn[]) {
+    const availableDisplayOrders = columns
+      .map((column) => column.display_order)
+      .sort((firstOrder, secondOrder) => firstOrder - secondOrder);
+
+    reorderMutation.mutate({
+      accountId: id,
+      columns: reorderedColumns.map((column, index) => ({
+        id: column.id,
+        display_order: availableDisplayOrders[index] ?? index,
+      })),
+    });
+  }
+
+  if (!Number.isInteger(id) || id <= 0 || !workspace) {
+    return (
+      <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+        Invalid inventory account.
+      </div>
+    );
+  }
+
+  if (accountQuery.isLoading || columnsQuery.isLoading) {
     return (
       <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
         Loading account columns...
@@ -101,24 +120,34 @@ export default function AccountColumnsPage() {
     );
   }
 
-  const accountTitle = account?.account_title ?? "Inventory Account";
+  if (accountQuery.isError || columnsQuery.isError) {
+    return (
+      <div className="py-12 text-center text-sm text-red-600 dark:text-red-400">
+        Error loading account columns.
+      </div>
+    );
+  }
+
+  if (!account) {
+    return (
+      <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+        Inventory account not found.
+      </div>
+    );
+  }
+
+  const accountTitle = account.account_title;
+  const workspacePath = `/${workspace.route}`;
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
       <nav
         aria-label="Breadcrumb"
         className="flex flex-wrap items-center gap-1.5 text-sm"
       >
         <Link
           to="/dashboard"
-          className="
-            text-slate-500
-            transition-colors
-            hover:text-emerald-700
-            dark:text-slate-400
-            dark:hover:text-emerald-400
-          "
+          className="text-slate-500 transition-colors hover:text-emerald-700 dark:text-slate-400 dark:hover:text-emerald-400"
         >
           Dashboard
         </Link>
@@ -129,14 +158,8 @@ export default function AccountColumnsPage() {
         />
 
         <Link
-          to={workspace.backLink}
-          className="
-            text-slate-500
-            transition-colors
-            hover:text-emerald-700
-            dark:text-slate-400
-            dark:hover:text-emerald-400
-          "
+          to={workspacePath}
+          className="text-slate-500 transition-colors hover:text-emerald-700 dark:text-slate-400 dark:hover:text-emerald-400"
         >
           {workspace.title}
         </Link>
@@ -147,15 +170,8 @@ export default function AccountColumnsPage() {
         />
 
         <Link
-          to={`${workspace.backLink}/${id}/records`}
-          className="
-            max-w-64 truncate
-            text-slate-500
-            transition-colors
-            hover:text-emerald-700
-            dark:text-slate-400
-            dark:hover:text-emerald-400
-          "
+          to={`${workspacePath}/${id}/records`}
+          className="max-w-64 truncate text-slate-500 transition-colors hover:text-emerald-700 dark:text-slate-400 dark:hover:text-emerald-400"
         >
           {accountTitle}
         </Link>
@@ -181,39 +197,30 @@ export default function AccountColumnsPage() {
         }
       />
 
-      <section
-        className="
-          overflow-hidden
-          rounded-lg border
-          border-slate-200
-          bg-white
-
-          dark:border-slate-800
-          dark:bg-slate-900
-        "
-      >
-        <div
-          className="
-            border-b border-slate-200
-            px-5 py-4
-            dark:border-slate-800
-          "
-        >
+      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
           <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             Configured Columns
           </h2>
 
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            These fields appear when creating, editing, viewing, importing, and
-            exporting inventory records.
+            Drag columns to change their display order. This order is used when
+            viewing, creating, editing, importing, and exporting inventory
+            records.
           </p>
         </div>
 
         <AccountColumnsTable
           columns={columns}
+          isReordering={reorderMutation.isPending}
+          onReorder={handleReorder}
           onEdit={openEdit}
           onDelete={openDelete}
         />
+      </section>
+
+      <section className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <HeaderGroupManager accountId={id} columns={columnLayout.columns} />
       </section>
 
       <AccountColumnDialog

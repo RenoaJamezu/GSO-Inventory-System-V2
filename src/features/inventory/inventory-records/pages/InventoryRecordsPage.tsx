@@ -1,14 +1,12 @@
-import { useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 
+import { ConfirmDialog } from "@/components/dialog";
 import { PageHeader } from "@/components/ui";
 
-import { useInventoryRecordsPage } from "../hooks/useInventoryRecordsPage";
-
 import InventoryRecordGroupManagementDialog from "../components/groups/InventoryRecordGroupManagementDialog";
-import InventoryRecordBulkPrint from "./InventoryRecordBulkPrint";
 import InventoryRecordExcelImportDialog from "../components/import/InventoryRecordExcelImportDialog";
 import InventoryRecordBulkToolbar from "../components/InventoryRecordBulkToolbar";
 import InventoryRecordDialog from "../components/InventoryRecordDialog";
@@ -16,62 +14,101 @@ import InventoryRecordStats from "../components/InventoryRecordStats";
 import InventoryRecordTable from "../components/InventoryRecordTable";
 import InventoryRecordToolbar from "../components/InventoryRecordToolbar";
 import InventoryRecordSidePanel from "../components/side-panel/InventoryRecordSidePanel";
+import { useInventoryRecordsPage } from "../hooks/useInventoryRecordsPage";
+
+import InventoryRecordBulkPrint from "./InventoryRecordBulkPrint";
 
 export default function InventoryRecordsPage() {
-  const { pathname } = useLocation();
-
-  const workspace = pathname.startsWith("/par")
-    ? {
-        title: "PAR Inventory",
-        backLink: "/par",
-      }
-    : pathname.startsWith("/high-cost")
-      ? {
-          title: "ICS - High Cost",
-          backLink: "/high-cost",
-        }
-      : {
-          title: "ICS - Low Cost",
-          backLink: "/low-cost",
-        };
-
   const {
     id,
-
     account,
     groups,
     columns,
-
     filters,
     selection,
     view,
-    groupedRecords,
-
+    tableLayout,
+    bulkAssign,
+    bulkDelete,
+    deleteRecord,
     selectedGroupId,
     setSelectedGroupId,
-
     assignSelectedGroup,
     deleteSelectedRecords,
     printableRecords,
     deleteRecordById,
-
     downloadTemplate,
     exportRecordsToExcel,
     goToColumns,
     openPublicView,
-
+    routeContext,
     inventoryType,
-
     totalAmount,
-
     isLoading,
   } = useInventoryRecordsPage();
+
+  const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
+  const [recordIdToDelete, setRecordIdToDelete] = useState<number | null>(null);
 
   const bulkPrintRef = useRef<HTMLDivElement>(null);
 
   const handleBulkPrint = useReactToPrint({
     contentRef: bulkPrintRef,
   });
+
+  function requestBulkDelete() {
+    if (!selection.selectedCount || bulkDelete.isPending) {
+      return;
+    }
+
+    setIsBulkDeleteOpen(true);
+  }
+
+  function closeBulkDeleteDialog() {
+    if (bulkDelete.isPending) {
+      return;
+    }
+
+    setIsBulkDeleteOpen(false);
+  }
+
+  async function confirmBulkDelete() {
+    try {
+      await deleteSelectedRecords();
+      setIsBulkDeleteOpen(false);
+    } catch (error) {
+      console.error("Failed deleting selected inventory records", error);
+    }
+  }
+
+  function requestRecordDelete() {
+    if (!view.openedRecord || deleteRecord.isPending) {
+      return;
+    }
+
+    setRecordIdToDelete(view.openedRecord.id);
+  }
+
+  function closeRecordDeleteDialog() {
+    if (deleteRecord.isPending) {
+      return;
+    }
+
+    setRecordIdToDelete(null);
+  }
+
+  async function confirmRecordDelete() {
+    if (recordIdToDelete === null) {
+      return;
+    }
+
+    try {
+      await deleteRecordById(recordIdToDelete, view.removeOpenedRecord);
+      setRecordIdToDelete(null);
+    } catch (error) {
+      console.error("Failed deleting inventory record", error);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -85,7 +122,6 @@ export default function InventoryRecordsPage() {
 
   return (
     <>
-      {/* Hidden printable content */}
       <div className="hidden">
         <div ref={bulkPrintRef}>
           <InventoryRecordBulkPrint records={printableRecords} />
@@ -93,7 +129,6 @@ export default function InventoryRecordsPage() {
       </div>
 
       <div className="space-y-6">
-        {/* Breadcrumb */}
         <nav
           aria-label="Breadcrumb"
           className="flex flex-wrap items-center gap-1.5 text-sm"
@@ -116,7 +151,7 @@ export default function InventoryRecordsPage() {
           />
 
           <Link
-            to={workspace.backLink}
+            to={routeContext.backLink}
             className="
               text-slate-500 transition-colors
               hover:text-emerald-700
@@ -124,7 +159,7 @@ export default function InventoryRecordsPage() {
               dark:hover:text-emerald-400
             "
           >
-            {workspace.title}
+            {routeContext.title}
           </Link>
 
           <ChevronRight
@@ -139,7 +174,7 @@ export default function InventoryRecordsPage() {
 
         <PageHeader
           title={accountTitle}
-          description={`${workspace.title} • Manage inventory records for this account.`}
+          description={`${routeContext.title} • Manage inventory records for this account.`}
         />
 
         <InventoryRecordStats
@@ -162,15 +197,21 @@ export default function InventoryRecordsPage() {
           selectedCount={selection.selectedCount}
           groups={groups.data ?? []}
           selectedGroupId={selectedGroupId}
+          isAssigning={bulkAssign.isPending}
+          isDeleting={bulkDelete.isPending}
           onGroupChange={setSelectedGroupId}
           onAssign={assignSelectedGroup}
           onPrint={handleBulkPrint}
-          onDelete={deleteSelectedRecords}
+          onDelete={requestBulkDelete}
         />
 
         <InventoryRecordTable
-          groupedRecords={groupedRecords}
-          columns={columns.data ?? []}
+          layout={tableLayout}
+          accountId={id}
+          inventoryType={inventoryType}
+          isDragDisabled={
+            Boolean(filters.search.trim()) || filters.groupId !== null
+          }
           selectedIds={selection.selectedIds}
           onSelect={selection.toggle}
           onSelectAll={selection.toggleAll}
@@ -212,15 +253,37 @@ export default function InventoryRecordsPage() {
         onClose={view.closeSidePanel}
         onEdit={view.editOpenedRecord}
         onPublicView={() => {
-          if (!view.openedRecord) return;
+          if (!view.openedRecord) {
+            return;
+          }
 
           openPublicView(view.openedRecord.qr_uuid);
         }}
-        onDelete={() => {
-          if (!view.openedRecord) return;
+        onDelete={requestRecordDelete}
+      />
 
-          deleteRecordById(view.openedRecord.id, id, view.removeOpenedRecord);
-        }}
+      <ConfirmDialog
+        open={isBulkDeleteOpen}
+        title="Delete Selected Records"
+        description={`Are you sure you want to delete ${selection.selectedCount} selected record${
+          selection.selectedCount === 1 ? "" : "s"
+        }? This action will remove them from the active inventory.`}
+        confirmText="Delete Records"
+        loading={bulkDelete.isPending}
+        loadingText="Deleting..."
+        onClose={closeBulkDeleteDialog}
+        onConfirm={confirmBulkDelete}
+      />
+
+      <ConfirmDialog
+        open={recordIdToDelete !== null}
+        title="Delete Inventory Record"
+        description="Are you sure you want to delete this inventory record? This action will remove it from the active inventory."
+        confirmText="Delete Record"
+        loading={deleteRecord.isPending}
+        loadingText="Deleting..."
+        onClose={closeRecordDeleteDialog}
+        onConfirm={confirmRecordDelete}
       />
     </>
   );

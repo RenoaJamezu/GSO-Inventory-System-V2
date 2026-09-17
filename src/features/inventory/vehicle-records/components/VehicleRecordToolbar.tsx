@@ -1,29 +1,24 @@
-import { Filter, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { Button, SearchField } from "@/components/ui";
-
 import { FormSelect } from "@/components/form";
 
-import { VEHICLE_EXPIRATION_MONTHS } from "../constants";
-
-import type { VehicleSortOption } from "../hooks/useVehicleRecordFilters";
 import { PERMISSIONS, usePermissions } from "@/features/auth";
+
+import { VEHICLE_EXPIRATION_MONTHS } from "../constants";
+import type { VehicleSortOption } from "../hooks/useVehicleRecordFilters";
 
 type Props = {
   search: string;
-
   onSearchChange: (value: string) => void;
 
   year: string;
-
   onYearChange: (value: string) => void;
 
   month: string;
-
   onMonthChange: (value: string) => void;
 
   sort: VehicleSortOption;
-
   onSortChange: (value: VehicleSortOption) => void;
 
   years: number[];
@@ -34,18 +29,13 @@ type Props = {
 export default function VehicleRecordToolbar({
   search,
   onSearchChange,
-
   year,
   onYearChange,
-
   month,
   onMonthChange,
-
   sort,
   onSortChange,
-
   years,
-
   onAdd,
 }: Props) {
   const { can } = usePermissions();
@@ -66,14 +56,14 @@ export default function VehicleRecordToolbar({
     >
       <div
         className="
-          flex flex-col gap-4
+          flex flex-col gap-3
 
           xl:flex-row
           xl:items-center
           xl:justify-between
         "
       >
-        <div className="w-full xl:max-w-md">
+        <div className="w-full xl:max-w-xl">
           <SearchField
             value={search}
             onChange={onSearchChange}
@@ -83,85 +73,98 @@ export default function VehicleRecordToolbar({
 
         <div
           className="
-            flex flex-col gap-2
+            grid grid-cols-1 gap-2
 
-            sm:grid
             sm:grid-cols-2
 
+            lg:grid-cols-4
+
             xl:flex
-            xl:flex-row
+            xl:shrink-0
             xl:items-center
           "
         >
-          <div className="relative">
-            <Filter
-              size={15}
-              className="
-                pointer-events-none
-                absolute left-3 top-1/2
-                z-10
-                -translate-y-1/2
-                text-slate-400
-              "
-            />
-
-            <FormSelect
-              value={year}
-              onChange={(event) => onYearChange(event.target.value)}
-              className="pl-9 xl:w-36"
-            >
-              <option value="">All Years</option>
-
-              {years.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </FormSelect>
-          </div>
+          <FormSelect
+            value={year}
+            options={[
+              {
+                value: "",
+                label: "All Years",
+              },
+              ...years.map((year) => ({
+                value: String(year),
+                label: String(year),
+              })),
+            ]}
+            onChange={onYearChange}
+            className="w-full lg:min-w-32 xl:w-32"
+          />
 
           <FormSelect
             value={month}
-            onChange={(event) => onMonthChange(event.target.value)}
-            className="xl:w-40"
-          >
-            <option value="">All Months</option>
-
-            {VEHICLE_EXPIRATION_MONTHS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </FormSelect>
+            options={[
+              {
+                value: "",
+                label: "All Months",
+              },
+              ...VEHICLE_EXPIRATION_MONTHS.map((month) => ({
+                value: month.value,
+                label: month.label,
+              })),
+            ]}
+            onChange={onMonthChange}
+            className="w-full lg:min-w-36 xl:w-36"
+          />
 
           <FormSelect
             value={sort}
-            onChange={(event) =>
-              onSortChange(event.target.value as VehicleSortOption)
-            }
-            className="xl:w-56"
-          >
-            <option value="PLATE_ASC">Plate A-Z</option>
-
-            <option value="PLATE_DESC">Plate Z-A</option>
-
-            <option value="EXPIRATION_ASC">Expiration: Earliest</option>
-
-            <option value="EXPIRATION_DESC">Expiration: Latest</option>
-
-            <option value="ACQUIRED_ASC">Acquired: Oldest</option>
-
-            <option value="ACQUIRED_DESC">Acquired: Newest</option>
-
-            <option value="COST_ASC">Cost: Lowest</option>
-
-            <option value="COST_DESC">Cost: Highest</option>
-          </FormSelect>
+            options={[
+              {
+                value: "PLATE_ASC",
+                label: "Plate A-Z",
+              },
+              {
+                value: "PLATE_DESC",
+                label: "Plate Z-A",
+              },
+              {
+                value: "EXPIRATION_ASC",
+                label: "Expiration: Earliest",
+              },
+              {
+                value: "EXPIRATION_DESC",
+                label: "Expiration: Latest",
+              },
+              {
+                value: "ACQUIRED_ASC",
+                label: "Acquired: Oldest",
+              },
+              {
+                value: "ACQUIRED_DESC",
+                label: "Acquired: Newest",
+              },
+              {
+                value: "COST_ASC",
+                label: "Cost: Lowest",
+              },
+              {
+                value: "COST_DESC",
+                label: "Cost: Highest",
+              },
+            ]}
+            onChange={(value) => onSortChange(value as VehicleSortOption)}
+            className="w-full lg:min-w-44 xl:w-44"
+          />
 
           {canCreate && (
             <Button
               onClick={onAdd}
-              className="flex items-center justify-center gap-2"
+              className="
+                flex w-full
+                items-center justify-center gap-2
+                whitespace-nowrap
+                xl:w-auto
+              "
             >
               <Plus size={17} />
               Add Vehicle

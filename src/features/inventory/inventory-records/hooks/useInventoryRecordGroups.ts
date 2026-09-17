@@ -4,16 +4,24 @@ import {
   createGroup,
   deleteGroup,
   getGroups,
+  reorderGroups,
   updateGroup,
 } from "../api/inventoryRecordGroups.api";
+
 import { inventoryRecordGroupKeys, inventoryRecordKeys } from "../queryKeys";
-import type { GroupInput } from "../types";
+
+import type {
+  DeleteGroupInput,
+  Group,
+  ReorderGroupsInput,
+  UpdateGroupInput,
+} from "../types";
 
 export function useInventoryRecordGroups(accountId: number) {
   return useQuery({
     queryKey: inventoryRecordGroupKeys.list(accountId),
     queryFn: () => getGroups(accountId),
-    enabled: accountId > 0,
+    enabled: Number.isInteger(accountId) && accountId > 0,
   });
 }
 
@@ -35,16 +43,11 @@ export function useUpdateGroup() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, values }: { id: number; values: Partial<GroupInput> }) =>
-      updateGroup(id, values),
+    mutationFn: (input: UpdateGroupInput) => updateGroup(input),
 
     onSuccess: (group) => {
       queryClient.invalidateQueries({
         queryKey: inventoryRecordGroupKeys.list(group.account_id),
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: inventoryRecordGroupKeys.detail(group.id),
       });
     },
   });
@@ -54,23 +57,73 @@ export function useDeleteGroup() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (group: { id: number; account_id: number }) => {
-      await deleteGroup(group.id);
+    mutationFn: (input: DeleteGroupInput) => deleteGroup(input),
 
-      return group;
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: inventoryRecordGroupKeys.list(variables.account_id),
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: inventoryRecordKeys.accountLists(variables.account_id),
+      });
+    },
+  });
+}
+
+export function useReorderGroups() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: reorderGroups,
+
+    onMutate: async ({ accountId, groups }: ReorderGroupsInput) => {
+      const queryKey = inventoryRecordGroupKeys.list(accountId);
+
+      await queryClient.cancelQueries({
+        queryKey,
+      });
+
+      const previousGroups = queryClient.getQueryData<Group[]>(queryKey);
+
+      if (previousGroups) {
+        const orderById = new Map(
+          groups.map((group) => [group.id, group.sort_order]),
+        );
+
+        const optimisticGroups = previousGroups
+          .map((group) => ({
+            ...group,
+            sort_order: orderById.get(group.id) ?? group.sort_order,
+          }))
+          .sort((firstGroup, secondGroup) => {
+            if (firstGroup.sort_order !== secondGroup.sort_order) {
+              return firstGroup.sort_order - secondGroup.sort_order;
+            }
+
+            return firstGroup.id - secondGroup.id;
+          });
+
+        queryClient.setQueryData(queryKey, optimisticGroups);
+      }
+
+      return {
+        previousGroups,
+      };
     },
 
-    onSuccess: (group) => {
-      queryClient.invalidateQueries({
-        queryKey: inventoryRecordGroupKeys.list(group.account_id),
-      });
+    onError: (_error, variables, context) => {
+      if (context?.previousGroups) {
+        queryClient.setQueryData(
+          inventoryRecordGroupKeys.list(variables.accountId),
+          context.previousGroups,
+        );
+      }
+    },
 
+    onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({
-        queryKey: inventoryRecordKeys.accountLists(group.account_id),
-      });
-
-      queryClient.removeQueries({
-        queryKey: inventoryRecordGroupKeys.detail(group.id),
+        queryKey: inventoryRecordGroupKeys.list(variables.accountId),
       });
     },
   });

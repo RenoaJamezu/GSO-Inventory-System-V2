@@ -29,8 +29,7 @@ export default function ThemeToggle({
       aria-label={label}
       title={!showLabel ? label : undefined}
       className={[
-        "inline-flex min-h-10 items-center justify-center",
-        "rounded-md",
+        "flex min-h-11 w-full items-center rounded-md px-3 py-2.5",
         "text-sm font-medium",
         "text-slate-600",
         "transition-colors duration-150",
@@ -43,7 +42,7 @@ export default function ThemeToggle({
         "dark:hover:bg-slate-800",
         "dark:hover:text-white",
         "dark:focus-visible:ring-emerald-500",
-        showLabel ? "gap-2 px-3 py-2" : "h-10 w-10",
+        showLabel ? "gap-2 px-3 py-2" : "justify-center h-10 w-10",
         className,
       ]
         .filter(Boolean)

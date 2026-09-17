@@ -10,7 +10,18 @@ export function getRecordAmount(
     return undefined;
   }
 
-  const value = Number(data[amountColumn.field_key]);
+  const rawValue = data[amountColumn.field_key];
 
-  return Number.isNaN(value) ? undefined : value;
+  if (
+    rawValue === null ||
+    rawValue === undefined ||
+    rawValue === "" ||
+    typeof rawValue === "boolean"
+  ) {
+    return undefined;
+  }
+
+  const value = Number(rawValue);
+
+  return Number.isFinite(value) ? value : undefined;
 }

@@ -1,76 +1,67 @@
+import { useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+
 import { useAccountColumns } from "@/features/inventory/account-columns";
 import { useInventoryAccount } from "@/features/inventory/inventory-accounts";
-import { useState, useMemo } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useAccountColumnGroups } from "@/features/inventory/table-merges";
+
+import { exportInventoryRecords } from "../utils/exportInventoryRecords";
 import { generateTemplate } from "../utils/generateTemplate";
+import { getInventoryRouteContext } from "../utils/getInventoryRouteContext";
 import { getRecordAmount } from "../utils/getRecordAmount";
-import { groupInventoryRecords } from "../utils/groupInventoryRecords";
+
 import { useInventoryRecordFilters } from "./useInventoryRecordFilters";
 import { useInventoryRecordGroups } from "./useInventoryRecordGroups";
 import {
-  useInventoryRecords,
   useBulkAssignGroup,
   useBulkDeleteInventoryRecords,
   useDeleteInventoryRecord,
+  useInventoryRecords,
 } from "./useInventoryRecords";
 import { useInventoryRecordSelection } from "./useInventoryRecordSelection";
 import { useInventoryRecordView } from "./useInventoryRecordView";
-import type { InventoryType } from "../types";
-import { exportInventoryRecords } from "../utils/exportInventoryRecords";
+import { useInventoryTableLayout } from "./useInventoryTableLayout";
 
 export function useInventoryRecordsPage() {
   const { accountId } = useParams();
   const { pathname } = useLocation();
 
-  const inventoryType = (
-    pathname.startsWith("/par")
-      ? "PAR"
-      : pathname.startsWith("/high-cost")
-        ? "HIGH_COST"
-        : "LOW_COST"
-  ) as InventoryType;
+  const routeContext = getInventoryRouteContext(pathname);
 
-  const workspace =
-    inventoryType === "PAR"
-      ? "par"
-      : inventoryType === "HIGH_COST"
-        ? "high-cost"
-        : "low-cost";
+  if (!routeContext) {
+    throw new Error(`Unsupported inventory route: ${pathname}`);
+  }
+
+  const { inventoryType, workspace } = routeContext;
 
   const navigate = useNavigate();
-
   const id = Number(accountId);
 
-  // Queries
   const account = useInventoryAccount(id);
   const records = useInventoryRecords(id, inventoryType);
   const columns = useAccountColumns(id);
   const groups = useInventoryRecordGroups(id);
+  const columnGroups = useAccountColumnGroups(id);
 
-  // View state
   const view = useInventoryRecordView();
 
-  // Filters
   const filters = useInventoryRecordFilters({
     records: records.data ?? [],
     groups: groups.data ?? [],
   });
 
-  // Selection
   const selection = useInventoryRecordSelection();
 
-  // Bulk mutations
   const bulkAssign = useBulkAssignGroup();
   const bulkDelete = useBulkDeleteInventoryRecords();
-
-  // Delete
   const deleteRecord = useDeleteInventoryRecord();
 
-  // UI State
   const [selectedGroupId, setSelectedGroupId] = useState("");
 
   const totalAmount = useMemo(() => {
-    if (!columns.data) return 0;
+    if (!columns.data) {
+      return 0;
+    }
 
     return filters.filteredRecords.reduce((total, record) => {
       return total + (getRecordAmount(columns.data, record.data) ?? 0);
@@ -79,27 +70,30 @@ export function useInventoryRecordsPage() {
 
   const totalGroups = groups.data?.length ?? 0;
 
-  const groupedRecords = useMemo(
-    () =>
-      groupInventoryRecords({
-        records: filters.filteredRecords,
-        groups: groups.data ?? [],
-      }),
-    [filters.filteredRecords, groups.data],
-  );
+  const tableLayout = useInventoryTableLayout({
+    columns: columns.data ?? [],
+    records: filters.filteredRecords,
+    groups: groups.data ?? [],
+    columnGroups: columnGroups.data ?? [],
+  });
 
   const isLoading =
     account.isLoading ||
     records.isLoading ||
     columns.isLoading ||
-    groups.isLoading;
+    groups.isLoading ||
+    columnGroups.isLoading;
 
   async function assignSelectedGroup() {
-    if (!selection.selectedIds.length) return;
+    if (!selection.selectedIds.length || bulkAssign.isPending) {
+      return;
+    }
 
     await bulkAssign.mutateAsync({
       ids: selection.selectedIds,
-      groupId: selectedGroupId ? Number(selectedGroupId) : null,
+      account_id: id,
+      inventory_type: inventoryType,
+      group_id: selectedGroupId ? Number(selectedGroupId) : null,
     });
 
     selection.clear();
@@ -107,48 +101,42 @@ export function useInventoryRecordsPage() {
   }
 
   async function deleteSelectedRecords() {
-    if (!selection.selectedIds.length) return;
-
-    if (
-      !window.confirm(
-        `Delete ${selection.selectedIds.length} selected record(s)?`,
-      )
-    ) {
+    if (!selection.selectedIds.length || bulkDelete.isPending) {
       return;
     }
 
-    await bulkDelete.mutateAsync(selection.selectedIds);
+    await bulkDelete.mutateAsync({
+      ids: selection.selectedIds,
+      account_id: id,
+      inventory_type: inventoryType,
+    });
 
     selection.clear();
   }
 
   const printableRecords = useMemo(() => {
-    if (!records.data || !columns.data) {
+    if (!records.data) {
       return [];
     }
 
+    const selectedSet = new Set(selection.selectedIds);
+
     return records.data
-      .filter((record) => selection.selectedIds.includes(record.id))
+      .filter((record) => selectedSet.has(record.id))
       .map((record) => ({
         qrUuid: record.qr_uuid,
         inventoryType: record.inventory_type,
       }));
-  }, [records.data, columns.data, selection.selectedIds]);
+  }, [records.data, selection.selectedIds]);
 
-  async function deleteRecordById(
-    id: number,
-    accountId: number,
-    afterDelete?: () => void,
-  ) {
-    if (deleteRecord.isPending) return;
-
-    if (!window.confirm("Delete this inventory record?")) {
+  async function deleteRecordById(recordId: number, afterDelete?: () => void) {
+    if (deleteRecord.isPending) {
       return;
     }
 
     await deleteRecord.mutateAsync({
-      id,
-      account_id: accountId,
+      id: recordId,
+      account_id: id,
       inventory_type: inventoryType,
     });
 
@@ -156,7 +144,9 @@ export function useInventoryRecordsPage() {
   }
 
   function downloadTemplate() {
-    if (!account.data) return;
+    if (!account.data) {
+      return;
+    }
 
     generateTemplate(columns.data ?? [], account.data);
   }
@@ -170,49 +160,47 @@ export function useInventoryRecordsPage() {
   }
 
   function exportRecordsToExcel() {
-  if (!account.data) return;
+    if (!account.data) {
+      return;
+    }
 
-  exportInventoryRecords({
-    records: filters.filteredRecords,
-    columns: columns.data ?? [],
-    accountTitle: account.data.account_title,
-  });
-}
+    exportInventoryRecords({
+      layout: tableLayout,
+      accountTitle: account.data.account_title,
+    });
+  }
 
   return {
     id,
-
     account,
     records,
     columns,
     groups,
-    groupedRecords,
-
+    tableLayout,
     filters,
     selection,
     view,
-
     bulkAssign,
     bulkDelete,
-
+    deleteRecord,
     selectedGroupId,
-    setSelectedGroupId,
 
+    setSelectedGroupId,
     assignSelectedGroup,
     deleteSelectedRecords,
-    printableRecords,
-    deleteRecordById,
 
+    printableRecords,
+
+    deleteRecordById,
     downloadTemplate,
     exportRecordsToExcel,
     goToColumns,
     openPublicView,
 
+    routeContext,
     totalAmount,
     totalGroups,
-
     inventoryType,
-
     isLoading,
   };
 }

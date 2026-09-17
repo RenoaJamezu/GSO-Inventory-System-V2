@@ -6,7 +6,6 @@ import PageLoader from "@/pages/PageLoader";
 import { authRoutes } from "./routes/auth.routes";
 import { inventoryRoutes } from "./routes/inventory.routes";
 import { publicRoutes } from "./routes/public.routes";
-import { reportsRoutes } from "./routes/reports.routes";
 import { sharedRoutes } from "./routes/shared.routes";
 import { settingsRoutes } from "./routes/settings.route";
 import { stockCardRoutes } from "./routes/stock-card.routes";
@@ -27,8 +26,6 @@ export default function AppRoutes() {
         {stockCardRoutes}
 
         {vehicleRecordRoutes}
-
-        {reportsRoutes}
 
         {settingsRoutes}
       </Routes>

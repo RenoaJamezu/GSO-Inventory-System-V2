@@ -8,13 +8,7 @@ import {
   Wrench,
 } from "lucide-react";
 
-import { Button, SearchField } from "@/components/ui";
-
-import {
-  Dropdown,
-  DropdownDivider,
-  DropdownItem,
-} from "@/components/ui/dropdown";
+import { Button, Dropdown, SearchField } from "@/components/ui";
 
 import { PERMISSIONS, usePermissions } from "@/features/auth";
 
@@ -83,50 +77,52 @@ export default function InventoryRecordToolbar({
           </Button>
         )}
 
-        <Dropdown
-          trigger={
+        <Dropdown>
+          <Dropdown.Trigger>
             <Button variant="secondary" className="flex items-center gap-2">
               <Wrench size={16} />
               Tools
             </Button>
-          }
-        >
-          {canImport && (
-            <>
-              <DropdownItem onClick={onImportExcel}>
-                <Upload size={16} />
-                Import Excel
-              </DropdownItem>
+          </Dropdown.Trigger>
 
-              <DropdownItem onClick={onDownloadTemplate}>
-                <FileDown size={16} />
-                Download Template
-              </DropdownItem>
-            </>
-          )}
+          <Dropdown.Content>
+            {canImport && (
+              <>
+                <Dropdown.Item onClick={onImportExcel}>
+                  <Upload size={16} />
+                  Import Excel
+                </Dropdown.Item>
 
-          {canExport && (
-            <DropdownItem onClick={onExportExcel}>
-              <Download size={16} />
-              Export Excel
-            </DropdownItem>
-          )}
+                <Dropdown.Item onClick={onDownloadTemplate}>
+                  <FileDown size={16} />
+                  Download Template
+                </Dropdown.Item>
+              </>
+            )}
 
-          {(canManageColumns || canManageGroups) && <DropdownDivider />}
+            {canExport && (
+              <Dropdown.Item onClick={onExportExcel}>
+                <Download size={16} />
+                Export Excel
+              </Dropdown.Item>
+            )}
 
-          {canManageColumns && (
-            <DropdownItem onClick={onManageColumns}>
-              <Columns3 size={16} />
-              Manage Columns
-            </DropdownItem>
-          )}
+            {(canManageColumns || canManageGroups) && <Dropdown.Separator />}
 
-          {canManageGroups && (
-            <DropdownItem onClick={onManageGroups}>
-              <FolderCog size={16} />
-              Manage Groups
-            </DropdownItem>
-          )}
+            {canManageColumns && (
+              <Dropdown.Item onClick={onManageColumns}>
+                <Columns3 size={16} />
+                Manage Columns
+              </Dropdown.Item>
+            )}
+
+            {canManageGroups && (
+              <Dropdown.Item onClick={onManageGroups}>
+                <FolderCog size={16} />
+                Manage Groups
+              </Dropdown.Item>
+            )}
+          </Dropdown.Content>
         </Dropdown>
       </div>
     </section>

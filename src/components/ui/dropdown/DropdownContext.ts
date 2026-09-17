@@ -1,10 +1,11 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, type RefObject } from "react";
 
 export type DropdownContextValue = {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   toggle: () => void;
   close: () => void;
+  triggerRef: RefObject<HTMLElement | null>;
 };
 
 export const DropdownContext = createContext<DropdownContextValue | null>(null);

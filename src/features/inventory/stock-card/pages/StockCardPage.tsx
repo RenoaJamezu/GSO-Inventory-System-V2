@@ -1,158 +1,57 @@
-import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { ChevronRight, Pencil, Plus } from "lucide-react";
 
-import { Button, Card, PageHeader } from "@/components/ui";
-
 import { FormSelect } from "@/components/form";
+import { Button, Card, PageHeader } from "@/components/ui";
 
 import StockCardDialog from "../components/StockCardDialog";
 import StockCardList from "../components/StockCardList";
 import StockCardTable from "../components/StockCardTable";
 import StockCardToolbar from "../components/StockCardToolbar";
 import StockCardTransactionDialog from "../components/StockCardTransactionDialog";
-
-import { useStockCards } from "../hooks/useStockCards";
-import { useStockCardTransactions } from "../hooks/useStockCardTransactions";
-
-import { buildStockCardRows } from "../utils/buildStockCardRows";
-
-import type { StockCard, StockCardTransaction } from "../types";
-import { PERMISSIONS, usePermissions } from "@/features/auth";
+import { useStockCardPage } from "../hooks/useStockCardPage";
 
 export default function StockCardPage() {
-  const stockCards = useStockCards();
+  const {
+    stockCardsQuery,
+    transactionsQuery,
 
-  const [search, setSearch] = useState("");
+    filteredStockCards,
+    selectedStockCard,
+    filteredTransactionRows,
+    offices,
+    currentBalance,
 
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+    search,
+    setSearch,
 
-  const [officeFilter, setOfficeFilter] = useState("ALL");
+    selectedId,
 
-  const [dialogOpen, setDialogOpen] = useState(false);
+    officeFilter,
+    setOfficeFilter,
 
-  const [editingStockCard, setEditingStockCard] = useState<StockCard | null>(
-    null,
-  );
+    dialogOpen,
+    editingStockCard,
 
-  const [transactionDialogOpen, setTransactionDialogOpen] = useState(false);
+    transactionDialogOpen,
+    editingTransaction,
 
-  const [editingTransaction, setEditingTransaction] =
-    useState<StockCardTransaction | null>(null);
+    canCreate,
+    canUpdate,
 
-  const transactions = useStockCardTransactions(selectedId);
+    createStockCard,
+    editSelectedStockCard,
+    closeStockCardDialog,
 
-  const filteredStockCards = useMemo(() => {
-    const query = search.trim().toLowerCase();
+    selectStockCard,
 
-    if (!query) {
-      return stockCards.data ?? [];
-    }
+    addTransaction,
+    editTransaction,
+    closeTransactionDialog,
+  } = useStockCardPage();
 
-    return (stockCards.data ?? []).filter(
-      (stockCard) =>
-        stockCard.item.toLowerCase().includes(query) ||
-        stockCard.stock_no.toLowerCase().includes(query) ||
-        stockCard.description?.toLowerCase().includes(query),
-    );
-  }, [stockCards.data, search]);
-
-  const selectedStockCard = useMemo(
-    () =>
-      stockCards.data?.find((stockCard) => stockCard.id === selectedId) ?? null,
-    [stockCards.data, selectedId],
-  );
-
-  const transactionRows = useMemo(
-    () => buildStockCardRows(transactions.data ?? []),
-    [transactions.data],
-  );
-
-  const currentBalance =
-    transactionRows.length > 0
-      ? transactionRows[transactionRows.length - 1].balance
-      : 0;
-
-  const offices = useMemo(() => {
-    const uniqueOffices = new Set<string>();
-
-    transactionRows.forEach((transaction) => {
-      if (transaction.transaction_type === "ISSUE" && transaction.office) {
-        uniqueOffices.add(transaction.office);
-      }
-    });
-
-    return Array.from(uniqueOffices).sort((a, b) => a.localeCompare(b));
-  }, [transactionRows]);
-
-  const filteredTransactionRows = useMemo(() => {
-    if (officeFilter === "ALL") {
-      return transactionRows;
-    }
-
-    return transactionRows.filter(
-      (transaction) =>
-        transaction.transaction_type === "RECEIPT" ||
-        transaction.office === officeFilter,
-    );
-  }, [transactionRows, officeFilter]);
-
-  const { can } = usePermissions();
-
-  const canCreate = can(PERMISSIONS.STOCK_CARD_CREATE);
-
-  const canUpdate = can(PERMISSIONS.STOCK_CARD_UPDATE);
-
-  function handleCreate() {
-    if (!canCreate) return;
-
-    setEditingStockCard(null);
-    setDialogOpen(true);
-  }
-
-  function handleEdit() {
-    if (!canUpdate) return;
-    if (!selectedStockCard) return;
-
-    setEditingStockCard(selectedStockCard);
-    setDialogOpen(true);
-  }
-
-  function handleCloseDialog() {
-    setDialogOpen(false);
-    setEditingStockCard(null);
-  }
-
-  function handleSelectStockCard(stockCard: StockCard) {
-    setSelectedId(stockCard.id);
-
-    setOfficeFilter("ALL");
-
-    setEditingTransaction(null);
-    setTransactionDialogOpen(false);
-  }
-
-  function handleAddTransaction() {
-    if (!canCreate) return;
-
-    setEditingTransaction(null);
-    setTransactionDialogOpen(true);
-  }
-
-  function handleEditTransaction(transaction: StockCardTransaction) {
-    if (!canUpdate) return;
-
-    setEditingTransaction(transaction);
-    setTransactionDialogOpen(true);
-  }
-
-  function handleCloseTransactionDialog() {
-    setTransactionDialogOpen(false);
-    setEditingTransaction(null);
-  }
-
-  if (stockCards.isLoading) {
+  if (stockCardsQuery.isLoading) {
     return (
       <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
         Loading stock cards...
@@ -163,7 +62,6 @@ export default function StockCardPage() {
   return (
     <>
       <div className="space-y-6">
-        {/* Breadcrumb */}
         <nav
           aria-label="Breadcrumb"
           className="flex items-center gap-1.5 text-sm"
@@ -196,19 +94,16 @@ export default function StockCardPage() {
           description="Manage stock items, receipts, issuances, balances, and consumption records."
         />
 
-        {/* Search / create */}
-        <Card padding="none">
+        <Card>
           <StockCardToolbar
             search={search}
             onSearchChange={setSearch}
-            onCreate={handleCreate}
+            onCreate={createStockCard}
           />
         </Card>
 
-        {/* Workspace */}
         <div className="grid gap-5 xl:grid-cols-[300px_minmax(0,1fr)]">
-          {/* Item list */}
-          <Card padding="none">
+          <Card>
             <div
               className="
                 border-b
@@ -227,26 +122,23 @@ export default function StockCardPage() {
               </p>
             </div>
 
-            <div className="max-h-[40rem] overflow-y-auto">
+            <div className="max-h-160 overflow-y-auto">
               <StockCardList
                 stockCards={filteredStockCards}
                 selectedId={selectedId}
-                onSelect={handleSelectStockCard}
+                onSelect={selectStockCard}
               />
             </div>
           </Card>
 
-          {/* Selected stock card */}
           <div className="min-w-0">
             {selectedStockCard ? (
               <div className="space-y-4">
-                {/* Actions / filter */}
-                <Card padding="none">
+                <Card>
                   <div
                     className="
                       flex flex-col gap-3
                       p-4
-
                       md:flex-row
                       md:items-center
                       md:justify-between
@@ -255,24 +147,24 @@ export default function StockCardPage() {
                     <div className="w-full md:max-w-xs">
                       <FormSelect
                         value={officeFilter}
-                        onChange={(event) =>
-                          setOfficeFilter(event.target.value)
-                        }
-                      >
-                        <option value="ALL">All Offices</option>
-
-                        {offices.map((office) => (
-                          <option key={office} value={office}>
-                            {office}
-                          </option>
-                        ))}
-                      </FormSelect>
+                        options={[
+                          {
+                            value: "",
+                            label: "All Offices",
+                          },
+                          ...offices.map((office) => ({
+                            value: office,
+                            label: office,
+                          })),
+                        ]}
+                        onChange={setOfficeFilter}
+                      />
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
                       {canCreate && (
                         <Button
-                          onClick={handleAddTransaction}
+                          onClick={addTransaction}
                           className="flex items-center gap-2"
                         >
                           <Plus size={16} />
@@ -283,7 +175,7 @@ export default function StockCardPage() {
                       {canUpdate && (
                         <Button
                           variant="secondary"
-                          onClick={handleEdit}
+                          onClick={editSelectedStockCard}
                           className="flex items-center gap-2"
                         >
                           <Pencil size={16} />
@@ -294,8 +186,7 @@ export default function StockCardPage() {
                   </div>
                 </Card>
 
-                {/* Transactions */}
-                {transactions.isLoading ? (
+                {transactionsQuery.isLoading ? (
                   <Card>
                     <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
                       Loading transactions...
@@ -305,7 +196,7 @@ export default function StockCardPage() {
                   <StockCardTable
                     stockCard={selectedStockCard}
                     transactions={filteredTransactionRows}
-                    onEditTransaction={handleEditTransaction}
+                    onEditTransaction={editTransaction}
                   />
                 )}
               </div>
@@ -330,7 +221,7 @@ export default function StockCardPage() {
       <StockCardDialog
         open={dialogOpen}
         stockCard={editingStockCard}
-        onClose={handleCloseDialog}
+        onClose={closeStockCardDialog}
       />
 
       {selectedStockCard && (
@@ -339,7 +230,7 @@ export default function StockCardPage() {
           stockCardId={selectedStockCard.id}
           transaction={editingTransaction}
           currentBalance={currentBalance}
-          onClose={handleCloseTransactionDialog}
+          onClose={closeTransactionDialog}
         />
       )}
     </>

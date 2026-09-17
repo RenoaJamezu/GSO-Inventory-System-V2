@@ -6,17 +6,16 @@ import {
   getStockCardTransactions,
   updateStockCardTransaction,
 } from "../api/stockCardTransactions.api";
-
 import { stockCardKeys } from "../queryKeys";
 
 export function useStockCardTransactions(stockCardId: number | null) {
+  const isValidStockCardId =
+    stockCardId !== null && Number.isFinite(stockCardId) && stockCardId > 0;
+
   return useQuery({
     queryKey: stockCardKeys.transactions(stockCardId ?? 0),
-
     queryFn: () => getStockCardTransactions(stockCardId as number),
-
-    enabled:
-      stockCardId !== null && Number.isFinite(stockCardId) && stockCardId > 0,
+    enabled: isValidStockCardId,
   });
 }
 

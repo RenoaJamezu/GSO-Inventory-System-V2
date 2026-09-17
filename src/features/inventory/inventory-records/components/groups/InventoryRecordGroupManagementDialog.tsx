@@ -92,7 +92,11 @@ export default function InventoryRecordGroupManagementDialog({
                 Loading groups...
               </div>
             ) : (
-              <InventoryRecordGroupCard groups={groups} onEdit={editGroup} />
+              <InventoryRecordGroupCard
+                groups={groups}
+                accountId={accountId}
+                onEdit={editGroup}
+              />
             )}
           </div>
         </DialogBody>

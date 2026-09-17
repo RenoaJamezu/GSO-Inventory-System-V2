@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { AlertTriangle } from "lucide-react";
@@ -11,7 +11,7 @@ import {
   DialogHeader,
 } from "@/components/dialog";
 
-import { FormField, FormInput } from "@/components/form";
+import { FormField, FormInput, FormNumberInput } from "@/components/form";
 import { Button } from "@/components/ui";
 
 import {
@@ -44,7 +44,7 @@ const emptyValues: VehicleRecordFormValues = {
   expiration_date: "",
   property_no: "",
   date_acquired: "",
-  cost: "",
+  cost: null,
 };
 
 export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
@@ -58,11 +58,18 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
     handleSubmit,
     reset,
     setError,
+    setValue,
+    control,
 
     formState: { errors, isSubmitting },
   } = useForm<VehicleRecordFormValues>({
     resolver: zodResolver(vehicleRecordSchema),
     defaultValues: emptyValues,
+  });
+
+  const cost = useWatch({
+    control,
+    name: "cost",
   });
 
   const loading =
@@ -84,7 +91,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
         expiration_date: vehicle.expiration_date ?? "",
         property_no: vehicle.property_no ?? "",
         date_acquired: vehicle.date_acquired ?? "",
-        cost: vehicle.cost !== null ? String(vehicle.cost) : "",
+        cost: vehicle.cost,
       });
 
       return;
@@ -113,7 +120,7 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
       property_no: toNullableString(values.property_no),
       date_acquired: toNullableString(values.date_acquired),
 
-      cost: values.cost.trim() === "" ? null : Number(values.cost),
+      cost: values.cost,
     };
 
     try {
@@ -398,14 +405,17 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                 </FormField>
 
                 <FormField label="Cost">
-                  <FormInput
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
+                  <FormNumberInput
+                    value={cost}
+                    onValueChange={(value) => {
+                      setValue("cost", value ?? null, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      });
+                    }}
+                    min={0}
+                    maximumFractionDigits={2}
                     placeholder="0.00"
-                    className="uppercase"
-                    {...register("cost")}
                   />
 
                   {errors.cost && (

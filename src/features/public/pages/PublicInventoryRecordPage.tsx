@@ -1,37 +1,46 @@
+import QRCode from "react-qr-code";
 import { useParams } from "react-router-dom";
+
+import type { InventoryType } from "@/features/inventory/inventory-records";
+
 import { usePublicInventoryRecord } from "../hooks/usePublicRecord";
 import { renderPublicValue } from "../utils/renderPublicView";
-import { Card } from "@/components/ui";
-import QRCode from "react-qr-code";
 
-function getInventoryType(inventory_type: string) {
-  if (inventory_type === "PAR") {
-    return {
-      bg: "bg-green-50",
-      border: "border-green-500",
-      badge: "bg-green-600 text-white",
-      text: "text-green-600",
-      type: "PAR",
-    };
+function getInventoryTypeLabel(inventoryType: InventoryType) {
+  switch (inventoryType) {
+    case "PAR":
+      return "Property Acknowledgment Receipt";
+
+    case "HIGH_COST":
+      return "High Cost";
+
+    case "LOW_COST":
+      return "Low Cost";
   }
+}
 
-  if (inventory_type === "HIGH_COST") {
-    return {
-      bg: "bg-yellow-50",
-      border: "border-yellow-500",
-      badge: "bg-yellow-500 text-white",
-      text: "text-yellow-600",
-      type: "High Cost",
-    };
-  }
+function PublicRecordStatus({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
+      <div className="w-full max-w-md border border-slate-200 bg-white p-8 text-center">
+        <img
+          src="/images/sibagat-logo.png"
+          alt="Municipality of Sibagat logo"
+          className="mx-auto h-16 w-16 object-contain"
+        />
 
-  return {
-    bg: "bg-purple-50",
-    border: "border-purple-400",
-    badge: "bg-purple-500 text-white",
-    text: "text-purple-600",
-    type: "Low Cost",
-  };
+        <h1 className="mt-5 text-lg font-semibold text-slate-900">{title}</h1>
+
+        <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+      </div>
+    </main>
+  );
 }
 
 export default function PublicInventoryRecordPage() {
@@ -45,96 +54,135 @@ export default function PublicInventoryRecordPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        Loading...
-      </div>
+      <PublicRecordStatus
+        title="Loading Inventory Record"
+        description="Please wait while the public inventory information is being retrieved."
+      />
     );
   }
 
-  if (error || !record) {
+  if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        Record not found.
-      </div>
+      <PublicRecordStatus
+        title="Unable to Load Record"
+        description="The inventory record could not be loaded. Please try again later."
+      />
     );
   }
 
-  const asset = getInventoryType(record.inventory_type);
+  if (!record) {
+    return (
+      <PublicRecordStatus
+        title="Inventory Record Not Found"
+        description="This QR code does not correspond to an available inventory record."
+      />
+    );
+  }
 
-  const qrUrl = `${window.location.origin}/public/${record.qr_uuid}`;
+  const qrUrl = `${window.location.origin}/public/${encodeURIComponent(
+    record.qr_uuid,
+  )}`;
+
+  const sortedColumns = [...record.columns].sort(
+    (a, b) => a.display_order - b.display_order,
+  );
 
   return (
-    <main className="min-h-screen bg-gray-100 p-6 ">
-      <div className="max-w-2xl mx-auto space-y-4">
-        <div className="flex items-center gap-2">
+    <main className="min-h-screen bg-slate-100">
+      <header className="border-b-4 border-emerald-700 bg-white">
+        <div className="mx-auto flex max-w-4xl items-center gap-4 px-4 py-5 sm:px-6">
           <img
             src="/images/sibagat-logo.png"
-            className="h-16 p-2 border border-gray-300 rounded-lg bg-white shadow-md"
+            alt="Municipality of Sibagat logo"
+            className="h-14 w-14 object-contain sm:h-16 sm:w-16"
           />
-          <div>
-            <h4 className="text-xl font-bold">GSO Inventory</h4>
-            <p className="text-gray-500">Local Government Unit</p>
+
+          <div className="min-w-0">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              Republic of the Philippines
+            </p>
+
+            <h1 className="mt-0.5 text-base font-bold uppercase text-slate-900 sm:text-lg">
+              Municipality of Sibagat
+            </h1>
+
+            <p className="text-sm font-medium text-emerald-700">
+              General Services Office
+            </p>
           </div>
         </div>
+      </header>
 
-        <Card>
-          {/* Header */}
-          <div className="flex items-center gap-4">
-            <QRCode
-              value={qrUrl}
-              size={128}
-              className="border border-gray-200 p-3 rounded-lg bg-gray-50"
-            />
-
-            <div>
-              <div
-                className={`flex items-center gap-1 rounded-full border px-2 py-0.5 ${asset.border} ${asset.bg} inline-flex`}
-              >
-                <span className={`rounded-full text-xs p-1 ${asset.badge}`} />
-                <span className={`text-[11px] font-bold ${asset.text}`}>
-                  {asset.type}
-                </span>
+      <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
+        <section className="border border-slate-200 bg-white">
+          <div className="border-b border-slate-200 px-5 py-5 sm:px-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+              <div className="w-fit shrink-0 border border-slate-200 bg-white p-3">
+                <QRCode
+                  value={qrUrl}
+                  size={112}
+                  aria-label="QR code for this public inventory record"
+                />
               </div>
 
-              <div>
-                <h1 className="text-2xl font-bold capitalize">
-                  {record.account_title}
-                </h1>
+              <div className="min-w-0 flex-1">
+                <span className="inline-flex border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-800">
+                  {getInventoryTypeLabel(record.inventory_type)}
+                </span>
 
-                <p className="text-sm text-gray-500">
-                  Public Asset Information
+                <h2 className="mt-3 wrap-break-word text-xl font-bold text-slate-900 sm:text-2xl">
+                  {record.account_title}
+                </h2>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  Public Inventory Record
                 </p>
+
+                {record.group_name && (
+                  <p className="mt-2 text-sm text-slate-600">
+                    <span className="font-medium text-slate-700">Group:</span>{" "}
+                    {record.group_name}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Body */}
-          <div className="border-x border-gray-200 mt-6">
-            {record.columns.map((column) => (
-              <div
-                key={column.field_key}
-                className="flex flex-col gap-1 p-5 border-y border-gray-200"
-              >
-                <div className="font-medium text-gray-600 uppercase text-[11px]">
-                  {column.label}
-                </div>
+          <div className="divide-y divide-slate-200">
+            {sortedColumns.length > 0 ? (
+              sortedColumns.map((column) => (
+                <div
+                  key={column.field_key}
+                  className="grid gap-1 px-5 py-4 sm:grid-cols-[14rem_minmax(0,1fr)] sm:gap-6 sm:px-6"
+                >
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {column.label}
+                  </dt>
 
-                <div className="text-gray-900 border border-gray-200 p-2 rounded-lg bg-gray-100 mt-1 font-medium">
-                  {renderPublicValue(
-                    record.data[column.field_key],
-                    column.data_type,
-                  )}
+                  <dd className="wrap-break-word text-sm font-medium text-slate-900">
+                    {renderPublicValue(
+                      record.data[column.field_key],
+                      column.data_type,
+                    )}
+                  </dd>
                 </div>
+              ))
+            ) : (
+              <div className="px-5 py-8 text-center text-sm text-slate-500 sm:px-6">
+                No public inventory fields are available for this record.
               </div>
-            ))}
+            )}
           </div>
 
-          {/* Footer */}
-          <span className="text-xs text-gray-500 pt-2">
-            This is a read-only public view. For corrections, contact the
-            General Services Office.
-          </span>
-        </Card>
+          <footer className="border-t border-slate-200 bg-slate-50 px-5 py-4 sm:px-6">
+            <p className="text-xs leading-5 text-slate-500">
+              This is a read-only public inventory record maintained by the
+              General Services Office of the Municipality of Sibagat. For
+              corrections or inquiries regarding this record, please contact the
+              General Services Office.
+            </p>
+          </footer>
+        </section>
       </div>
     </main>
   );

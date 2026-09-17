@@ -1,5 +1,7 @@
+import type { ReactNode } from "react";
+
 type Props = {
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 export default function InventoryRecordPrintLayout({ children }: Props) {
@@ -28,16 +30,11 @@ export default function InventoryRecordPrintLayout({ children }: Props) {
       <div
         className="
           box-border
-          w-[8.27in]
-          h-[11.69in]
+          grid h-[11.69in] w-[8.27in]
+          grid-cols-2 grid-rows-5
+          place-items-center
           bg-white
-
-          grid
-          grid-cols-2
-          grid-rows-5
-
-          px-[0.2in]
-          py-[0.2in]
+          px-[0.2in] py-[0.2in]
         "
       >
         {children}

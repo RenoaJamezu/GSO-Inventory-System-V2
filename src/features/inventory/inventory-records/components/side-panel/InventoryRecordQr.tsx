@@ -1,10 +1,11 @@
 import { QrCode } from "lucide-react";
 
 import InventoryRecordQrCard from "../InventoryRecordQrCard";
+import type { InventoryType } from "../../types";
 
 type Props = {
   qrUuid: string;
-  inventoryType: string;
+  inventoryType: InventoryType;
 };
 
 export default function InventoryRecordQr({ qrUuid, inventoryType }: Props) {

@@ -4,16 +4,13 @@ import {
   DialogFooter,
   DialogHeader,
 } from "@/components/dialog";
-
 import { FormField, FormSelect } from "@/components/form";
-
 import { Button } from "@/components/ui";
 
-import DynamicField from "./DynamicField";
-
+import { useInventoryRecordForm } from "../hooks/useInventoryRecordForm";
 import type { InventoryRecord, InventoryType } from "../types";
 
-import { useInventoryRecordForm } from "../hooks/useInventoryRecordForm";
+import DynamicField from "./DynamicField";
 
 type Props = {
   open: boolean;
@@ -23,42 +20,34 @@ type Props = {
   onClose: () => void;
 };
 
-export default function InventoryRecordDialog({
-  open,
+type ContentProps = Omit<Props, "open">;
+
+function InventoryRecordDialogContent({
   accountId,
   inventoryType,
   record,
   onClose,
-}: Props) {
+}: ContentProps) {
   const {
     columns,
     groups,
-
     control,
-
+    errors,
     groupId,
     setGroupId,
-
     onSubmit,
-
     isEdit,
     isSubmitting,
+    submitError,
   } = useInventoryRecordForm({
-    open,
     accountId,
     inventoryType,
     record,
     onSuccess: onClose,
   });
 
-  if (!open) return null;
-
   return (
-    <Dialog
-      open={open}
-      maxWidth="lg"
-      onClose={isSubmitting ? undefined : onClose}
-    >
+    <Dialog open maxWidth="lg" onClose={isSubmitting ? undefined : onClose}>
       <DialogHeader
         title={isEdit ? "Edit Inventory Record" : "Add Inventory Record"}
       >
@@ -74,8 +63,16 @@ export default function InventoryRecordDialog({
         className="flex min-h-0 flex-1 flex-col overflow-hidden"
       >
         <DialogBody>
+          {submitError && (
+            <div
+              role="alert"
+              className="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300"
+            >
+              {submitError}
+            </div>
+          )}
+
           <div className="space-y-6">
-            {/* Classification */}
             <section className="space-y-4">
               <div>
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -89,27 +86,25 @@ export default function InventoryRecordDialog({
 
               <FormField label="Group">
                 <FormSelect
-                  value={groupId ?? ""}
-                  onChange={(event) =>
-                    setGroupId(
-                      event.target.value === ""
-                        ? null
-                        : Number(event.target.value),
-                    )
+                  value={groupId === null ? "" : String(groupId)}
+                  options={[
+                    {
+                      value: "",
+                      label: "No Group",
+                    },
+                    ...groups.map((group) => ({
+                      value: String(group.id),
+                      label: group.group_name,
+                    })),
+                  ]}
+                  onChange={(value) =>
+                    setGroupId(value === "" ? null : Number(value))
                   }
-                >
-                  <option value="">No Group</option>
-
-                  {groups.map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.group_name}
-                    </option>
-                  ))}
-                </FormSelect>
+                  disabled={isSubmitting}
+                />
               </FormField>
             </section>
 
-            {/* Dynamic fields */}
             <section className="space-y-4 border-t border-slate-200 pt-6 dark:border-slate-800">
               <div>
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -138,6 +133,11 @@ export default function InventoryRecordDialog({
                       key={column.id}
                       column={column}
                       control={control}
+                      error={
+                        errors[column.field_key]?.message
+                          ? String(errors[column.field_key]?.message)
+                          : undefined
+                      }
                     />
                   ))}
                 </div>
@@ -166,5 +166,20 @@ export default function InventoryRecordDialog({
         </DialogFooter>
       </form>
     </Dialog>
+  );
+}
+
+export default function InventoryRecordDialog(props: Props) {
+  if (!props.open) {
+    return null;
+  }
+
+  return (
+    <InventoryRecordDialogContent
+      accountId={props.accountId}
+      inventoryType={props.inventoryType}
+      record={props.record}
+      onClose={props.onClose}
+    />
   );
 }

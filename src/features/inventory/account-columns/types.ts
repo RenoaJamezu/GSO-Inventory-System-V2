@@ -20,7 +20,6 @@ export interface AccountColumn {
   display_order: number;
 
   placeholder: string | null;
-
   description: string | null;
 
   deleted_at: string | null;
@@ -37,15 +36,23 @@ export interface AccountColumnInput {
   data_type: ColumnDataType;
 
   is_required: boolean;
-
   is_amount_column: boolean;
 
   placeholder?: string | null;
-
   description?: string | null;
 }
 
 export interface DeleteAccountColumnInput {
   id: number;
   account_id: number;
+}
+
+export interface AccountColumnOrderUpdate {
+  id: number;
+  display_order: number;
+}
+
+export interface ReorderAccountColumnsInput {
+  accountId: number;
+  columns: AccountColumnOrderUpdate[];
 }

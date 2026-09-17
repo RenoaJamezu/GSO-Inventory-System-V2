@@ -145,7 +145,8 @@ export default function Dialog({
           aria-modal="true"
           tabIndex={-1}
           className={[
-            "flex h-[90vh] w-full flex-col",
+            "flex max-h-[calc(100vh-2rem)]",
+            "w-full flex-col",
             "overflow-hidden rounded-lg border",
             "border-slate-200 bg-white",
             "shadow-xl outline-none",

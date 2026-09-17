@@ -7,7 +7,6 @@ import {
   getStockCards,
   updateStockCard,
 } from "../api/stockCards.api";
-
 import { stockCardKeys } from "../queryKeys";
 
 export function useStockCards() {
@@ -33,7 +32,7 @@ export function useCreateStockCard() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: stockCardKeys.all,
+        queryKey: stockCardKeys.lists(),
       });
     },
   });
@@ -45,9 +44,13 @@ export function useUpdateStockCard() {
   return useMutation({
     mutationFn: updateStockCard,
 
-    onSuccess: () => {
+    onSuccess: (stockCard) => {
       queryClient.invalidateQueries({
-        queryKey: stockCardKeys.all,
+        queryKey: stockCardKeys.lists(),
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: stockCardKeys.detail(stockCard.id),
       });
     },
   });
@@ -61,7 +64,7 @@ export function useDeleteStockCard() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: stockCardKeys.all,
+        queryKey: stockCardKeys.lists(),
       });
     },
   });

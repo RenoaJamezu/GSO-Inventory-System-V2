@@ -1,71 +1,54 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { HTMLAttributes, ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import { DropdownContext, type DropdownContextValue } from "./DropdownContext";
+import { DropdownContext } from "./DropdownContext";
 
-export type DropdownProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
+export type DropdownProps = {
   children: ReactNode;
 };
 
-export default function Dropdown({
-  children,
-  className = "",
-  ...props
-}: DropdownProps) {
+export default function Dropdown({ children }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
-  const close = useCallback(() => {
-    setIsOpen(false);
-  }, []);
-
-  const toggle = useCallback(() => {
-    setIsOpen((current) => !current);
-  }, []);
+  const close = () => setIsOpen(false);
+  const toggle = () => setIsOpen((current) => !current);
 
   useEffect(() => {
     if (!isOpen) return;
 
     const handlePointerDown = (event: PointerEvent) => {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
-        close();
-      }
-    };
+      const target = event.target;
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        close();
-      }
+      if (!(target instanceof Node)) return;
+
+      if (rootRef.current?.contains(target)) return;
+
+      const menu = document.querySelector("[data-dropdown-menu-open='true']");
+
+      if (menu?.contains(target)) return;
+
+      close();
     };
 
     document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [close, isOpen]);
-
-  const contextValue = useMemo<DropdownContextValue>(
-    () => ({
-      isOpen,
-      setIsOpen,
-      toggle,
-      close,
-    }),
-    [close, isOpen, toggle],
-  );
+  }, [isOpen]);
 
   return (
-    <DropdownContext.Provider value={contextValue}>
-      <div
-        {...props}
-        ref={rootRef}
-        className={["relative inline-block", className]
-          .filter(Boolean)
-          .join(" ")}
-      >
+    <DropdownContext.Provider
+      value={{
+        isOpen,
+        setIsOpen,
+        toggle,
+        close,
+        triggerRef,
+      }}
+    >
+      <div ref={rootRef} className="relative inline-block">
         {children}
       </div>
     </DropdownContext.Provider>

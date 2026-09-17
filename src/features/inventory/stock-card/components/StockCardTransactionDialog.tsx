@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -91,6 +91,7 @@ export default function StockCardTransactionDialog({
     handleSubmit,
     reset,
     watch,
+    control,
     setError,
 
     formState: { errors },
@@ -335,11 +336,20 @@ export default function StockCardTransactionDialog({
                 </div>
 
                 <FormField label="Transaction Type" required>
-                  <FormSelect {...register("transaction_type")}>
-                    <option value="RECEIPT">Receipt</option>
-
-                    <option value="ISSUE">Issue</option>
-                  </FormSelect>
+                  <Controller
+                    name="transaction_type"
+                    control={control}
+                    render={({ field }) => (
+                      <FormSelect
+                        value={field.value}
+                        options={[
+                          { value: "RECEIPT", label: "Receipt" },
+                          { value: "ISSUE", label: "Issue" },
+                        ]}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
 
                   {errors.transaction_type?.message && (
                     <p className="mt-1 text-sm text-red-600 dark:text-red-400">

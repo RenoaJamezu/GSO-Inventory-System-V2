@@ -7,7 +7,6 @@ import {
   getVehicleRecords,
   updateVehicleRecord,
 } from "../api/vehicleRecords.api";
-
 import { vehicleRecordKeys } from "../queryKeys";
 
 export function useVehicleRecords() {
@@ -18,12 +17,12 @@ export function useVehicleRecords() {
 }
 
 export function useVehicleRecord(id: number | null) {
+  const isValidId = id !== null && Number.isFinite(id) && id > 0;
+
   return useQuery({
     queryKey: vehicleRecordKeys.detail(id ?? 0),
-
-    queryFn: () => getVehicleRecord(id!),
-
-    enabled: id !== null,
+    queryFn: () => getVehicleRecord(id as number),
+    enabled: isValidId,
   });
 }
 
@@ -35,7 +34,7 @@ export function useCreateVehicleRecord() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: vehicleRecordKeys.all,
+        queryKey: vehicleRecordKeys.lists(),
       });
     },
   });
@@ -49,7 +48,7 @@ export function useUpdateVehicleRecord() {
 
     onSuccess: (vehicle) => {
       queryClient.invalidateQueries({
-        queryKey: vehicleRecordKeys.all,
+        queryKey: vehicleRecordKeys.lists(),
       });
 
       queryClient.invalidateQueries({
@@ -67,7 +66,7 @@ export function useDeleteVehicleRecord() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: vehicleRecordKeys.all,
+        queryKey: vehicleRecordKeys.lists(),
       });
     },
   });

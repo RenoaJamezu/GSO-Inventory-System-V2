@@ -2,9 +2,12 @@ export interface InventoryAccount {
   id: number;
   account_title: string;
   slug: string;
+
   book_value: number;
   per_inventory_report: number;
   variance: number;
+
+  sort_order: number;
 
   is_par_visible: boolean;
   is_high_cost_visible: boolean;
@@ -29,4 +32,19 @@ export interface InventoryAccountInput {
   is_low_cost_visible: boolean;
 }
 
+export interface InventoryAccountFilters {
+  is_par_visible?: boolean;
+  is_high_cost_visible?: boolean;
+  is_low_cost_visible?: boolean;
+}
+
 export type WorkspaceType = "PAR" | "HIGH_COST" | "LOW_COST";
+
+export interface InventoryAccountOrderUpdate {
+  id: number;
+  sort_order: number;
+}
+
+export interface ReorderInventoryAccountsInput {
+  accounts: InventoryAccountOrderUpdate[];
+}

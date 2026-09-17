@@ -1,35 +1,78 @@
 import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+
+import {
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 import { ConfirmDialog } from "@/components/dialog";
-import { Button } from "@/components/ui";
 
 import type { Group } from "../../types";
 
-import { useDeleteGroup } from "../../hooks/useInventoryRecordGroups";
+import {
+  useDeleteGroup,
+  useReorderGroups,
+} from "../../hooks/useInventoryRecordGroups";
+
+import SortableInventoryRecordGroup from "./SortableInventoryRecordGroup";
 
 type Props = {
   groups: Group[];
+  accountId: number;
+
   onEdit: (group: Group) => void;
 };
 
-export default function InventoryRecordGroupCard({ groups, onEdit }: Props) {
+export default function InventoryRecordGroupCard({
+  groups,
+  accountId,
+  onEdit,
+}: Props) {
   const deleteMutation = useDeleteGroup();
+  const reorderMutation = useReorderGroups();
 
   const [groupToDelete, setGroupToDelete] = useState<Group | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 6,
+      },
+    }),
+
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   function requestDelete(group: Group) {
     setGroupToDelete(group);
   }
 
   function closeDeleteDialog() {
-    if (deleteMutation.isPending) return;
+    if (deleteMutation.isPending) {
+      return;
+    }
 
     setGroupToDelete(null);
   }
 
   async function confirmDelete() {
-    if (!groupToDelete) return;
+    if (!groupToDelete) {
+      return;
+    }
 
     try {
       await deleteMutation.mutateAsync({
@@ -41,6 +84,33 @@ export default function InventoryRecordGroupCard({ groups, onEdit }: Props) {
     } catch (error) {
       console.error("Failed deleting inventory group", error);
     }
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (reorderMutation.isPending || !over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = groups.findIndex((group) => group.id === active.id);
+
+    const newIndex = groups.findIndex((group) => group.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return;
+    }
+
+    const reorderedGroups = arrayMove(groups, oldIndex, newIndex);
+
+    reorderMutation.mutate({
+      accountId,
+
+      groups: reorderedGroups.map((group, index) => ({
+        id: group.id,
+        sort_order: index,
+      })),
+    });
   }
 
   if (!groups.length) {
@@ -69,67 +139,39 @@ export default function InventoryRecordGroupCard({ groups, onEdit }: Props) {
 
   return (
     <>
-      <div
-        className="
-          divide-y divide-slate-200
-          overflow-hidden
-          rounded-lg border
-          border-slate-200
-
-          dark:divide-slate-800
-          dark:border-slate-800
-        "
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
       >
-        {groups.map((group) => (
+        <SortableContext
+          items={groups.map((group) => group.id)}
+          strategy={verticalListSortingStrategy}
+        >
           <div
-            key={group.id}
             className="
-              flex flex-col gap-4
-              bg-white px-4 py-4
+              divide-y divide-slate-200
+              overflow-hidden
+              rounded-lg border
+              border-slate-200
 
-              dark:bg-slate-900
-
-              sm:flex-row
-              sm:items-start
-              sm:justify-between
+              dark:divide-slate-800
+              dark:border-slate-800
             "
           >
-            <div className="min-w-0 flex-1">
-              <h3 className="font-medium text-slate-900 dark:text-slate-100">
-                {group.group_name}
-              </h3>
-
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                {group.description || "No description provided."}
-              </p>
-
-              <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
-                Sort order: {group.sort_order}
-              </p>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-2">
-              <Button
-                variant="secondary"
-                onClick={() => onEdit(group)}
-                className="flex items-center gap-2"
-              >
-                <Pencil size={15} />
-                Edit
-              </Button>
-
-              <Button
-                variant="danger"
-                onClick={() => requestDelete(group)}
-                className="flex items-center gap-2"
-              >
-                <Trash2 size={15} />
-                Delete
-              </Button>
-            </div>
+            {groups.map((group, index) => (
+              <SortableInventoryRecordGroup
+                key={group.id}
+                group={group}
+                index={index}
+                isReordering={reorderMutation.isPending}
+                onEdit={onEdit}
+                onDelete={requestDelete}
+              />
+            ))}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
 
       <ConfirmDialog
         open={Boolean(groupToDelete)}

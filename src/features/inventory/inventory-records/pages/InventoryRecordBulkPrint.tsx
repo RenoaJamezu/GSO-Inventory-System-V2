@@ -1,9 +1,11 @@
+import type { InventoryType } from "../types";
+
 import InventoryRecordPrintLayout from "../components/InventoryRecordPrintLayout";
 import InventoryRecordQrCard from "../components/InventoryRecordQrCard";
 
 type PrintableRecord = {
   qrUuid: string;
-  inventoryType: string;
+  inventoryType: InventoryType;
 };
 
 type Props = {
@@ -15,8 +17,8 @@ const ITEMS_PER_PAGE = 10;
 export default function InventoryRecordBulkPrint({ records }: Props) {
   const pages: PrintableRecord[][] = [];
 
-  for (let i = 0; i < records.length; i += ITEMS_PER_PAGE) {
-    pages.push(records.slice(i, i + ITEMS_PER_PAGE));
+  for (let index = 0; index < records.length; index += ITEMS_PER_PAGE) {
+    pages.push(records.slice(index, index + ITEMS_PER_PAGE));
   }
 
   return (
@@ -27,7 +29,7 @@ export default function InventoryRecordBulkPrint({ records }: Props) {
           className={
             pageIndex < pages.length - 1
               ? "break-after-page print:break-after-page"
-              : ""
+              : undefined
           }
         >
           <InventoryRecordPrintLayout>

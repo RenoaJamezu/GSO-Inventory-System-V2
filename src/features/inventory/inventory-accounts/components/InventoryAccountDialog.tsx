@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Boxes, FileText, Package } from "lucide-react";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -8,25 +9,23 @@ import {
   DialogFooter,
   DialogHeader,
 } from "@/components/dialog";
-
-import { FormCheckbox, FormField, FormInput } from "@/components/form";
-
+import {
+  FormCheckbox,
+  FormField,
+  FormInput,
+  FormNumberInput,
+} from "@/components/form";
 import { Button } from "@/components/ui";
-
-import { Boxes, FileText, Package } from "lucide-react";
+import { normalizeFieldKey } from "@/lib/utils/normalizeFieldKey";
 
 import {
   useCreateInventoryAccount,
   useUpdateInventoryAccount,
 } from "../hooks/useInventoryAccounts";
-
 import {
   inventoryAccountSchema,
   type InventoryAccountForm,
 } from "../schemas/inventoryAccount.schema";
-
-import { normalizeFieldKey } from "@/lib/utils/normalizeFieldKey";
-
 import type { InventoryAccount, WorkspaceType } from "../types";
 
 type Props = {
@@ -35,6 +34,17 @@ type Props = {
   account?: InventoryAccount | null;
   workspace: WorkspaceType;
 };
+
+function getDefaultValues(workspace: WorkspaceType): InventoryAccountForm {
+  return {
+    account_title: "",
+    book_value: 0,
+    variance: 0,
+    is_par_visible: workspace === "PAR",
+    is_high_cost_visible: workspace === "HIGH_COST",
+    is_low_cost_visible: workspace === "LOW_COST",
+  };
+}
 
 export default function InventoryAccountDialog({
   open,
@@ -48,36 +58,28 @@ export default function InventoryAccountDialog({
   const isEditing = Boolean(account);
 
   const {
-    register,
     control,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<InventoryAccountForm>({
     resolver: zodResolver(inventoryAccountSchema),
-
-    defaultValues: {
-      account_title: "",
-      book_value: 0,
-      variance: 0,
-      is_par_visible: workspace === "PAR",
-      is_high_cost_visible: workspace === "HIGH_COST",
-      is_low_cost_visible: workspace === "LOW_COST",
-    },
+    defaultValues: getDefaultValues(workspace),
   });
 
   const loading =
     isSubmitting || createMutation.isPending || updateMutation.isPending;
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
 
     if (account) {
       reset({
         account_title: account.account_title,
         book_value: account.book_value,
         variance: account.variance,
-
         is_par_visible: account.is_par_visible,
         is_high_cost_visible: account.is_high_cost_visible,
         is_low_cost_visible: account.is_low_cost_visible,
@@ -86,30 +88,15 @@ export default function InventoryAccountDialog({
       return;
     }
 
-    reset({
-      account_title: "",
-      book_value: 0,
-      variance: 0,
-
-      is_par_visible: workspace === "PAR",
-      is_high_cost_visible: workspace === "HIGH_COST",
-      is_low_cost_visible: workspace === "LOW_COST",
-    });
+    reset(getDefaultValues(workspace));
   }, [workspace, account, open, reset]);
 
   function handleClose() {
-    if (loading) return;
+    if (loading) {
+      return;
+    }
 
-    reset({
-      account_title: "",
-      book_value: 0,
-      variance: 0,
-
-      is_par_visible: workspace === "PAR",
-      is_high_cost_visible: workspace === "HIGH_COST",
-      is_low_cost_visible: workspace === "LOW_COST",
-    });
-
+    reset(getDefaultValues(workspace));
     onClose();
   }
 
@@ -120,7 +107,7 @@ export default function InventoryAccountDialog({
         slug: normalizeFieldKey(values.account_title),
       };
 
-      if (isEditing && account) {
+      if (account) {
         await updateMutation.mutateAsync({
           id: account.id,
           values: payload,
@@ -129,12 +116,7 @@ export default function InventoryAccountDialog({
         await createMutation.mutateAsync(payload);
       }
 
-      /*
-       * Don't call handleClose here because
-       * loading may still be true while the
-       * mutation promise is resolving.
-       */
-      reset();
+      reset(getDefaultValues(workspace));
       onClose();
     } catch (error) {
       console.error("Failed saving inventory account", error);
@@ -161,7 +143,6 @@ export default function InventoryAccountDialog({
       >
         <DialogBody>
           <div className="space-y-6">
-            {/* Account information */}
             <section className="space-y-4">
               <div>
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -174,56 +155,64 @@ export default function InventoryAccountDialog({
                 </p>
               </div>
 
-              <FormField label="Account Title" required>
-                <FormInput
-                  {...register("account_title")}
-                  placeholder="Enter account title"
-                />
-
-                {errors.account_title && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.account_title.message}
-                  </p>
+              <Controller
+                control={control}
+                name="account_title"
+                render={({ field }) => (
+                  <FormField
+                    label="Account Title"
+                    required
+                    error={errors.account_title?.message}
+                  >
+                    <FormInput
+                      name={field.name}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      placeholder="Enter account title"
+                    />
+                  </FormField>
                 )}
-              </FormField>
+              />
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormField label="Book Value">
-                  <FormInput
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    {...register("book_value", {
-                      valueAsNumber: true,
-                    })}
-                  />
-
-                  {errors.book_value && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.book_value.message}
-                    </p>
+                <Controller
+                  control={control}
+                  name="book_value"
+                  render={({ field }) => (
+                    <FormField
+                      label="Book Value"
+                      error={errors.book_value?.message}
+                    >
+                      <FormNumberInput
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        min={0}
+                        maximumFractionDigits={2}
+                      />
+                    </FormField>
                   )}
-                </FormField>
+                />
 
-                <FormField label="Variance">
-                  <FormInput
-                    type="number"
-                    step="0.01"
-                    {...register("variance", {
-                      valueAsNumber: true,
-                    })}
-                  />
-
-                  {errors.variance && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.variance.message}
-                    </p>
+                <Controller
+                  control={control}
+                  name="variance"
+                  render={({ field }) => (
+                    <FormField
+                      label="Variance"
+                      error={errors.variance?.message}
+                    >
+                      <FormNumberInput
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        maximumFractionDigits={2}
+                      />
+                    </FormField>
                   )}
-                </FormField>
+                />
               </div>
             </section>
 
-            {/* Inventory visibility */}
             <section className="space-y-4 border-t border-slate-200 pt-6 dark:border-slate-800">
               <div>
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -246,7 +235,6 @@ export default function InventoryAccountDialog({
                       icon={<FileText size={18} />}
                       label="PAR"
                       description="Officer-accountable property."
-                      colorTheme="emerald"
                     />
                   )}
                 />
@@ -261,7 +249,6 @@ export default function InventoryAccountDialog({
                       icon={<Package size={18} />}
                       label="High Cost"
                       description="Above capitalization threshold."
-                      colorTheme="gray"
                     />
                   )}
                 />
@@ -276,7 +263,6 @@ export default function InventoryAccountDialog({
                       icon={<Boxes size={18} />}
                       label="Low Cost"
                       description="Below capitalization threshold."
-                      colorTheme="gray"
                     />
                   )}
                 />

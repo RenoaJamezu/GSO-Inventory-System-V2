@@ -5,22 +5,21 @@ import type { AccountColumn } from "@/features/inventory/account-columns";
 import {
   type ColumnMapping,
   type ExcelWorkbook,
-  type Group,
   type InventoryType,
   type PreviewRow,
 } from "../types";
-
-import { readWorkbook } from "../utils/readWorkbook";
-import { parseWorksheet } from "../utils/parseWorksheet";
-import { createAutoMapping } from "../utils/createAutoMapping";
 import { buildInventoryRecords } from "../utils/buildInventoryRecords";
+import { createAutoMapping } from "../utils/createAutoMapping";
+import { parseWorksheet } from "../utils/parseWorksheet";
+import { readWorkbook } from "../utils/readWorkbook";
+import { validateImportRows } from "../utils/validateImportRows";
+
 import { useBulkInsertInventoryRecords } from "./useInventoryRecords";
 
 type Params = {
   accountId: number;
   inventoryType: InventoryType;
   columns: AccountColumn[];
-  groups: Group[];
   onClose: () => void;
 };
 
@@ -33,10 +32,11 @@ export function useInventoryRecordImport({
   const [file, setFile] = useState<File | null>(null);
   const [workbook, setWorkbook] = useState<ExcelWorkbook | null>(null);
   const [sheetName, setSheetName] = useState("");
-
   const [rows, setRows] = useState<PreviewRow[]>([]);
   const [excelColumns, setExcelColumns] = useState<string[]>([]);
   const [mapping, setMapping] = useState<ColumnMapping>({});
+  const [headerRow, setHeaderRow] = useState(1);
+  const [importError, setImportError] = useState<string | null>(null);
 
   const bulkInsert = useBulkInsertInventoryRecords();
 
@@ -44,15 +44,16 @@ export function useInventoryRecordImport({
     setFile(null);
     setWorkbook(null);
     setSheetName("");
+    setHeaderRow(1);
     setRows([]);
     setExcelColumns([]);
     setMapping({});
+    setImportError(null);
   }
 
   function createPreviewRows(parsed: Record<string, unknown>[]) {
     const preview: PreviewRow[] = parsed.map((row) => ({
       id: crypto.randomUUID(),
-      selected: false,
       group_id: null,
       data: row,
     }));
@@ -67,63 +68,127 @@ export function useInventoryRecordImport({
     }
   }
 
-  async function handleFile(file: File) {
-    setFile(file);
-
-    const wb = await readWorkbook(file);
-
-    setWorkbook(wb);
-
-    if (!wb.SheetNames.length) return;
-
-    const firstSheet = wb.SheetNames[0];
-
-    setSheetName(firstSheet);
-
-    const parsed = parseWorksheet(wb, firstSheet);
+  function parseSelectedWorksheet(
+    workbook: ExcelWorkbook,
+    sheet: string,
+    row: number,
+  ) {
+    const parsed = parseWorksheet(workbook, sheet, row);
 
     createPreviewRows(parsed);
-
     setMapping(createAutoMapping(Object.keys(parsed[0] ?? {}), columns));
+    setImportError(null);
+  }
+
+  async function handleFile(file: File) {
+    setImportError(null);
+    setFile(file);
+
+    try {
+      const wb = await readWorkbook(file);
+
+      setWorkbook(wb);
+
+      if (!wb.SheetNames.length) {
+        setSheetName("");
+        setRows([]);
+        setExcelColumns([]);
+        setMapping({});
+        setImportError(
+          "The selected workbook does not contain any worksheets.",
+        );
+        return;
+      }
+
+      const firstSheet = wb.SheetNames[0];
+
+      setSheetName(firstSheet);
+      setHeaderRow(1);
+
+      parseSelectedWorksheet(wb, firstSheet, 1);
+    } catch (error) {
+      console.error("Failed reading inventory workbook", error);
+
+      setWorkbook(null);
+      setSheetName("");
+      setRows([]);
+      setExcelColumns([]);
+      setMapping({});
+      setImportError(
+        error instanceof Error
+          ? error.message
+          : "Failed to read the selected Excel workbook.",
+      );
+    }
   }
 
   function handleSheetChange(sheet: string) {
-    if (!workbook) return;
+    if (!workbook) {
+      return;
+    }
 
     setSheetName(sheet);
+    setHeaderRow(1);
+    parseSelectedWorksheet(workbook, sheet, 1);
+  }
 
-    const parsed = parseWorksheet(workbook, sheet);
+  function handleHeaderRowChange(row: number) {
+    if (!workbook || !sheetName) {
+      return;
+    }
 
-    createPreviewRows(parsed);
-
-    setMapping(createAutoMapping(Object.keys(parsed[0] ?? {}), columns));
+    setHeaderRow(row);
+    parseSelectedWorksheet(workbook, sheetName, row);
   }
 
   async function handleImport() {
-    const validRows = rows.filter((row) =>
-      Object.values(row.data).some((v) => v != null && String(v).trim() !== ""),
-    );
+    if (bulkInsert.isPending) {
+      return;
+    }
+
+    setImportError(null);
+
+    const validation = validateImportRows(rows, mapping, columns, headerRow);
+
+    if (!validation.isValid) {
+      setImportError(validation.message);
+      return;
+    }
 
     const records = buildInventoryRecords(
-      validRows,
+      validation.rows,
       mapping,
       accountId,
       inventoryType,
       columns,
     );
 
-    if (!records.length) {
-      alert("Nothing to import.");
+    if (records.length === 0) {
+      setImportError("There are no valid mapped records to import.");
       return;
     }
 
-    await bulkInsert.mutateAsync(records);
+    try {
+      await bulkInsert.mutateAsync(records);
 
-    reset();
-    onClose();
+      reset();
+      onClose();
+    } catch (error) {
+      console.error("Failed importing inventory records", error);
+
+      setImportError(
+        error instanceof Error
+          ? error.message
+          : "Failed to import inventory records.",
+      );
+    }
   }
 
   function handleClose() {
+    if (bulkInsert.isPending) {
+      return;
+    }
+
     reset();
     onClose();
   }
@@ -132,15 +197,18 @@ export function useInventoryRecordImport({
     file,
     workbook,
     sheetName,
+    headerRow,
     rows,
     excelColumns,
     mapping,
+    importError,
 
     setRows,
     setMapping,
 
     handleFile,
     handleSheetChange,
+    handleHeaderRowChange,
     handleImport,
     handleClose,
 

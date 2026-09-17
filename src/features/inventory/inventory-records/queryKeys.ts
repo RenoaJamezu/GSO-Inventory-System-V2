@@ -10,12 +10,6 @@ export const inventoryRecordKeys = {
 
   accountLists: (accountId: number) =>
     [...inventoryRecordKeys.lists(), accountId] as const,
-
-  details: () => [...inventoryRecordKeys.root, "detail"] as const,
-
-  detail: (id: number) => [...inventoryRecordKeys.details(), id] as const,
-
-  uuid: (uuid: string) => [...inventoryRecordKeys.root, "uuid", uuid] as const,
 };
 
 export const inventoryRecordGroupKeys = {
@@ -25,8 +19,4 @@ export const inventoryRecordGroupKeys = {
 
   list: (accountId: number) =>
     [...inventoryRecordGroupKeys.lists(), accountId] as const,
-
-  details: () => [...inventoryRecordGroupKeys.root, "detail"] as const,
-
-  detail: (id: number) => [...inventoryRecordGroupKeys.details(), id] as const,
 };

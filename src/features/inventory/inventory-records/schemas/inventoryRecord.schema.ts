@@ -1,4 +1,5 @@
 import { z, type ZodTypeAny } from "zod";
+
 import type { AccountColumn } from "@/features/inventory/account-columns";
 
 export function createInventoryRecordSchema(columns: AccountColumn[]) {
@@ -8,42 +9,39 @@ export function createInventoryRecordSchema(columns: AccountColumn[]) {
     let field: ZodTypeAny;
 
     switch (column.data_type) {
-      case "number":
+      case "number": {
+        const numberSchema = column.is_required
+          ? z.number({
+              error: `${column.label} is required`,
+            })
+          : z.number().optional();
+
         field = z.preprocess((value) => {
           if (value === "" || value === null || value === undefined) {
-            return 0;
+            return undefined;
           }
 
           const number = Number(value);
 
-          return Number.isNaN(number) ? undefined : number;
-        }, z.number());
+          return Number.isFinite(number) ? number : undefined;
+        }, numberSchema);
 
         break;
+      }
 
       case "boolean":
         field = z.boolean();
-
         break;
 
       case "date":
-        field = z.string();
-
-        break;
-
       case "textarea":
       case "text":
       default:
-        field = z.string();
-    }
+        field = column.is_required
+          ? z.string().trim().min(1, `${column.label} is required`)
+          : z.string().optional();
 
-    if (column.is_required) {
-      field = field.refine(
-        (value) => value !== undefined && value !== "",
-        `${column.label} is required`,
-      );
-    } else {
-      field = field.optional();
+        break;
     }
 
     shape[column.field_key] = field;

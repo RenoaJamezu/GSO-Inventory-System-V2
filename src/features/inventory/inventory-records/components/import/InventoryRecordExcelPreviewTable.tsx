@@ -54,7 +54,7 @@ export default function InventoryRecordExcelPreviewTable({
   return (
     <div
       className="
-        max-h-[28rem]
+        max-h-112
         overflow-auto
         rounded-lg border
         border-slate-200
@@ -109,17 +109,19 @@ export default function InventoryRecordExcelPreviewTable({
             >
               <td className="px-4 py-3 align-top">
                 <FormSelect
-                  value={row.group_id ?? ""}
-                  onChange={(event) => updateGroup(row.id, event.target.value)}
-                >
-                  <option value="">No Group</option>
-
-                  {groups.map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.group_name}
-                    </option>
-                  ))}
-                </FormSelect>
+                  value={row.group_id === null ? "" : String(row.group_id)}
+                  onChange={(value) => updateGroup(row.id, value)}
+                  options={[
+                    {
+                      value: "",
+                      label: "No Group",
+                    },
+                    ...groups.map((group) => ({
+                      value: String(group.id),
+                      label: group.group_name,
+                    })),
+                  ]}
+                />
               </td>
 
               {columns.map((column) => {
