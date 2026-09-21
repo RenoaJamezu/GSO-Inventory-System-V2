@@ -1,7 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { Card, PageHeader } from "@/components/ui";
+import { Card, LoadingState, PageHeader } from "@/components/ui";
 
 import InventoryAccountDialog from "../components/InventoryAccountDialog";
 import InventoryAccountsTable from "../components/InventoryAccountsTable";
@@ -25,11 +25,7 @@ export default function InventoryWorkspacePage() {
   } = useInventoryAccountsPage();
 
   if (accountsQuery.isLoading) {
-    return (
-      <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
-        Loading inventory accounts...
-      </div>
-    );
+    return <LoadingState message="Loading inventory accounts..." />;
   }
 
   if (accountsQuery.error) {

@@ -14,7 +14,7 @@ export default function RequirePermission({
   const { can, isLoading } = usePermissions();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return null;
   }
 
   if (!can(permission)) {

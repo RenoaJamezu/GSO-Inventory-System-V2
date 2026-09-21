@@ -5,7 +5,7 @@ export default function GuestRoute() {
   const { loading, isAuthenticated } = useAuth();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return null;
   }
 
   if (isAuthenticated) {

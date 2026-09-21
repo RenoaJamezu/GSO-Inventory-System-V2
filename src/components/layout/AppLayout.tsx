@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Outlet } from "react-router-dom";
 
 import { Sidebar } from "./sidebar";
+import PageLoader from "@/pages/PageLoader";
 
 export default function AppLayout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -16,7 +17,9 @@ export default function AppLayout() {
 
       <main className="min-w-0 flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8">
-          <Outlet />
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         </div>
       </main>
     </div>

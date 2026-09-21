@@ -2,6 +2,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth, useCurrentUser } from "@/features/auth";
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import PageLoader from "@/pages/PageLoader";
 
 export default function ProtectedRoute() {
   const { loading, isAuthenticated } = useAuth();
@@ -15,7 +16,7 @@ export default function ProtectedRoute() {
   }, [loading, loadingUser, currentUser]);
 
   if (loading || loadingUser) {
-    return <div>Loading...</div>;
+    return null;
   }
 
   if (!isAuthenticated) {
@@ -27,7 +28,7 @@ export default function ProtectedRoute() {
   }
 
   if (!currentUser.is_active) {
-    return <div>Signing out...</div>;
+    return <PageLoader message="Signing out..." fullScreen />;
   }
 
   return <Outlet />;

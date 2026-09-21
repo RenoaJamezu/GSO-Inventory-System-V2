@@ -8,6 +8,7 @@ export { default as SearchField } from "./SearchField";
 export { default as StatCard } from "./StatCard";
 export { default as ThemeToggle } from "./ThemeToggle";
 export { default as PageToolbar } from "./PageToolbar";
+export { default as LoadingState } from "./LoadingState";
 
 export type { BadgeProps, BadgeVariant } from "./Badge";
 
