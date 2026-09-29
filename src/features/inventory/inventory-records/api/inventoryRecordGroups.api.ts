@@ -92,7 +92,26 @@ export async function updateGroup({
   return data as Group;
 }
 
-export async function deleteGroup({ id }: DeleteGroupInput): Promise<void> {
+export async function deleteGroup({
+  id,
+  account_id,
+}: DeleteGroupInput): Promise<void> {
+  const { data: group, error: validationError } = await supabase
+    .from(TABLE)
+    .select("id")
+    .eq("id", id)
+    .eq("account_id", account_id)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (validationError) {
+    throw validationError;
+  }
+
+  if (!group) {
+    throw new Error("Inventory group not found.");
+  }
+
   const { error } = await supabase.rpc("delete_group_and_unassign_records", {
     p_group_id: id,
   });
@@ -108,6 +127,29 @@ export async function reorderGroups({
 }: ReorderGroupsInput): Promise<void> {
   if (!groups.length) {
     return;
+  }
+
+  const ids = groups.map((group) => group.id);
+
+  if (new Set(ids).size !== ids.length) {
+    throw new Error("Duplicate inventory groups cannot be reordered.");
+  }
+
+  const { data: validGroups, error: validationError } = await supabase
+    .from(TABLE)
+    .select("id")
+    .eq("account_id", accountId)
+    .in("id", ids)
+    .is("deleted_at", null);
+
+  if (validationError) {
+    throw validationError;
+  }
+
+  if (validGroups?.length !== groups.length) {
+    throw new Error(
+      "One or more inventory groups are no longer available for this account.",
+    );
   }
 
   const updates = groups.map(({ id, sort_order }) =>

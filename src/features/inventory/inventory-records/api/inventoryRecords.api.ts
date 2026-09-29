@@ -13,6 +13,33 @@ import type {
 
 const TABLE = "inventory_records";
 
+async function validateGroupOwnership(
+  accountId: number,
+  groupId: number | null,
+): Promise<void> {
+  if (groupId === null) {
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("groups")
+    .select("id")
+    .eq("id", groupId)
+    .eq("account_id", accountId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error(
+      "The selected group does not belong to this inventory account.",
+    );
+  }
+}
+
 async function getNextRecordSortOrder(
   accountId: number,
   inventoryType: InventoryType,
@@ -73,6 +100,8 @@ export async function getInventoryRecords(
 }
 
 export async function createInventoryRecord(values: InventoryRecordInput) {
+  await validateGroupOwnership(values.account_id, values.group_id);
+
   const sortOrder = await getNextRecordSortOrder(
     values.account_id,
     values.inventory_type,
@@ -118,6 +147,8 @@ export async function updateInventoryRecord({
     throw new Error("Inventory record not found.");
   }
 
+  await validateGroupOwnership(account_id, values.group_id);
+
   let sortOrder = currentRecord.sort_order;
 
   if (values.group_id !== currentRecord.group_id) {
@@ -134,6 +165,7 @@ export async function updateInventoryRecord({
       group_id: values.group_id,
       data: values.data,
       sort_order: sortOrder,
+      updated_at: new Date().toISOString(),
     })
     .eq("id", id)
     .eq("account_id", account_id)
@@ -175,6 +207,33 @@ export async function bulkCreateInventoryRecords(
   if (!records.length) {
     return [];
   }
+
+  const groupAssignments = new Map<
+    string,
+    {
+      accountId: number;
+      groupId: number;
+    }
+  >();
+
+  for (const record of records) {
+    if (record.group_id === null) {
+      continue;
+    }
+
+    const key = `${record.account_id}:${record.group_id}`;
+
+    groupAssignments.set(key, {
+      accountId: record.account_id,
+      groupId: record.group_id,
+    });
+  }
+
+  await Promise.all(
+    [...groupAssignments.values()].map(({ accountId, groupId }) =>
+      validateGroupOwnership(accountId, groupId),
+    ),
+  );
 
   const groupedRecords = new Map<string, InventoryRecordInput[]>();
 
@@ -239,6 +298,28 @@ export async function bulkDeleteInventoryRecords({
     return;
   }
 
+  if (new Set(ids).size !== ids.length) {
+    throw new Error("Duplicate inventory records cannot be deleted.");
+  }
+
+  const { data: records, error: validationError } = await supabase
+    .from(TABLE)
+    .select("id")
+    .in("id", ids)
+    .eq("account_id", account_id)
+    .eq("inventory_type", inventory_type)
+    .is("deleted_at", null);
+
+  if (validationError) {
+    throw validationError;
+  }
+
+  if (records?.length !== ids.length) {
+    throw new Error(
+      "One or more selected inventory records are no longer available.",
+    );
+  }
+
   const { error } = await supabase
     .from(TABLE)
     .update({
@@ -264,6 +345,12 @@ export async function bulkAssignGroup({
     return;
   }
 
+  if (new Set(ids).size !== ids.length) {
+    throw new Error("Duplicate inventory records cannot be assigned.");
+  }
+
+  await validateGroupOwnership(account_id, group_id);
+
   const { data: records, error: readError } = await supabase
     .from(TABLE)
     .select("id")
@@ -275,10 +362,6 @@ export async function bulkAssignGroup({
 
   if (readError) {
     throw readError;
-  }
-
-  if (!records?.length) {
-    return;
   }
 
   if (records.length !== ids.length) {
@@ -326,6 +409,10 @@ export async function reorderInventoryRecords({
   }
 
   const ids = records.map((record) => record.id);
+
+  if (new Set(ids).size !== ids.length) {
+    throw new Error("Duplicate inventory records cannot be reordered.");
+  }
 
   let validationQuery = supabase
     .from(TABLE)

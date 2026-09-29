@@ -1,8 +1,8 @@
+import { getInventoryAccounts } from "@/features/inventory/inventory-accounts/api/inventoryAccounts.api";
+import type { InventoryType } from "@/features/inventory/inventory-records";
 import { supabase } from "@/lib/supabase";
 
-import type { DashboardSummary, DashboardInventorySummary } from "../types";
-import type { InventoryType } from "@/features/inventory/inventory-records";
-import { getInventoryAccounts } from "@/features/inventory/inventory-accounts/api/inventoryAccounts.api";
+import type { DashboardInventorySummary, DashboardSummary } from "../types";
 
 async function buildSummary(
   inventoryType: InventoryType,
@@ -14,20 +14,31 @@ async function buildSummary(
     0,
   );
 
-  const { count, error } = await supabase
-    .from("inventory_records")
-    .select("*", {
-      count: "exact",
-      head: true,
-    })
-    .eq("inventory_type", inventoryType)
-    .is("deleted_at", null);
+  const accountIds = accounts.map((account) => account.id);
 
-  if (error) throw error;
+  let records = 0;
+
+  if (accountIds.length > 0) {
+    const { count, error } = await supabase
+      .from("inventory_records")
+      .select("*", {
+        count: "exact",
+        head: true,
+      })
+      .eq("inventory_type", inventoryType)
+      .in("account_id", accountIds)
+      .is("deleted_at", null);
+
+    if (error) {
+      throw error;
+    }
+
+    records = count ?? 0;
+  }
 
   return {
     total,
-    records: count ?? 0,
+    records,
   };
 }
 

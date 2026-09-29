@@ -198,6 +198,26 @@ export async function reorderInventoryAccounts({
     return;
   }
 
+  const ids = accounts.map((account) => account.id);
+
+  if (new Set(ids).size !== ids.length) {
+    throw new Error("Duplicate inventory accounts cannot be reordered.");
+  }
+
+  const { data: validAccounts, error: validationError } = await supabase
+    .from(INVENTORY_ACCOUNTS_TABLE)
+    .select("id")
+    .in("id", ids)
+    .is("deleted_at", null);
+
+  if (validationError) {
+    throw validationError;
+  }
+
+  if (validAccounts?.length !== accounts.length) {
+    throw new Error("One or more inventory accounts are no longer available.");
+  }
+
   const updates = accounts.map(({ id, sort_order }) =>
     supabase
       .from(INVENTORY_ACCOUNTS_TABLE)

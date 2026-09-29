@@ -55,6 +55,8 @@ export default function SearchField({
           "placeholder:text-slate-400",
           "focus:border-emerald-600",
           "focus:ring-2 focus:ring-emerald-600/15",
+          "[&::-webkit-search-cancel-button]:hidden",
+          "[&::-webkit-search-decoration]:hidden",
           "dark:border-slate-700",
           "dark:bg-slate-900",
           "dark:text-slate-100",

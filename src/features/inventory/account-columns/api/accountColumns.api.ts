@@ -176,6 +176,29 @@ export async function reorderAccountColumns({
     return;
   }
 
+  const ids = columns.map((column) => column.id);
+
+  if (new Set(ids).size !== ids.length) {
+    throw new Error("Duplicate inventory columns cannot be reordered.");
+  }
+
+  const { data: validColumns, error: validationError } = await supabase
+    .from(ACCOUNT_COLUMNS_TABLE)
+    .select("id")
+    .eq("account_id", accountId)
+    .in("id", ids)
+    .is("deleted_at", null);
+
+  if (validationError) {
+    throw validationError;
+  }
+
+  if (validColumns?.length !== columns.length) {
+    throw new Error(
+      "One or more inventory columns are no longer available for this account.",
+    );
+  }
+
   const updates = columns.map(({ id, display_order }) =>
     supabase
       .from(ACCOUNT_COLUMNS_TABLE)

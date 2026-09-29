@@ -19,7 +19,7 @@ function getInventoryTypeLabel(inventoryType: InventoryType) {
   }
 }
 
-function PublicRecordStatus({
+function PublicRecordStatus({    
   title,
   description,
 }: {
@@ -130,7 +130,7 @@ export default function PublicInventoryRecordPage() {
                   {getInventoryTypeLabel(record.inventory_type)}
                 </span>
 
-                <h2 className="mt-3 wrap-break-word text-xl font-bold text-slate-900 sm:text-2xl">
+                <h2 className="mt-3 wrap-break-word text-xl font-bold text-slate-900 sm:text-2xl uppercase">
                   {record.account_title}
                 </h2>
 
