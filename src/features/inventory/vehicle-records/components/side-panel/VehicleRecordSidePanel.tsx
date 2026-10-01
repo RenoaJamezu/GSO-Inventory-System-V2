@@ -6,6 +6,7 @@ import type { VehicleRecord } from "../../types";
 
 import VehicleRecordActions from "./VehicleRecordActions";
 import VehicleRecordFields from "./VehicleRecordFields";
+import { getVehicleInventoryValues } from "../../utils/getVehicleInventoryValues";
 
 type Props = {
   open: boolean;
@@ -27,6 +28,8 @@ export default function VehicleRecordSidePanel({
   if (!open || !vehicle) {
     return null;
   }
+
+  const inventory = getVehicleInventoryValues(vehicle);
 
   return (
     <>
@@ -80,7 +83,7 @@ export default function VehicleRecordSidePanel({
                 uppercase
               "
             >
-              {vehicle.plate_no}
+              {inventory.plateNumber || "NO PLATE NUMBER"}
             </h2>
 
             <p

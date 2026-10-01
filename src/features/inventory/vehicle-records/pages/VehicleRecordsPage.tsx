@@ -5,22 +5,25 @@ import { ChevronRight } from "lucide-react";
 
 import { ConfirmDialog } from "@/components/dialog";
 import { PageHeader } from "@/components/ui";
+import { PERMISSIONS, usePermissions } from "@/features/auth";
+
+import VehicleRecordBulkToolbar from "../components/VehicleRecordBulkToolbar";
+import VehicleRecordDialog from "../components/VehicleRecordDialog";
+import VehicleRecordsTable from "../components/VehicleRecordsTable";
+import VehicleRecordToolbar from "../components/VehicleRecordToolbar";
+import VehicleRecordSidePanel from "../components/side-panel/VehicleRecordSidePanel";
 
 import { useVehicleRecordFilters } from "../hooks/useVehicleRecordFilters";
+import { useVehicleRecordSelection } from "../hooks/useVehicleRecordSelection";
 
 import {
+  useBulkDeleteVehicleRecords,
   useDeleteVehicleRecord,
   useVehicleRecords,
 } from "../hooks/useVehicleRecords";
 
 import { useVehicleRecordView } from "../hooks/useVehicleRecordView";
-
-import VehicleRecordDialog from "../components/VehicleRecordDialog";
-import VehicleRecordsTable from "../components/VehicleRecordsTable";
-import VehicleRecordToolbar from "../components/VehicleRecordToolbar";
-
-import VehicleRecordSidePanel from "../components/side-panel/VehicleRecordSidePanel";
-import { PERMISSIONS, usePermissions } from "@/features/auth";
+import { exportVehicleRecords } from "../utils/exportVehicleRecords";
 
 export default function VehicleRecordsPage() {
   const vehiclesQuery = useVehicleRecords();
@@ -33,16 +36,24 @@ export default function VehicleRecordsPage() {
     vehicles,
   });
 
+  const selection = useVehicleRecordSelection();
+
   const deleteMutation = useDeleteVehicleRecord();
 
+  const bulkDeleteMutation = useBulkDeleteVehicleRecords();
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
 
   const { can } = usePermissions();
 
   const canDelete = can(PERMISSIONS.VEHICLE_DELETE);
 
   function requestDeleteOpenedVehicle() {
-    if (!canDelete) return;
+    if (!canDelete) {
+      return;
+    }
 
     if (!view.openedVehicle) {
       return;
@@ -60,7 +71,9 @@ export default function VehicleRecordsPage() {
   }
 
   async function confirmDeleteVehicle() {
-    if (!canDelete) return;
+    if (!canDelete) {
+      return;
+    }
 
     if (!view.openedVehicle) {
       return;
@@ -73,10 +86,59 @@ export default function VehicleRecordsPage() {
     try {
       await deleteMutation.mutateAsync(view.openedVehicle.id);
 
+      selection.clear();
+
       setDeleteDialogOpen(false);
+
       view.removeOpenedVehicle();
     } catch (error) {
       console.error("Failed deleting vehicle record", error);
+    }
+  }
+
+  function requestBulkDelete() {
+    if (!canDelete) {
+      return;
+    }
+
+    if (selection.selectedCount === 0) {
+      return;
+    }
+
+    setBulkDeleteDialogOpen(true);
+  }
+
+  function closeBulkDeleteDialog() {
+    if (bulkDeleteMutation.isPending) {
+      return;
+    }
+
+    setBulkDeleteDialogOpen(false);
+  }
+
+  async function confirmBulkDelete() {
+    if (!canDelete) {
+      return;
+    }
+
+    if (selection.selectedCount === 0) {
+      return;
+    }
+
+    if (bulkDeleteMutation.isPending) {
+      return;
+    }
+
+    try {
+      await bulkDeleteMutation.mutateAsync(selection.selectedIds);
+
+      selection.clear();
+
+      setBulkDeleteDialogOpen(false);
+
+      view.closeSidePanel();
+    } catch (error) {
+      console.error("Failed deleting selected vehicle records", error);
     }
   }
 
@@ -111,7 +173,6 @@ export default function VehicleRecordsPage() {
   return (
     <>
       <div className="space-y-6">
-        {/* Breadcrumb */}
         <nav
           aria-label="Breadcrumb"
           className="flex items-center gap-1.5 text-sm"
@@ -156,6 +217,7 @@ export default function VehicleRecordsPage() {
           onSortChange={filters.setSort}
           years={filters.years}
           onAdd={view.createVehicle}
+          onExport={() => exportVehicleRecords(filters.filteredVehicles)}
         />
 
         <div
@@ -188,8 +250,17 @@ export default function VehicleRecordsPage() {
           )}
         </div>
 
+        <VehicleRecordBulkToolbar
+          selectedCount={selection.selectedCount}
+          isDeleting={bulkDeleteMutation.isPending}
+          onDelete={requestBulkDelete}
+        />
+
         <VehicleRecordsTable
           vehicles={filters.filteredVehicles}
+          selectedIds={selection.selectedSet}
+          onToggleVehicle={selection.toggle}
+          onToggleAll={selection.toggleAll}
           onOpenVehicle={view.openVehicle}
           onEditVehicle={view.editVehicle}
         />
@@ -213,12 +284,31 @@ export default function VehicleRecordsPage() {
         <ConfirmDialog
           open={deleteDialogOpen}
           title="Delete Vehicle Record"
-          description={`Are you sure you want to delete vehicle "${view.openedVehicle?.plate_no ?? ""}"?`}
+          description={`Are you sure you want to delete vehicle "${
+            view.openedVehicle?.plate_no ?? ""
+          }"?`}
           confirmText="Delete Vehicle"
           loading={deleteMutation.isPending}
           loadingText="Deleting..."
           onClose={closeDeleteDialog}
           onConfirm={confirmDeleteVehicle}
+        />
+      )}
+
+      {canDelete && (
+        <ConfirmDialog
+          open={bulkDeleteDialogOpen}
+          title="Delete Selected Vehicle Records"
+          description={`Are you sure you want to delete ${
+            selection.selectedCount
+          } selected vehicle record${
+            selection.selectedCount === 1 ? "" : "s"
+          }?`}
+          confirmText="Delete Selected"
+          loading={bulkDeleteMutation.isPending}
+          loadingText="Deleting..."
+          onClose={closeBulkDeleteDialog}
+          onConfirm={confirmBulkDelete}
         />
       )}
     </>

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -11,10 +11,11 @@ import {
   DialogHeader,
 } from "@/components/dialog";
 
-import { FormField, FormInput, FormNumberInput } from "@/components/form";
+import { FormField, FormInput } from "@/components/form";
 import { Button } from "@/components/ui";
 
 import {
+  useAvailableMotorVehicleInventoryRecords,
   useCreateVehicleRecord,
   useUpdateVehicleRecord,
 } from "../hooks/useVehicleRecords";
@@ -25,6 +26,7 @@ import {
 } from "../schemas/vehicleRecord.schema";
 
 import type { VehicleRecord, VehicleRecordInput } from "../types";
+import VehicleInventorySelect from "./VehicleInventorySelect";
 
 type Props = {
   open: boolean;
@@ -33,18 +35,16 @@ type Props = {
 };
 
 const emptyValues: VehicleRecordFormValues = {
+  inventory_record_id: 0,
   model: "",
   engine_no: "",
   chassis_no: "",
-  plate_no: "",
   office: "",
   memorandum_receipt: "",
   driver: "",
   cellphone_no: "",
   expiration_date: "",
-  property_no: "",
   date_acquired: "",
-  cost: null,
 };
 
 export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
@@ -53,6 +53,10 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
 
   const isEdit = Boolean(vehicle);
 
+  const inventoryQuery = useAvailableMotorVehicleInventoryRecords(
+    vehicle?.inventory_record_id,
+  );
+
   const {
     register,
     handleSubmit,
@@ -60,17 +64,30 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
     setError,
     setValue,
     control,
-
     formState: { errors, isSubmitting },
   } = useForm<VehicleRecordFormValues>({
     resolver: zodResolver(vehicleRecordSchema),
     defaultValues: emptyValues,
   });
 
-  const cost = useWatch({
+  const inventoryRecordId = useWatch({
     control,
-    name: "cost",
+    name: "inventory_record_id",
   });
+
+  const inventoryRecords = useMemo(
+    () => inventoryQuery.data ?? [],
+    [inventoryQuery.data],
+  );
+
+  const selectedInventoryRecord = useMemo(
+    () =>
+      inventoryRecords.find((record) => record.id === inventoryRecordId) ??
+      null,
+    [inventoryRecords, inventoryRecordId],
+  );
+
+  const inventoryData = selectedInventoryRecord?.data ?? {};
 
   const loading =
     isSubmitting || createMutation.isPending || updateMutation.isPending;
@@ -80,18 +97,16 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
 
     if (vehicle) {
       reset({
+        inventory_record_id: vehicle.inventory_record_id ?? 0,
         model: vehicle.model ?? "",
         engine_no: vehicle.engine_no ?? "",
         chassis_no: vehicle.chassis_no ?? "",
-        plate_no: vehicle.plate_no ?? "",
         office: vehicle.office ?? "",
         memorandum_receipt: vehicle.memorandum_receipt ?? "",
         driver: vehicle.driver ?? "",
         cellphone_no: vehicle.cellphone_no ?? "",
         expiration_date: vehicle.expiration_date ?? "",
-        property_no: vehicle.property_no ?? "",
         date_acquired: vehicle.date_acquired ?? "",
-        cost: vehicle.cost,
       });
 
       return;
@@ -101,13 +116,47 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
   }, [open, vehicle, reset]);
 
   async function onSubmit(values: VehicleRecordFormValues) {
+    const isLegacyUnlinkedEdit =
+      isEdit && vehicle?.inventory_record_id === null;
+
+    if (!isLegacyUnlinkedEdit && values.inventory_record_id <= 0) {
+      setError("inventory_record_id", {
+        type: "server",
+        message: "Motor Vehicle inventory record is required.",
+      });
+
+      return;
+    }
+
+    const selectedRecord =
+      values.inventory_record_id > 0
+        ? inventoryRecords.find(
+            (record) => record.id === values.inventory_record_id,
+          )
+        : null;
+
+    if (values.inventory_record_id > 0 && !selectedRecord) {
+      setError("inventory_record_id", {
+        type: "server",
+        message: "Select a valid Motor Vehicle inventory record.",
+      });
+
+      return;
+    }
+
+    const data = selectedRecord?.data ?? {};
+
     const payload: VehicleRecordInput = {
+      inventory_record_id: selectedRecord?.id ?? null,
+
       model: values.model.trim(),
 
       engine_no: toNullableString(values.engine_no),
       chassis_no: toNullableString(values.chassis_no),
 
-      plate_no: values.plate_no.trim().toUpperCase(),
+      plate_no: selectedRecord
+        ? getInventoryString(data, "plate_number").toUpperCase()
+        : (vehicle?.plate_no ?? ""),
 
       office: toNullableString(values.office),
       memorandum_receipt: toNullableString(values.memorandum_receipt),
@@ -117,10 +166,15 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
 
       expiration_date: toNullableString(values.expiration_date),
 
-      property_no: toNullableString(values.property_no),
+      property_no: selectedRecord
+        ? toNullableString(getInventoryString(data, "property_number"))
+        : (vehicle?.property_no ?? null),
+
       date_acquired: toNullableString(values.date_acquired),
 
-      cost: values.cost,
+      cost: selectedRecord
+        ? getInventoryNumber(data, "unit_value")
+        : (vehicle?.cost ?? null),
     };
 
     try {
@@ -140,10 +194,11 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
       if (isPostgresDuplicateError(error)) {
         const message = getDuplicateMessage(error);
 
-        if (message.includes("plate")) {
-          setError("plate_no", {
+        if (message.includes("inventory_record")) {
+          setError("inventory_record_id", {
             type: "server",
-            message: "This plate number already exists.",
+            message:
+              "This inventory record is already linked to another vehicle.",
           });
 
           return;
@@ -184,14 +239,14 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
   return (
     <Dialog
       open={open}
-      maxWidth="sm"
+      maxWidth="lg"
       onClose={loading ? undefined : handleClose}
     >
       <DialogHeader title={isEdit ? "Edit Vehicle" : "Add Vehicle"}>
         <p className="mt-1 text-sm font-normal text-slate-500 dark:text-slate-400">
           {isEdit
-            ? "Update the information for this municipal vehicle."
-            : "Create a new municipal vehicle record."}
+            ? "Update the vehicle details and linked inventory record."
+            : "Select a Motor Vehicle inventory record and add its vehicle details."}
         </p>
       </DialogHeader>
 
@@ -201,19 +256,106 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
       >
         <DialogBody>
           <div className="space-y-6">
-            {/* Vehicle Identification */}
             <section className="space-y-4">
               <div>
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  Vehicle Identification
+                  Motor Vehicle Inventory
                 </h3>
 
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  Basic identifying information for the municipal vehicle.
+                  Select the inventory asset associated with this vehicle.
                 </p>
               </div>
 
-              <div className="grid gap-4">
+              <FormField label="Motor Vehicle" required>
+                <VehicleInventorySelect
+                  value={inventoryRecordId}
+                  options={inventoryRecords}
+                  disabled={loading || inventoryQuery.isLoading}
+                  onChange={(value) => {
+                    setValue("inventory_record_id", value, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+                  }}
+                />
+
+                {errors.inventory_record_id && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {errors.inventory_record_id.message}
+                  </p>
+                )}
+
+                {inventoryQuery.isError && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    Unable to load Motor Vehicle inventory records.
+                  </p>
+                )}
+              </FormField>
+            </section>
+
+            {selectedInventoryRecord && (
+              <section className="space-y-4 border-t border-slate-200 pt-6 dark:border-slate-800">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    Inventory Information
+                  </h3>
+
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    These values come directly from the Inventory module.
+                  </p>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <ReadOnlyField
+                    label="Description"
+                    value={getInventoryString(inventoryData, "description")}
+                  />
+
+                  <ReadOnlyField
+                    label="Plate Number"
+                    value={getInventoryString(inventoryData, "plate_number")}
+                  />
+
+                  <ReadOnlyField
+                    label="Property Number"
+                    value={getInventoryString(inventoryData, "property_number")}
+                  />
+
+                  <ReadOnlyField
+                    label="Unit Value"
+                    value={formatCurrency(
+                      getInventoryNumber(inventoryData, "unit_value"),
+                    )}
+                  />
+
+                  <ReadOnlyField
+                    label="Inventory Date"
+                    value={getInventoryString(inventoryData, "date")}
+                  />
+
+                  <ReadOnlyField
+                    label="Inventory Type"
+                    value={formatInventoryType(
+                      selectedInventoryRecord.inventory_type,
+                    )}
+                  />
+                </div>
+              </section>
+            )}
+
+            <section className="space-y-4 border-t border-slate-200 pt-6 dark:border-slate-800">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Additional Vehicle Information
+                </h3>
+
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Enter information specific to the vehicle record.
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
                 <FormField label="Model" required>
                   <FormInput
                     placeholder="e.g. Toyota Hilux"
@@ -224,20 +366,6 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                   {errors.model && (
                     <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                       {errors.model.message}
-                    </p>
-                  )}
-                </FormField>
-
-                <FormField label="Plate No." required>
-                  <FormInput
-                    placeholder="e.g. ABC-1234"
-                    className="uppercase"
-                    {...register("plate_no")}
-                  />
-
-                  {errors.plate_no && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.plate_no.message}
                     </p>
                   )}
                 </FormField>
@@ -269,44 +397,13 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                     </p>
                   )}
                 </FormField>
-              </div>
-            </section>
 
-            {/* Assignment Information */}
-            <section
-              className="
-                space-y-4
-                border-t
-                border-slate-200
-                pt-6
-
-                dark:border-slate-800
-              "
-            >
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  Assignment Information
-                </h3>
-
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  Record the assigned office, accountable document, driver, and
-                  contact information.
-                </p>
-              </div>
-
-              <div className="grid gap-4">
                 <FormField label="Office">
                   <FormInput
                     placeholder="Enter assigned office"
                     className="uppercase"
                     {...register("office")}
                   />
-
-                  {errors.office && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.office.message}
-                    </p>
-                  )}
                 </FormField>
 
                 <FormField label="Memorandum Receipt">
@@ -315,12 +412,6 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                     className="uppercase"
                     {...register("memorandum_receipt")}
                   />
-
-                  {errors.memorandum_receipt && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.memorandum_receipt.message}
-                    </p>
-                  )}
                 </FormField>
 
                 <FormField label="Driver">
@@ -329,132 +420,28 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
                     className="uppercase"
                     {...register("driver")}
                   />
-
-                  {errors.driver && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.driver.message}
-                    </p>
-                  )}
                 </FormField>
 
                 <FormField label="Cellphone No.">
                   <FormInput
                     placeholder="e.g. 09171234567"
-                    className="uppercase"
                     inputMode="tel"
                     {...register("cellphone_no")}
                   />
-
-                  {errors.cellphone_no && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.cellphone_no.message}
-                    </p>
-                  )}
-                </FormField>
-              </div>
-            </section>
-
-            {/* Property and Registration */}
-            <section
-              className="
-                space-y-4
-                border-t
-                border-slate-200
-                pt-6
-
-                dark:border-slate-800
-              "
-            >
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  Property and Registration
-                </h3>
-
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  Property, acquisition, cost, and registration information.
-                </p>
-              </div>
-
-              <div className="grid gap-4">
-                <FormField label="Property No.">
-                  <FormInput
-                    placeholder="Enter property number"
-                    className="uppercase"
-                    {...register("property_no")}
-                  />
-
-                  {errors.property_no && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.property_no.message}
-                    </p>
-                  )}
-                </FormField>
-
-                <FormField label="Date Acquired">
-                  <FormInput
-                    type="date"
-                    className="uppercase"
-                    {...register("date_acquired")}
-                  />
-
-                  {errors.date_acquired && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.date_acquired.message}
-                    </p>
-                  )}
-                </FormField>
-
-                <FormField label="Cost">
-                  <FormNumberInput
-                    value={cost}
-                    onValueChange={(value) => {
-                      setValue("cost", value ?? null, {
-                        shouldDirty: true,
-                        shouldValidate: true,
-                      });
-                    }}
-                    min={0}
-                    maximumFractionDigits={2}
-                    placeholder="0.00"
-                  />
-
-                  {errors.cost && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.cost.message}
-                    </p>
-                  )}
                 </FormField>
 
                 <FormField label="Expiration Date">
-                  <FormInput
-                    type="date"
-                    className="uppercase"
-                    {...register("expiration_date")}
-                  />
+                  <FormInput type="date" {...register("expiration_date")} />
+                </FormField>
 
-                  {errors.expiration_date && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.expiration_date.message}
-                    </p>
-                  )}
+                <FormField label="Date Acquired">
+                  <FormInput type="date" {...register("date_acquired")} />
                 </FormField>
               </div>
             </section>
 
-            {/* General server error */}
             {errors.root?.message && (
-              <div
-                className="
-                  flex items-start gap-3
-                  rounded-md
-                  border border-red-200
-                  bg-red-50
-                  p-3
-
-                  dark:border-red-900/60
-                  dark:bg-red-950/30
-                "
-              >
+              <div className="flex items-start gap-3 rounded-md border border-red-200 bg-red-50 p-3 dark:border-red-900/60 dark:bg-red-950/30">
                 <AlertTriangle
                   size={18}
                   className="mt-0.5 shrink-0 text-red-600 dark:text-red-400"
@@ -484,13 +471,92 @@ export default function VehicleRecordDialog({ open, vehicle, onClose }: Props) {
             Cancel
           </Button>
 
-          <Button type="submit" loading={loading}>
+          <Button
+            type="submit"
+            loading={loading}
+            disabled={inventoryQuery.isLoading || inventoryQuery.isError}
+          >
             {isEdit ? "Save Changes" : "Add Vehicle"}
           </Button>
         </DialogFooter>
       </form>
     </Dialog>
   );
+}
+
+function ReadOnlyField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        {label}
+      </p>
+
+      <p className="mt-1 min-h-5 wrap-break-word text-sm font-medium uppercase text-slate-900 dark:text-slate-100">
+        {value || "—"}
+      </p>
+    </div>
+  );
+}
+
+function getInventoryString(
+  data: Record<string, unknown>,
+  key: string,
+): string {
+  const value = data[key];
+
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value).trim();
+}
+
+function getInventoryNumber(
+  data: Record<string, unknown>,
+  key: string,
+): number | null {
+  const value = data[key];
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value.replace(/,/g, ""));
+
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+function formatCurrency(value: number | null): string {
+  if (value === null) {
+    return "";
+  }
+
+  return new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function formatInventoryType(value: string): string {
+  switch (value) {
+    case "HIGH_COST":
+      return "High Cost";
+
+    case "LOW_COST":
+      return "Low Cost";
+
+    case "PAR":
+      return "PAR";
+
+    default:
+      return value.replaceAll("_", " ");
+  }
 }
 
 function toNullableString(value: string): string | null {

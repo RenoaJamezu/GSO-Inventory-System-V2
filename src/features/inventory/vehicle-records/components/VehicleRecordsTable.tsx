@@ -1,33 +1,46 @@
 import { Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui";
+import { PERMISSIONS, usePermissions } from "@/features/auth";
 
 import type { VehicleRecord } from "../types";
 
 import { formatVehicleDate } from "../utils/formatVehicleDate";
-
 import {
   getVehicleExpirationStatus,
   getVehicleExpirationStatusLabel,
 } from "../utils/getVehicleExpirationStatus";
-import { PERMISSIONS, usePermissions } from "@/features/auth";
+import { getVehicleInventoryValues } from "../utils/getVehicleInventoryValues";
 
 type Props = {
   vehicles: VehicleRecord[];
-
+  selectedIds: Set<number>;
+  onToggleVehicle: (id: number) => void;
+  onToggleAll: (ids: number[]) => void;
   onOpenVehicle: (vehicle: VehicleRecord) => void;
-
   onEditVehicle: (vehicle: VehicleRecord) => void;
 };
 
 export default function VehicleRecordsTable({
   vehicles,
+  selectedIds,
+  onToggleVehicle,
+  onToggleAll,
   onOpenVehicle,
   onEditVehicle,
 }: Props) {
   const { can } = usePermissions();
 
   const canEdit = can(PERMISSIONS.VEHICLE_UPDATE);
+
+  const visibleIds = vehicles.map((vehicle) => vehicle.id);
+
+  const allSelected =
+    visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+
+  const someSelected =
+    visibleIds.some((id) => selectedIds.has(id)) && !allSelected;
+
   return (
     <div
       className="
@@ -40,8 +53,8 @@ export default function VehicleRecordsTable({
         dark:bg-slate-900
       "
     >
-      <div className="max-h-[42rem] overflow-auto">
-        <table className="min-w-[1100px] w-full border-collapse">
+      <div className="max-h-168 overflow-auto">
+        <table className="min-w-275 w-full border-collapse">
           <thead className="sticky top-0 z-10">
             <tr
               className="
@@ -59,6 +72,21 @@ export default function VehicleRecordsTable({
                 dark:text-slate-400
               "
             >
+              <th className="w-12 px-3 py-3 text-center">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  ref={(element) => {
+                    if (element) {
+                      element.indeterminate = someSelected;
+                    }
+                  }}
+                  onChange={() => onToggleAll(visibleIds)}
+                  aria-label="Select all visible vehicle records"
+                  className="h-4 w-4 cursor-pointer accent-emerald-600"
+                />
+              </th>
+
               <th className="whitespace-nowrap px-4 py-3 text-left">
                 Plate No.
               </th>
@@ -93,11 +121,8 @@ export default function VehicleRecordsTable({
             {vehicles.length === 0 ? (
               <tr>
                 <td
-                  colSpan={canEdit ? 9 : 8}
-                  className="
-                    px-6 py-16
-                    text-center
-                  "
+                  colSpan={canEdit ? 10 : 9}
+                  className="px-6 py-16 text-center"
                 >
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
                     No vehicle records found
@@ -110,6 +135,8 @@ export default function VehicleRecordsTable({
               </tr>
             ) : (
               vehicles.map((vehicle) => {
+                const inventory = getVehicleInventoryValues(vehicle);
+
                 const status = getVehicleExpirationStatus(
                   vehicle.expiration_date,
                 );
@@ -119,19 +146,34 @@ export default function VehicleRecordsTable({
                     key={vehicle.id}
                     onClick={() => onOpenVehicle(vehicle)}
                     className="
-                        cursor-pointer
-                        bg-white
-                        transition-colors
-                        hover:bg-slate-50
+                      cursor-pointer
+                      bg-white
+                      uppercase
+                      transition-colors
+                      hover:bg-slate-50
 
-                        dark:bg-slate-900
-                        dark:hover:bg-slate-800/50
-                        uppercase
-                      "
+                      dark:bg-slate-900
+                      dark:hover:bg-slate-800/50
+                    "
                   >
+                    <td
+                      className="w-12 px-3 py-3 text-center"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(vehicle.id)}
+                        onChange={() => onToggleVehicle(vehicle.id)}
+                        aria-label={`Select vehicle ${
+                          inventory.plateNumber || vehicle.model
+                        }`}
+                        className="h-4 w-4 cursor-pointer accent-emerald-600"
+                      />
+                    </td>
+
                     <td className="whitespace-nowrap px-4 py-3.5">
                       <span className="font-semibold text-slate-900 dark:text-slate-100">
-                        {vehicle.plate_no || "—"}
+                        {inventory.plateNumber || "—"}
                       </span>
                     </td>
 
@@ -156,11 +198,11 @@ export default function VehicleRecordsTable({
                     </td>
 
                     <td className="whitespace-nowrap px-4 py-3.5 text-sm text-slate-700 dark:text-slate-300">
-                      {vehicle.property_no || "—"}
+                      {inventory.propertyNumber || "—"}
                     </td>
 
                     <td className="whitespace-nowrap px-4 py-3.5 text-right text-sm font-medium tabular-nums text-slate-800 dark:text-slate-200">
-                      {formatCost(vehicle.cost)}
+                      {formatCost(inventory.unitValue)}
                     </td>
 
                     {canEdit && (
@@ -173,7 +215,9 @@ export default function VehicleRecordsTable({
                           variant="ghost"
                           size="sm"
                           onClick={() => onEditVehicle(vehicle)}
-                          aria-label={`Edit vehicle ${vehicle.plate_no}`}
+                          aria-label={`Edit vehicle ${
+                            inventory.plateNumber || vehicle.model
+                          }`}
                         >
                           <Pencil size={16} />
                         </Button>
@@ -216,7 +260,7 @@ function StatusBadge({
           text-red-700
 
           dark:border-red-900
-          dark:bg-red-950/40
+          dark:bg-red-950/30
           dark:text-red-300
         `
       : status === "EXPIRING_SOON"
@@ -226,7 +270,7 @@ function StatusBadge({
             text-amber-700
 
             dark:border-amber-900
-            dark:bg-amber-950/40
+            dark:bg-amber-950/30
             dark:text-amber-300
           `
         : status === "VALID"
@@ -236,12 +280,12 @@ function StatusBadge({
               text-emerald-700
 
               dark:border-emerald-900
-              dark:bg-emerald-950/40
+              dark:bg-emerald-950/30
               dark:text-emerald-300
             `
           : `
               border-slate-200
-              bg-slate-100
+              bg-slate-50
               text-slate-600
 
               dark:border-slate-700
@@ -257,7 +301,8 @@ function StatusBadge({
         rounded-full
         border
         px-2.5 py-1
-        text-xs font-medium
+        text-xs
+        font-semibold
         ${className}
       `}
     >

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 import type { VehicleRecord } from "../types";
+import { getVehicleInventoryValues } from "../utils/getVehicleInventoryValues";
 
 export type VehicleSortOption =
   | "PLATE_ASC"
@@ -42,16 +43,18 @@ export function useVehicleRecordFilters({ vehicles }: Params) {
     const normalizedSearch = search.trim().toLowerCase();
 
     const result = vehicles.filter((vehicle) => {
+      const inventory = getVehicleInventoryValues(vehicle);
       const matchesSearch =
         normalizedSearch === "" ||
         [
-          vehicle.plate_no,
+          inventory.plateNumber,
+          inventory.propertyNumber,
+          inventory.description,
           vehicle.model,
           vehicle.engine_no,
           vehicle.chassis_no,
           vehicle.office,
           vehicle.driver,
-          vehicle.property_no,
         ].some((value) => value?.toLowerCase().includes(normalizedSearch));
 
       if (!matchesSearch) {
@@ -82,9 +85,11 @@ export function useVehicleRecordFilters({ vehicles }: Params) {
     });
 
     return [...result].sort((a, b) => {
+      const inventoryA = getVehicleInventoryValues(a);
+      const inventoryB = getVehicleInventoryValues(b);
       switch (sort) {
         case "PLATE_DESC":
-          return b.plate_no.localeCompare(a.plate_no);
+          return inventoryB.plateNumber.localeCompare(inventoryA.plateNumber);
 
         case "EXPIRATION_ASC":
           return compareNullableDates(a.expiration_date, b.expiration_date);
@@ -99,14 +104,20 @@ export function useVehicleRecordFilters({ vehicles }: Params) {
           return compareNullableDates(b.date_acquired, a.date_acquired);
 
         case "COST_ASC":
-          return compareNullableNumbers(a.cost, b.cost);
+          return compareNullableNumbers(
+            inventoryA.unitValue,
+            inventoryB.unitValue,
+          );
 
         case "COST_DESC":
-          return compareNullableNumbers(b.cost, a.cost);
+          return compareNullableNumbers(
+            inventoryB.unitValue,
+            inventoryA.unitValue,
+          );
 
         case "PLATE_ASC":
         default:
-          return a.plate_no.localeCompare(b.plate_no);
+          return inventoryA.plateNumber.localeCompare(inventoryB.plateNumber);
       }
     });
   }, [vehicles, search, year, month, sort]);

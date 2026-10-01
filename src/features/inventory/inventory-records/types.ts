@@ -1,4 +1,5 @@
 import type * as XLSX from "xlsx";
+import type { VehicleInventoryData } from "../vehicle-records/types";
 
 export type InventoryRecordData = Record<string, unknown>;
 
@@ -129,3 +130,9 @@ export interface ReorderInventoryRecordsInput {
 
   records: InventoryRecordOrderUpdate[];
 }
+
+export type MotorVehicleInventoryOption = {
+  id: number;
+  inventory_type: string;
+  data: VehicleInventoryData;
+};

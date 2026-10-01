@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
+  bulkDeleteVehicleRecords,
   createVehicleRecord,
   deleteVehicleRecord,
+  getAvailableMotorVehicleInventoryRecords,
   getVehicleRecord,
   getVehicleRecords,
   updateVehicleRecord,
@@ -63,6 +65,34 @@ export function useDeleteVehicleRecord() {
 
   return useMutation({
     mutationFn: deleteVehicleRecord,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: vehicleRecordKeys.lists(),
+      });
+    },
+  });
+}
+
+export function useAvailableMotorVehicleInventoryRecords(
+  currentInventoryRecordId?: number | null,
+) {
+  return useQuery({
+    queryKey: [
+      "vehicle-records",
+      "available-motor-vehicles",
+      currentInventoryRecordId ?? null,
+    ],
+    queryFn: () =>
+      getAvailableMotorVehicleInventoryRecords(currentInventoryRecordId),
+  });
+}
+
+export function useBulkDeleteVehicleRecords() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: bulkDeleteVehicleRecords,
 
     onSuccess: () => {
       queryClient.invalidateQueries({

@@ -8,6 +8,7 @@ import {
   getVehicleExpirationStatus,
   getVehicleExpirationStatusLabel,
 } from "../../utils/getVehicleExpirationStatus";
+import { getVehicleInventoryValues } from "../../utils/getVehicleInventoryValues";
 
 type Props = {
   vehicle: VehicleRecord;
@@ -102,6 +103,7 @@ function Section({ title, children }: SectionProps) {
 }
 
 export default function VehicleRecordFields({ vehicle }: Props) {
+  const inventory = getVehicleInventoryValues(vehicle);
   const expirationStatus = getVehicleExpirationStatus(vehicle.expiration_date);
 
   return (
@@ -109,7 +111,9 @@ export default function VehicleRecordFields({ vehicle }: Props) {
       <Section title="Vehicle Information">
         <VehicleField label="Model">{vehicle.model || "—"}</VehicleField>
 
-        <VehicleField label="Plate No.">{vehicle.plate_no || "—"}</VehicleField>
+        <VehicleField label="Plate No.">
+          {inventory.plateNumber || "—"}
+        </VehicleField>
 
         <VehicleField label="Engine No.">
           {vehicle.engine_no || "—"}
@@ -136,7 +140,19 @@ export default function VehicleRecordFields({ vehicle }: Props) {
 
       <Section title="Property Information">
         <VehicleField label="Property No.">
-          {vehicle.property_no || "—"}
+          {inventory.propertyNumber || "—"}
+        </VehicleField>
+
+        <VehicleField label="Description">
+          {inventory.description || "—"}
+        </VehicleField>
+
+        <VehicleField label="Inventory Date">
+          {inventory.inventoryDate || "—"}
+        </VehicleField>
+
+        <VehicleField label="Inventory Type">
+          {formatInventoryType(inventory.inventoryType)}
         </VehicleField>
 
         <VehicleField label="Date Acquired">
@@ -144,7 +160,7 @@ export default function VehicleRecordFields({ vehicle }: Props) {
         </VehicleField>
 
         <VehicleField label="Cost">
-          {formatVehicleCost(vehicle.cost)}
+          {formatVehicleCost(inventory.unitValue)}
         </VehicleField>
       </Section>
 
@@ -170,6 +186,26 @@ function formatVehicleCost(value: number | null) {
     style: "currency",
     currency: "PHP",
   }).format(value);
+}
+
+function formatInventoryType(value: string) {
+  if (!value) {
+    return "—";
+  }
+
+  switch (value) {
+    case "HIGH_COST":
+      return "HIGH COST";
+
+    case "LOW_COST":
+      return "LOW COST";
+
+    case "PAR":
+      return "PAR";
+
+    default:
+      return value.replaceAll("_", " ");
+  }
 }
 
 function ExpirationStatus({

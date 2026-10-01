@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 
 import { Button, SearchField } from "@/components/ui";
 import { FormSelect } from "@/components/form";
@@ -24,6 +24,8 @@ type Props = {
   years: number[];
 
   onAdd: () => void;
+
+  onExport: () => void;
 };
 
 export default function VehicleRecordToolbar({
@@ -37,6 +39,7 @@ export default function VehicleRecordToolbar({
   onSortChange,
   years,
   onAdd,
+  onExport,
 }: Props) {
   const { can } = usePermissions();
 
@@ -67,7 +70,7 @@ export default function VehicleRecordToolbar({
           <SearchField
             value={search}
             onChange={onSearchChange}
-            placeholder="Search plate, model, office, driver..."
+            placeholder="Search plate, property, description, model..."
           />
         </div>
 
@@ -157,18 +160,25 @@ export default function VehicleRecordToolbar({
           />
 
           {canCreate && (
-            <Button
-              onClick={onAdd}
-              className="
+            <>
+              <Button type="button" variant="secondary" onClick={onExport}>
+                <Download size={16} />
+                Export
+              </Button>
+
+              <Button
+                onClick={onAdd}
+                className="
                 flex w-full
                 items-center justify-center gap-2
                 whitespace-nowrap
                 xl:w-auto
               "
-            >
-              <Plus size={17} />
-              Add Vehicle
-            </Button>
+              >
+                <Plus size={17} />
+                Add Vehicle
+              </Button>
+            </>
           )}
         </div>
       </div>
