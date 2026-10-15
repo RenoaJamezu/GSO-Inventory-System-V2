@@ -31,7 +31,7 @@ export default function InventoryRecordPrintLayout({ children }: Props) {
         className="
           box-border
           grid h-[11.69in] w-[8.27in]
-          grid-cols-2 grid-rows-5
+          grid-cols-2 grid-rows-4
           place-items-center
           bg-white
           px-[0.2in] py-[0.2in]

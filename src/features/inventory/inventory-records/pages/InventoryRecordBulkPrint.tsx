@@ -12,7 +12,7 @@ type Props = {
   records: PrintableRecord[];
 };
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 8;
 
 export default function InventoryRecordBulkPrint({ records }: Props) {
   const pages: PrintableRecord[][] = [];
