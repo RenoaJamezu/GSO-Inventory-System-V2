@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
@@ -42,7 +42,7 @@ export default function StockCardDialog({ open, stockCard, onClose }: Props) {
   const updateStockCard = useUpdateStockCard();
 
   const {
-    register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -141,45 +141,53 @@ export default function StockCardDialog({ open, stockCard, onClose }: Props) {
                 </p>
               </div>
 
-              <FormField label="Item" required>
-                <FormInput
-                  {...register("item")}
-                  placeholder="e.g. Bond Paper A4"
-                />
-
-                {errors.item?.message && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.item.message}
-                  </p>
+              <Controller
+                control={control}
+                name="item"
+                render={({ field }) => (
+                  <FormField
+                    label="Item"
+                    required
+                    error={errors.item?.message}
+                  >
+                    <FormInput
+                      {...field}
+                      placeholder="e.g. Bond Paper A4"
+                    />
+                  </FormField>
                 )}
-              </FormField>
+              />
 
-              <FormField label="Stock No." required>
-                <FormInput
-                  {...register("stock_no")}
-                  placeholder="e.g. OS-001"
-                />
-
-                {errors.stock_no?.message && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.stock_no.message}
-                  </p>
+              <Controller
+                control={control}
+                name="stock_no"
+                render={({ field }) => (
+                  <FormField
+                    label="Stock No."
+                    required
+                    error={errors.stock_no?.message}
+                  >
+                    <FormInput {...field} placeholder="e.g. OS-001" />
+                  </FormField>
                 )}
-              </FormField>
+              />
 
-              <FormField label="Description">
-                <FormTextarea
-                  rows={3}
-                  {...register("description")}
-                  placeholder="Enter item description"
-                />
-
-                {errors.description?.message && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.description.message}
-                  </p>
+              <Controller
+                control={control}
+                name="description"
+                render={({ field }) => (
+                  <FormField
+                    label="Description"
+                    error={errors.description?.message}
+                  >
+                    <FormTextarea
+                      {...field}
+                      rows={3}
+                      placeholder="Enter item description"
+                    />
+                  </FormField>
                 )}
-              </FormField>
+              />
             </section>
 
             <section className="space-y-4 border-t border-slate-200 pt-6 dark:border-slate-800">
@@ -194,38 +202,42 @@ export default function StockCardDialog({ open, stockCard, onClose }: Props) {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormField label="Unit of Measurement" required>
-                  <FormInput
-                    {...register("unit_of_measurement")}
-                    placeholder="e.g. Ream"
-                  />
-
-                  {errors.unit_of_measurement?.message && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.unit_of_measurement.message}
-                    </p>
+                <Controller
+                  control={control}
+                  name="unit_of_measurement"
+                  render={({ field }) => (
+                    <FormField
+                      label="Unit of Measurement"
+                      required
+                      error={errors.unit_of_measurement?.message}
+                    >
+                      <FormInput {...field} placeholder="e.g. Ream" />
+                    </FormField>
                   )}
-                </FormField>
+                />
 
-                <FormField label="Re-order Point">
-                  <FormInput
-                    type="number"
-                    min="0"
-                    step="1"
-                    {...register("reorder_point")}
-                    placeholder="Leave blank if unspecified"
-                  />
+                <Controller
+                  control={control}
+                  name="reorder_point"
+                  render={({ field }) => (
+                    <FormField
+                      label="Re-order Point"
+                      error={errors.reorder_point?.message}
+                    >
+                      <FormInput
+                        {...field}
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="Leave blank if unspecified"
+                      />
 
-                  {errors.reorder_point?.message && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.reorder_point.message}
-                    </p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        Leave blank when no re-order point has been specified.
+                      </p>
+                    </FormField>
                   )}
-
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Leave blank when no re-order point has been specified.
-                  </p>
-                </FormField>
+                />
               </div>
             </section>
           </div>
